@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-1.3.xsd">
+
+    <!-- Example & Related Services -->
+    <service verb="create" noun="Example" type="entity-auto">
+        <in-parameters>
+            <auto-parameters include="nonpk"/>
+            <parameter name="exampleTypeEnumId" required="true"/>
+            <parameter name="statusId" required="true"/>
+            <parameter name="exampleName" required="true"/>
+            <!-- This is automatic based on parameter type: <parameter name="exampleSize"><number-decimal/></parameter> -->
+            <parameter name="exampleEmail"><text-email/></parameter>
+            <parameter name="exampleUrl"><text-url/></parameter>
+        </in-parameters>
+        <out-parameters>
+            <auto-parameters include="pk" required="true"/>
+        </out-parameters>
+    </service>
+    <service verb="update" noun="Example" type="entity-auto">
+        <in-parameters>
+            <auto-parameters include="pk" required="true"/>
+            <auto-parameters include="nonpk"/>
+            <parameter name="exampleEmail"><text-email/></parameter>
+            <parameter name="exampleUrl"><text-url/></parameter>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="oldStatusId" type="String" required="true"/>
+        </out-parameters>
+    </service>
+    <!-- this follows standard pattern, so no need to define, SE will take care of it
+    <service verb="delete" noun="Example" type="entity-auto">
+        <in-parameters><auto-parameters include="pk" required="true"/></in-parameters>
+    </service>
+    -->
+
+    <service verb="create" noun="ExampleItem" type="entity-auto">
+        <in-parameters>
+            <auto-parameters include="pk" required="true"><exclude field-name="exampleItemSeqId"/></auto-parameters>
+            <auto-parameters include="nonpk"/>
+            <parameter name="description" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="exampleItemSeqId" type="String" required="true"/>
+        </out-parameters>
+    </service>
+    <!-- this follows standard pattern, so no need to define, SE will take care of it
+    <service verb="update" noun="ExampleItem" type="entity-auto">
+        <in-parameters>
+            <auto-parameters include="pk" required="true"/>
+            <auto-parameters include="nonpk"/>
+        </in-parameters>
+    </service>
+    <service verb="delete" noun="ExampleItem" type="entity-auto">
+        <in-parameters><auto-parameters include="pk" required="true"/></in-parameters>
+    </service>
+    -->
+
+    <!-- ExampleFeature Services -->
+    <service verb="create" noun="ExampleFeature" type="entity-auto">
+        <in-parameters>
+            <auto-parameters include="nonpk"/>
+            <parameter name="description" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <auto-parameters include="pk" required="true"/>
+        </out-parameters>
+    </service>
+    <!-- this follows standard pattern, so no need to define, SE will take care of it
+    <service verb="update" noun="ExampleFeature" type="entity-auto">
+        <in-parameters>
+            <auto-parameters include="pk" required="true"/>
+            <auto-parameters include="nonpk"/>
+        </in-parameters>
+    </service>
+    <service verb="delete" noun="ExampleFeature" type="entity-auto">
+        <in-parameters><auto-parameters include="pk" required="true"/></in-parameters>
+    </service>
+    -->
+
+    <service verb="create" noun="ExampleFeatureAppl" type="entity-auto">
+        <in-parameters>
+            <auto-parameters include="pk" required="true"/>
+            <auto-parameters include="nonpk"/>
+            <parameter name="fromDate" required="false"/>
+        </in-parameters>
+    </service>
+    <!-- this follows standard pattern, so no need to define, SE will take care of it
+    <service verb="update" noun="ExampleFeatureAppl" type="entity-auto">
+        <in-parameters>
+            <auto-parameters include="pk" required="true"/>
+            <auto-parameters include="nonpk"/>
+        </in-parameters>
+    </service>
+    <service verb="delete" noun="ExampleFeatureAppl" type="entity-auto">
+        <in-parameters><auto-parameters include="pk" required="true"/></in-parameters>
+    </service>
+    -->
+
+    <!-- Example ServiceTest Service -->
+    <service verb="test" noun="CreateExampleService" type="script"
+             location="component://example/script/org/moqui/example/testCreateExampleService.xml">
+        <implements service="testServiceInterface"/>
+    </service>
+
+    <!-- Example Camel services (one to call through Moqui Service Facade, one to be called when that service is called) -->
+    <service verb="localCamelExample" type="camel" location="moquiservice:org.moqui.example.ExampleServices.targetCamelExample">
+        <in-parameters>
+            <parameter name="testInput"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="testOutput"/>
+        </out-parameters>
+    </service>
+    <service verb="targetCamelExample" type="inline">
+        <in-parameters>
+            <parameter name="testInput"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="testOutput"/>
+        </out-parameters>
+        <actions>
+            <set field="result.testOutput" value="Here's the input: ${testInput}"/>
+            <log level="warn" message="targetCamelExample testOutput: ${result.testOutput}"/>
+        </actions>
+    </service>
+</services>

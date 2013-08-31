@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        default-menu-title="Auto Screen Entity List" default-menu-index="1">
+
+    <transition name="find">
+        <default-response url="../AutoFind"/>
+    </transition>
+
+    <actions>
+        <set field="allEntityList" from="ec.entity.getAllEntitiesInfo(orderByField?:'+entityName', false)"/>
+        <set field="masterEntityList" from="ec.entity.getAllEntitiesInfo(orderByField?:'+package', true)"/>
+    </actions>
+    <widgets>
+        <form-single name="SelectEntity" transition="find">
+            <field name="aen"><default-field title="All Entities">
+                <drop-down combo-box="true" allow-empty="true">
+                    <list-options list="allEntityList" key="${fullEntityName}"
+                                  text="${entityName} - ${context.package}"/>
+                </drop-down>
+            </default-field></field>
+            <field name="submitButton"><default-field title="Select"><submit/></default-field></field>
+            <field-layout><field-row><field-ref name="aen"/><field-ref name="submitButton"/></field-row></field-layout>
+        </form-single>
+        <form-list name="EntityList" list="masterEntityList">
+            <field name="package">
+                <header-field show-order-by="true"/>
+                <default-field><display also-hidden="false"/></default-field>
+            </field>
+            <field name="aen">
+                <header-field title="Master Entity" show-order-by="true"/>
+                <default-field><link url="find" text="${ec.entity.getEntityDefinition(entityName).getPrettyName(null, null)}">
+                    <parameter name="aen" from="fullEntityName"/>
+                </link></default-field>
+            </field>
+        </form-list>
+    </widgets>
+</screen>

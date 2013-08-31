@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<entity-facade-xml type="seed">
+    <!-- ScheduledService Statuses -->
+    <moqui.basic.StatusType description="Scheduled Service" parentTypeId="" statusTypeId="SCHED_SERVICE"/>
+    <moqui.basic.StatusItem description="Pending" sequenceNum="01" statusCode="PENDING" statusId="SCHSER_PENDING" statusTypeId="SCHED_SERVICE"/>
+    <moqui.basic.StatusItem description="Memory Queued" sequenceNum="02" statusCode="QUEUED" statusId="SCHSER_QUEUED" statusTypeId="SCHED_SERVICE"/>
+    <moqui.basic.StatusItem description="Running" sequenceNum="05" statusCode="RUNNING" statusId="SCHSER_RUNNING" statusTypeId="SCHED_SERVICE"/>
+    <moqui.basic.StatusItem description="Finished" sequenceNum="10" statusCode="FINISHED" statusId="SCHSER_FINISHED" statusTypeId="SCHED_SERVICE"/>
+    <moqui.basic.StatusItem description="Crashed" sequenceNum="40" statusCode="CRASHED" statusId="SCHSER_CRASHED" statusTypeId="SCHED_SERVICE"/>
+    <moqui.basic.StatusItem description="Cancelled" sequenceNum="99" statusCode="CANCELLED" statusId="SCHSER_CANCELLED" statusTypeId="SCHED_SERVICE"/>
+</entity-facade-xml>
