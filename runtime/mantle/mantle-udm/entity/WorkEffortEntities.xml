@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+
+This Work includes contributions authored by contributors to Apache OFBiz
+and those parts may be licensed under the Apache License 2.0.
+-->
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-1.3.xsd">
+
+    <!-- ========================================================= -->
+    <!--  - mantle.work.time -->
+    <!--  - mantle.work.effort -->
+    <!-- ========================================================= -->
+
+    <!-- ========================================================= -->
+    <!-- mantle.work.time -->
+    <!-- ========================================================= -->
+
+    <entity entity-name="TimeEntry" package-name="mantle.work.time">
+        <field name="timeEntryId" type="id" is-pk="true"/>
+        <field name="timesheetId" type="id"/>
+        <field name="partyId" type="id"/>
+        <field name="rateTypeEnumId" type="id"/>
+        <field name="rateAmountId" type="id"/>
+        <field name="fromDate" type="date-time"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="hours" type="number-decimal"/>
+        <field name="breakHours" type="number-decimal"/>
+        <field name="comments" type="text-long"/>
+        <field name="workEffortId" type="id"/>
+        <field name="invoiceId" type="id"/>
+        <field name="invoiceItemSeqId" type="id"/>
+        <relationship type="one" related-entity-name="mantle.work.time.Timesheet"/>
+        <relationship type="one" related-entity-name="mantle.party.Party"/>
+        <relationship type="one-nofk" related-entity-name="mantle.party.Person"/>
+        <relationship type="one" title="RateType" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="rateTypeEnumId"/>
+        </relationship>
+        <relationship type="one" related-entity-name="mantle.humanres.rate.RateAmount"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related-entity-name="InvoiceItem">
+            <key-map field-name="invoiceId"/>
+            <key-map field-name="invoiceItemSeqId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="Timesheet" package-name="mantle.work.time">
+        <field name="timesheetId" type="id" is-pk="true"/>
+        <field name="partyId" type="id"/>
+        <field name="clientPartyId" type="id"/>
+        <field name="fromDate" type="date-time"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="statusId" type="id" enable-audit-log="true"/>
+        <field name="comments" type="text-medium"/>
+        <relationship type="one" related-entity-name="Party"/>
+        <relationship type="one" title="Client" related-entity-name="Party">
+            <key-map field-name="clientPartyId"/>
+        </relationship>
+        <relationship type="one" title="Timesheet" related-entity-name="moqui.basic.StatusItem"/>
+        <seed-data>
+            <!-- Timesheet Status -->
+            <moqui.basic.StatusType description="Timesheet" statusTypeId="Timesheet"/>
+            <moqui.basic.StatusItem description="In-Process" sequenceNum="1" statusId="TIMESHEET_IN_PROCESS" statusTypeId="Timesheet"/>
+            <moqui.basic.StatusItem description="Completed" sequenceNum="2" statusId="TIMESHEET_COMPLETED" statusTypeId="Timesheet"/>
+            <moqui.basic.StatusItem description="Approved" sequenceNum="3" statusId="TIMESHEET_APPROVED" statusTypeId="Timesheet"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="TIMESHEET_IN_PROCESS" toStatusId="TIMESHEET_COMPLETED" transitionName="Confirm complete"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="TIMESHEET_COMPLETED" toStatusId="TIMESHEET_APPROVED" transitionName="Approve"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="TimesheetParty" package-name="mantle.work.time">
+        <field name="timesheetId" type="id" is-pk="true"/>
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="roleTypeId" type="id" is-pk="true"/>
+        <relationship type="one" related-entity-name="Timesheet"/>
+        <relationship type="one" related-entity-name="Party"/>
+        <relationship type="one" related-entity-name="RoleType"/>
+    </entity>
+    <view-entity entity-name="TimeEntrySummary" package-name="mantle.work.time">
+        <member-entity entity-alias="TENT" entity-name="mantle.work.time.TimeEntry"/>
+        <alias entity-alias="TENT" name="workEffortId"/>
+        <alias entity-alias="TENT" name="timesheetId"/>
+        <alias entity-alias="TENT" name="rateTypeEnumId"/>
+        <alias entity-alias="TENT" name="hours" function="sum"/>
+        <alias entity-alias="TENT" name="breakHours" function="sum"/>
+    </view-entity>
+    <view-entity entity-name="TaskTimeSummary" package-name="mantle.work.time">
+        <member-entity entity-alias="TENT" entity-name="mantle.work.effort.WorkEffort"/>
+        <alias entity-alias="TENT" name="rootWorkEffortId"/>
+        <alias entity-alias="TENT" name="estimatedWorkTime" function="sum"/>
+        <alias entity-alias="TENT" name="actualWorkTime" function="sum"/>
+    </view-entity>
+
+    <!-- ========================================================= -->
+    <!-- mantle.work.effort -->
+    <!-- ========================================================= -->
+
+    <entity entity-name="Deliverable" package-name="mantle.work.effort">
+        <field name="deliverableId" type="id" is-pk="true"/>
+        <field name="deliverableTypeEnumId" type="id"/>
+        <field name="deliverableName" type="text-medium"/>
+        <field name="description" type="text-medium"/>
+        <relationship type="one" title="DeliverableType" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="deliverableTypeEnumId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="WorkEffort" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="universalId" type="text-medium"/>
+        <field name="sourceReferenceId" type="id-long"/>
+        <field name="parentWorkEffortId" type="id"><description>For task/etc breakdown</description></field>
+        <field name="rootWorkEffortId" type="id"><description>The root of the tree this is part of (if applicable), like a project</description></field>
+
+        <field name="workEffortTypeEnumId" type="id"/>
+        <field name="purposeEnumId" type="id"/>
+        <field name="visibilityEnumId" type="id"/>
+
+        <field name="statusId" type="id" enable-audit-log="true"/>
+        <field name="statusFlowId" type="id-long"/>
+        <field name="priority" type="number-integer"/>
+        <field name="sendNotificationEmail" type="text-indicator"/>
+        <field name="percentComplete" type="number-integer"/>
+        <field name="revisionNumber" type="number-integer"/>
+
+        <field name="workEffortName" type="text-medium"/>
+        <field name="description" type="text-long"/>
+        <field name="location" type="text-medium"/>
+        <field name="facilityId" type="id"><description>Where the WorkEffort takes place</description></field>
+        <field name="infoUrl" type="text-medium"/>
+
+        <field name="estimatedStartDate" type="date-time"/>
+        <field name="estimatedCompletionDate" type="date-time"/>
+        <field name="actualStartDate" type="date-time"/>
+        <field name="actualCompletionDate" type="date-time"/>
+
+        <!-- TODO: find an alternative to this, maybe a separate entity with enum for different time values -->
+        <field name="estimatedWorkTime" type="number-decimal"/>
+        <field name="estimatedSetupTime" type="number-decimal"/>
+        <field name="remainingWorkTime" type="number-decimal"/>
+        <field name="actualWorkTime" type="number-decimal"/>
+        <field name="actualSetupTime" type="number-decimal"/>
+        <field name="totalTimeAllowed" type="number-decimal"/>
+        <field name="timeUomId" type="id"/>
+
+        <!-- TODO: replace this -->
+        <field name="recurrenceInfoId" type="id"/>
+
+        <relationship type="one" title="Parent" related-entity-name="mantle.work.effort.WorkEffort">
+            <key-map field-name="parentWorkEffortId" related-field-name="workEffortId"/>
+        </relationship>
+        <relationship type="one" title="Root" related-entity-name="mantle.work.effort.WorkEffort">
+            <key-map field-name="rootWorkEffortId" related-field-name="workEffortId"/>
+        </relationship>
+        <relationship type="one" title="WorkEffortType" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="workEffortTypeEnumId"/>
+        </relationship>
+        <relationship type="one" title="WorkEffortPurpose" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="purposeEnumId"/>
+        </relationship>
+        <relationship type="one" title="WorkEffortVisibility" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="visibilityEnumId"/>
+        </relationship>
+        <relationship type="one" title="WorkEffort" related-entity-name="moqui.basic.StatusItem"/>
+        <relationship type="one" related-entity-name="Facility"/>
+        <relationship type="one" title="Time" related-entity-name="moqui.basic.Uom">
+            <key-map field-name="timeUomId"/>
+        </relationship>
+
+        <seed-data>
+            <!-- Work Effort Type -->
+            <moqui.basic.EnumerationType description="Work Effort Type" enumTypeId="WorkEffortType"/>
+            <moqui.basic.Enumeration description="Project" enumId="WetProject" enumTypeId="WorkEffortType"/>
+            <moqui.basic.Enumeration description="Milestone" enumId="WetMilestone" enumTypeId="WorkEffortType"/>
+            <moqui.basic.Enumeration description="Task" enumId="WetTask" enumTypeId="WorkEffortType"/>
+            <moqui.basic.Enumeration description="Event" enumId="WetEvent" enumTypeId="WorkEffortType"/>
+            <moqui.basic.Enumeration description="Available" enumId="WetAvailable" enumTypeId="WorkEffortType"/>
+            <moqui.basic.Enumeration description="Time Off" enumId="WetTimeOff" enumTypeId="WorkEffortType"/>
+
+            <!-- Work Effort Purpose -->
+            <moqui.basic.EnumerationType description="Work Effort Purpose" enumTypeId="WorkEffortPurpose"/>
+
+            <moqui.basic.Enumeration description="Task" enumId="WepTask" parentEnumId="WetTask" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Defect Fix" enumId="WepFix" parentEnumId="WetTask" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="New Feature" enumId="WepNewFeature" parentEnumId="WetTask" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Feature Enhancement" enumId="WepFeatureEnhance" parentEnumId="WetTask" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Feature Test" enumId="WepFeatureTest" parentEnumId="WetTask" enumTypeId="WorkEffortPurpose"/>
+
+            <moqui.basic.Enumeration description="Manufacturing" enumId="WEP_MANUFACTURING" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Assembling" enumId="WEP_ASSEMBLING" parentEnumId="WEP_MANUFACTURING" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Routing" enumId="WEP_ROUTING" parentEnumId="WEP_MANUFACTURING" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Routing Task" enumId="WEP_ROUTING_TASK" parentEnumId="WEP_MANUFACTURING" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Production Run" enumId="WEP_PRODUCTION_RUN" parentEnumId="WEP_MANUFACTURING" enumTypeId="WorkEffortPurpose"/>
+
+            <moqui.basic.Enumeration description="Fixed Asset Usage (rental)" enumId="WEP_ASSET_USAGE" enumTypeId="WorkEffortPurpose"/>
+
+            <moqui.basic.Enumeration description="Business Travel" enumId="WEP_BUSINESS_TRAVEL" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Meeting" enumId="WEP_MEETING" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Training" enumId="WEP_TRAINING" enumTypeId="WorkEffortPurpose"/>
+
+            <moqui.basic.Enumeration description="Maintenance" enumId="WEP_MAINTENANCE" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Research" enumId="WEP_RESEARCH" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Meeting" enumId="WEP_MEETING" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Development" enumId="WEP_DEVELOPMENT" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Support" enumId="WEP_SUPPORT" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Deployment" enumId="WEP_DEPLOYMENT" enumTypeId="WorkEffortPurpose"/>
+
+            <moqui.basic.Enumeration description="Sub-contracting" enumId="ROU_SUBCONTRACTING" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Phone Call" enumId="WEP_PHONE_CALL" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Email" enumId="WEP_EMAIL" enumTypeId="WorkEffortPurpose"/>
+
+            <!-- Work Effort Status -->
+            <moqui.basic.StatusType description="Work Effort Status" statusTypeId="WorkEffort"/>
+            <moqui.basic.StatusItem description="In Planning" sequenceNum="1" statusId="WeInPlanning" statusTypeId="WorkEffort"/>
+            <moqui.basic.StatusItem description="Approved/Scheduled" sequenceNum="2" statusId="WeApproved" statusTypeId="WorkEffort"/>
+            <moqui.basic.StatusItem description="In Progress" sequenceNum="3" statusId="WeInProgress" statusTypeId="WorkEffort"/>
+            <moqui.basic.StatusItem description="Complete" sequenceNum="9" statusId="WeComplete" statusTypeId="WorkEffort"/>
+            <moqui.basic.StatusItem description="Closed" sequenceNum="10" statusId="WeClosed" statusTypeId="WorkEffort"/>
+            <moqui.basic.StatusItem description="On Hold" sequenceNum="98" statusId="WeOnHold" statusTypeId="WorkEffort"/>
+            <moqui.basic.StatusItem description="Cancelled" sequenceNum="99" statusId="WeCancelled" statusTypeId="WorkEffort"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInPlanning" toStatusId="WeApproved" transitionName="Schedule/Approve"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInPlanning" toStatusId="WeInProgress" transitionName="Begin"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeApproved" toStatusId="WeInProgress" transitionName="Begin"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInProgress" toStatusId="WeOnHold" transitionName="Hold"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInProgress" toStatusId="WeComplete" transitionName="Complete"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeComplete" toStatusId="WeClosed" transitionName="Close"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeOnHold" toStatusId="WeInProgress" transitionName="Resume"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInPlanning" toStatusId="WeCancelled" transitionName="Cancel"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeApproved" toStatusId="WeCancelled" transitionName="Cancel"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInProgress" toStatusId="WeCancelled" transitionName="Cancel"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeOnHold" toStatusId="WeCancelled" transitionName="Cancel"/>
+
+            <!-- Work Effort Visibility -->
+            <moqui.basic.EnumerationType description="Work Effort Visibility" enumTypeId="WorkEffortVisibility"/>
+            <moqui.basic.Enumeration description="General (public access)" enumId="WES_PUBLIC" enumTypeId="WorkEffortVisibility"/>
+            <moqui.basic.Enumeration description="Work Group (group only access)" enumId="WES_WORK_GROUP" enumTypeId="WorkEffortVisibility"/>
+            <moqui.basic.Enumeration description="Restricted (private access)" enumId="WES_PRIVATE" enumTypeId="WorkEffortVisibility"/>
+            <moqui.basic.Enumeration description="Top Secret (confidential access)" enumId="WES_CONFIDENTIAL" enumTypeId="WorkEffortVisibility"/>
+        </seed-data>
+    </entity>
+
+    <entity entity-name="WorkEffortAssetAssign" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="assetId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="statusId" type="id"/>
+        <field name="allocatedCost" type="currency-amount"/>
+        <field name="comments" type="text-medium"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related-entity-name="Asset"/>
+        <relationship type="one" title="WorkEffortAssetAssign" related-entity-name="moqui.basic.StatusItem"/>
+        <seed-data>
+            <!-- Work Effort Asset Assignment Status -->
+            <moqui.basic.StatusType description="Work Effort Asset Assignment Status" statusTypeId="WorkEffortAssetAssign"/>
+            <moqui.basic.StatusItem description="Requested" sequenceNum="1" statusId="FA_ASGN_REQUESTED" statusTypeId="WorkEffortAssetAssign"/>
+            <moqui.basic.StatusItem description="Assigned" sequenceNum="2" statusId="FA_ASGN_ASSIGNED" statusTypeId="WorkEffortAssetAssign"/>
+            <moqui.basic.StatusItem description="Request Denied" sequenceNum="3" statusId="FA_ASGN_DENIED" statusTypeId="WorkEffortAssetAssign"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="WorkEffortAssetNeeded" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="assetProductId" type="id" is-pk="true"/>
+        <field name="estimatedQuantity" type="number-float"/>
+        <field name="estimatedDuration" type="number-float"/>
+        <field name="estimatedCost" type="currency-amount"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" title="Asset" related-entity-name="Product">
+            <key-map field-name="assetProductId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="WorkEffortAssetProduced" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="assetId" type="id" is-pk="true"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related-entity-name="Asset"/>
+    </entity>
+    <entity entity-name="WorkEffortAssetUsed" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="assetId" type="id" is-pk="true"/>
+        <field name="statusId" type="id"/>
+        <field name="quantity" type="number-float"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related-entity-name="Asset"/>
+        <relationship type="one" related-entity-name="moqui.basic.StatusItem"/>
+    </entity>
+
+    <entity entity-name="WorkEffortAssoc" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="toWorkEffortId" type="id" is-pk="true"/>
+        <field name="workEffortAssocTypeEnumId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="sequenceNum" type="number-integer"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" title="To" related-entity-name="mantle.work.effort.WorkEffort">
+            <key-map field-name="toWorkEffortId"/>
+        </relationship>
+        <relationship type="one" title="WorkEffortAssocType" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="workEffortAssocTypeEnumId"/>
+        </relationship>
+        <seed-data>
+            <!-- Work Effort Association Type -->
+            <moqui.basic.EnumerationType description="Work Effort Association Type" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Dependent" enumId="WeatDependent" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Concurrent" enumId="WeatConcurrent" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Precedent" enumId="WeatPrecedent" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Clone" enumId="WeatClone" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Routing Component" enumId="WeatRoutingComp" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Milestone" enumId="WeatMilestone" enumTypeId="WorkEffortAssocType"/>
+        </seed-data>
+    </entity>
+    <view-entity entity-name="WorkEffortAndRootByParty" package-name="mantle.work.effort">
+        <description>A view-entity to get WorkEffort records with a root WorkEffort that has a Party
+            associated with it. For this query by rootWorkEffortId, partyId, etc.</description>
+        <member-entity entity-alias="WEFF_ROOT" entity-name="WorkEffort"/>
+        <member-entity entity-alias="WEP" entity-name="WorkEffortParty" join-from-alias="WEFF_ROOT">
+            <key-map field-name="workEffortId"/>
+        </member-entity>
+        <member-entity entity-alias="WEFF" entity-name="WorkEffort" join-from-alias="WEFF_ROOT">
+            <key-map field-name="workEffortId" related-field-name="rootWorkEffortId"/>
+        </member-entity>
+        <alias-all entity-alias="WEFF_ROOT" prefix="root"><exclude field="workEffortId"/></alias-all>
+        <alias-all entity-alias="WEFF"/>
+        <alias-all entity-alias="WEP"><exclude field="workEffortId"/></alias-all>
+    </view-entity>
+    <view-entity entity-name="WorkEffortAssocAndTo" package-name="mantle.work.effort">
+        <description>A view-entity to get WorkEffort records associated with another WorkEffort (the from WorkEffort).
+            For this query by fromWorkEffortId, etc.</description>
+        <member-entity entity-alias="WEFF_ASSOC" entity-name="WorkEffortAssoc"/>
+        <member-entity entity-alias="WEFF" entity-name="WorkEffort" join-from-alias="WEFF_ASSOC">
+            <key-map field-name="toWorkEffortId" related-field-name="workEffortId"/>
+        </member-entity>
+        <alias-all entity-alias="WEFF_ASSOC"><exclude field="workEffortId"/><exclude field="toWorkEffortId"/></alias-all>
+        <alias-all entity-alias="WEFF"/>
+        <alias name="fromWorkEffortId" entity-alias="WEFF_ASSOC" field="workEffortId"/>
+    </view-entity>
+
+    <entity entity-name="WorkEffortBilling" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="invoiceId" type="id" is-pk="true"/>
+        <field name="invoiceItemSeqId" type="id" is-pk="true"/>
+        <field name="percentage" type="number-float"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related-entity-name="InvoiceItem">
+            <key-map field-name="invoiceId"/>
+            <key-map field-name="invoiceItemSeqId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="WorkEffortCommEvent" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="communicationEventId" type="id" is-pk="true"/>
+        <field name="description" type="text-medium"/>
+        <field name="sequenceNum" type="number-integer"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related-entity-name="mantle.party.communication.CommunicationEvent"/>
+    </entity>
+    <entity entity-name="WorkEffortContactMech" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="contactMechId" type="id" is-pk="true"/>
+        <field name="contactMechPurposeEnumId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="extension" type="text-short"/>
+        <field name="comments" type="text-medium"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related-entity-name="mantle.party.contact.ContactMech"/>
+        <relationship type="one" title="ContactMechPurpose" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="contactMechPurposeEnumId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="WorkEffortContent" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="contentLocation" type="text-medium" is-pk="true"/>
+        <field name="contentTypeEnumId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" title="WorkEffortContentType" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="contentTypeEnumId"/>
+        </relationship>
+        <seed-data>
+            <!-- Work Effort Content Type -->
+            <moqui.basic.EnumerationType description="Work Effort Content Type" enumTypeId="WorkEffortContentType"/>
+            <moqui.basic.Enumeration enumId="PROJECT_UPDATE" description="Project Update" enumTypeId="WorkEffortContentType"/>
+            <moqui.basic.Enumeration enumId="DISCUSSION" description="Discussion" enumTypeId="WorkEffortContentType"/>
+            <moqui.basic.Enumeration enumId="REQUIREMENT" description="Requirement" enumTypeId="WorkEffortContentType"/>
+            <moqui.basic.Enumeration enumId="DESIGN" description="Design" enumTypeId="WorkEffortContentType"/>
+            <moqui.basic.Enumeration enumId="PROPOSAL_MEDIA" description="Proposal Media" enumTypeId="WorkEffortContentType"/>
+            <moqui.basic.Enumeration enumId="SUPPORTING_MEDIA" description="Supporting Media" enumTypeId="WorkEffortContentType"/>
+            <moqui.basic.Enumeration enumId="CREATED_MEDIA" description="Created Media" enumTypeId="WorkEffortContentType"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="WorkEffortDeliverableProd" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="deliverableId" type="id" is-pk="true"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related-entity-name="Deliverable"/>
+    </entity>
+    <entity entity-name="WorkEffortInvoice" package-name="mantle.work.effort">
+        <field name="invoiceId" type="id" is-pk="true"/>
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <relationship type="one" related-entity-name="mantle.account.invoice.Invoice"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+    </entity>
+    <view-entity entity-name="WorkEffortInvoiceDetail" package-name="mantle.work.effort">
+        <member-entity entity-alias="WEI" entity-name="mantle.work.effort.WorkEffortInvoice"/>
+        <member-entity entity-alias="INV" entity-name="mantle.account.invoice.Invoice" join-from-alias="WEI">
+            <key-map field-name="invoiceId"/>
+        </member-entity>
+        <alias-all entity-alias="WEI"/>
+        <alias-all entity-alias="INV"/>
+    </view-entity>
+    <entity entity-name="WorkEffortNote" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="noteDate" type="date-time" is-pk="true"/>
+        <field name="noteText" type="text-very-long" enable-audit-log="true"/>
+        <field name="internalNote" type="text-indicator"/>
+        <field name="userId" type="id-long"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related-entity-name="moqui.security.UserAccount"/>
+    </entity>
+    <entity entity-name="WorkEffortParty" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="roleTypeId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="statusId" type="id" enable-audit-log="true"/>
+        <field name="availabilityEnumId" type="id"/>
+        <field name="delegateReasonEnumId" type="id"/>
+        <field name="expectationEnumId" type="id"/>
+        <field name="emplPositionClassId" type="id"/>
+        <field name="comments" type="text-medium"/>
+        <field name="mustRsvp" type="text-indicator"/>
+        <field name="receiveNotifications" type="text-indicator"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related-entity-name="mantle.party.Party"/>
+        <relationship type="one-nofk" related-entity-name="mantle.party.Person"/>
+        <relationship type="one" related-entity-name="mantle.party.RoleType"/>
+        <relationship type="one" title="WorkEffortParty" related-entity-name="moqui.basic.StatusItem"/>
+        <relationship type="one" title="WorkEffortPartyAvailability" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="availabilityEnumId"/>
+        </relationship>
+        <relationship type="one" title="WorkEffortPartyDelegateReason" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="delegateReasonEnumId"/>
+        </relationship>
+        <relationship type="one" title="WorkEffortPartyExpectation" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="expectationEnumId"/>
+        </relationship>
+        <relationship type="one" related-entity-name="mantle.humanres.position.EmplPositionClass"/>
+        <seed-data>
+            <!-- Work Effort Party Status -->
+            <moqui.basic.StatusType description="Work Effort Party Status" statusTypeId="WorkEffortParty"/>
+            <moqui.basic.StatusItem description="Offered" sequenceNum="1" statusId="PRTYASGN_OFFERED" statusTypeId="WorkEffortParty"/>
+            <moqui.basic.StatusItem description="Assigned" sequenceNum="2" statusId="PRTYASGN_ASSIGNED" statusTypeId="WorkEffortParty"/>
+            <moqui.basic.StatusItem description="Declined" sequenceNum="3" statusId="PRTYASGN_DECLINED" statusTypeId="WorkEffortParty"/>
+            <moqui.basic.StatusItem description="Unassigned" sequenceNum="4" statusId="PRTYASGN_UNASSIGNED" statusTypeId="WorkEffortParty"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PRTYASGN_OFFERED" toStatusId="PRTYASGN_ASSIGNED" transitionName="Accept Assignment"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PRTYASGN_OFFERED" toStatusId="PRTYASGN_DECLINED" transitionName="Decline Assignment"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PRTYASGN_ASSIGNED" toStatusId="PRTYASGN_UNASSIGNED" transitionName="Unassign"/>
+
+            <!-- Work Effort Party Availability -->
+            <moqui.basic.EnumerationType description="Work Effort Party Availability" enumTypeId="WorkEffortPartyAvailability"/>
+            <moqui.basic.Enumeration description="Available" enumId="WEPA_AV_AVAILABLE" enumTypeId="WorkEffortPartyAvailability"/>
+            <moqui.basic.Enumeration description="Busy" enumId="WEPA_AV_BUSY" enumTypeId="WorkEffortPartyAvailability"/>
+            <moqui.basic.Enumeration description="Away" enumId="WEPA_AV_AWAY" enumTypeId="WorkEffortPartyAvailability"/>
+
+            <!-- Work Effort Party Delegate Reason -->
+            <moqui.basic.EnumerationType description="Work Effort Party Delegate Reason" enumTypeId="WorkEffortPartyDelegateReason"/>
+            <moqui.basic.Enumeration description="Need Support or Help" enumId="WEDR_NEED_HELP" enumTypeId="WorkEffortPartyDelegateReason"/>
+            <moqui.basic.Enumeration description="My Part Finished" enumId="WEDR_PART_FINISHED" enumTypeId="WorkEffortPartyDelegateReason"/>
+            <moqui.basic.Enumeration description="Completely Finished" enumId="WEDR_WHOLE_FINISHED" enumTypeId="WorkEffortPartyDelegateReason"/>
+
+            <!-- Work Effort Party Expectation -->
+            <moqui.basic.EnumerationType description="Work Effort Party Expectation" enumTypeId="WorkEffortPartyExpectation"/>
+            <moqui.basic.Enumeration description="For Your Information" enumId="WEE_FYI" enumTypeId="WorkEffortPartyExpectation"/>
+            <moqui.basic.Enumeration description="Involvement Required" enumId="WEE_REQUIRE" enumTypeId="WorkEffortPartyExpectation"/>
+            <moqui.basic.Enumeration description="Involvement Requested" enumId="WEE_REQUEST" enumTypeId="WorkEffortPartyExpectation"/>
+            <moqui.basic.Enumeration description="Immediate Response Requested" enumId="WEE_IMMEDIATE" enumTypeId="WorkEffortPartyExpectation"/>
+        </seed-data>
+    </entity>
+    <view-entity entity-name="WorkEffortAndParty" package-name="mantle.work.effort">
+        <member-entity entity-alias="WEFF" entity-name="WorkEffort"/>
+        <member-entity entity-alias="WEP" entity-name="WorkEffortParty" join-from-alias="WEFF">
+            <key-map field-name="workEffortId"/>
+        </member-entity>
+        <alias-all entity-alias="WEFF"/>
+        <alias-all entity-alias="WEP"><exclude field="workEffortId"/><exclude field="statusId"/></alias-all>
+        <alias name="partyStatusId" entity-alias="WEP" field="statusId"/>
+    </view-entity>
+    <view-entity entity-name="WorkEffortPartyAndPerson" package-name="mantle.work.effort">
+        <member-entity entity-alias="WEP" entity-name="WorkEffortParty"/>
+        <member-entity entity-alias="PER" entity-name="mantle.party.Person" join-from-alias="WEP">
+            <key-map field-name="partyId"/>
+        </member-entity>
+        <member-entity entity-alias="USRACT" entity-name="moqui.security.UserAccount" join-from-alias="WEP">
+            <key-map field-name="partyId"/>
+        </member-entity>
+        <alias-all entity-alias="WEP"/>
+        <alias-all entity-alias="PER"><exclude field="partyId"/><exclude field="comments"/></alias-all>
+        <alias name="username" entity-alias="USRACT"/>
+    </view-entity>
+    <view-entity entity-name="WorkEffortAndPartyDetail" package-name="mantle.work.effort">
+        <member-entity entity-alias="WEP" entity-name="WorkEffortParty"/>
+        <member-entity entity-alias="PTY" entity-name="mantle.party.Party" join-from-alias="WEP">
+            <key-map field-name="partyId"/>
+        </member-entity>
+        <member-entity entity-alias="ORG" entity-name="mantle.party.Organization" join-from-alias="WEP" join-optional="true">
+            <key-map field-name="partyId"/>
+        </member-entity>
+        <member-entity entity-alias="PER" entity-name="mantle.party.Person" join-from-alias="WEP" join-optional="true">
+            <key-map field-name="partyId"/>
+        </member-entity>
+        <member-entity entity-alias="USRACT" entity-name="moqui.security.UserAccount" join-from-alias="WEP" join-optional="true">
+            <key-map field-name="partyId"/>
+        </member-entity>
+        <alias-all entity-alias="WEP"/>
+        <alias-all entity-alias="PTY"/>
+        <alias-all entity-alias="PER"/>
+        <alias-all entity-alias="ORG"/>
+        <alias name="username" entity-alias="USRACT"/>
+    </view-entity>
+
+    <entity entity-name="WorkEffortProduct" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="productId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="typeEnumId" type="id"/>
+        <field name="statusId" type="id"/>
+        <field name="estimatedQuantity" type="number-float"/>
+        <field name="estimatedCost" type="currency-amount"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" related-entity-name="Product"/>
+        <relationship type="one" title="WorkEffortProductType" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="typeEnumId"/>
+        </relationship>
+        <relationship type="one" related-entity-name="moqui.basic.StatusItem"/>
+        <seed-data>
+            <!-- Work Effort Product Type -->
+            <moqui.basic.EnumerationType description="Work Effort Product Type" enumTypeId="WorkEffortProductType"/>
+            <moqui.basic.Enumeration enumId="ROU_PROD_TEMPLATE" description="Product and Routing Association" enumTypeId="WorkEffortProductType"/>
+            <moqui.basic.Enumeration enumId="PRUN_PROD_DELIV" description="Production Run and Product to Deliver Association" enumTypeId="WorkEffortProductType"/>
+            <moqui.basic.Enumeration enumId="PRUNT_PROD_NEEDED" description="Production Run Task and Needed Product Association" enumTypeId="WorkEffortProductType"/>
+            <moqui.basic.Enumeration enumId="PRUNT_PROD_DELIV" description="Production Run Task and Deliverable Product Association" enumTypeId="WorkEffortProductType"/>
+            <moqui.basic.Enumeration enumId="GENERAL_SALES" description="Product to Represent General Sales of the WorkEffort" enumTypeId="WorkEffortProductType"/>
+
+            <!--  Work Effort Product Status -->
+            <moqui.basic.StatusType description="Work Effort Product Status" statusTypeId="WorkEffortProduct"/>
+            <moqui.basic.StatusItem description="Created" sequenceNum="1" statusId="WEPAS_CREATED" statusTypeId="WorkEffortProduct"/>
+            <moqui.basic.StatusItem description="Completed" sequenceNum="2" statusId="WEPAS_COMPLETED" statusTypeId="WorkEffortProduct"/>
+            <moqui.basic.StatusItem description="Cancelled" sequenceNum="3" statusId="WEPAS_CANCELLED" statusTypeId="WorkEffortProduct"/>
+        </seed-data>
+    </entity>
+
+    <entity entity-name="WorkEffortSkillStandard" package-name="mantle.work.effort">
+        <field name="workEffortId" type="id" is-pk="true"/>
+        <field name="skillTypeEnumId" type="id" is-pk="true"/>
+        <field name="estimatedNumPeople" type="number-float"/>
+        <field name="estimatedDuration" type="number-float"/>
+        <field name="estimatedCost" type="currency-amount"/>
+        <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
+        <relationship type="one" title="SkillType" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="skillTypeEnumId"/>
+        </relationship>
+    </entity>
+</entities>
