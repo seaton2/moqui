@@ -17,3 +17,4 @@ runtime/log/
 runtime/mantle/
 runtime/tmp/
 execwartmp/
+/bin
