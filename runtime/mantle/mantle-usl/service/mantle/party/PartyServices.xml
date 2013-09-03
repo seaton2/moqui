@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-1.3.xsd">
+    <service verb="find" noun="Party" type="script"
+             location="component://mantle-usl/service/mantle/party/PartyServices/findParty.groovy">
+        <in-parameters>
+            <parameter name="partyTypeEnumId"/>
+            <parameter name="roleTypeId"/>
+            <parameter name="username"/>
+
+            <parameter name="combinedName"/>
+            <parameter name="organizationName"/>
+            <parameter name="firstName"/><parameter name="lastName"/>
+
+            <parameter name="address1"/><parameter name="address2"/>
+            <parameter name="city"/><parameter name="stateProvinceGeoId"/><parameter name="postalCode"/>
+
+            <parameter name="countryCode"/><parameter name="areaCode"/><parameter name="contactNumber"/>
+
+            <parameter name="emailAddress"/>
+
+            <parameter name="assetSerialNumber"/>
+            <parameter name="contactOwnerPartyId"/>
+
+            <parameter name="orderByField"/>
+            <parameter name="pageIndex" type="Integer" default-value="0"/>
+            <parameter name="pageSize" type="Integer" default-value="20"/>
+            <parameter name="pageNoLimit" type="Boolean" default-value="false"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="partyIdList" type="List"/>
+            <parameter name="totalResults" type="Integer"/>
+        </out-parameters>
+    </service>
+
+    <service verb="create" noun="Account" authenticate="false">
+        <description>
+            Create a basic customer account including:
+            - Party/Person
+            - UserAccount (with emailAddress for username)
+            - ContactMech/PartyContactMech for emailAddress (with EmailPrimary purpose)
+
+            At the end this optionally logs in the user (for this to work it must be run locally).
+        </description>
+        <in-parameters>
+            <parameter name="firstName" required="true"/>
+            <parameter name="middleName"/>
+            <parameter name="lastName" required="true"/>
+            <parameter name="disabled" default-value="N"/>
+
+            <parameter name="emailAddress" required="true"><text-email/></parameter>
+            <parameter name="username" default-value="${emailAddress}"/>
+            <parameter name="newPassword" required="true"/>
+            <parameter name="newPasswordVerify" required="true"/>
+
+            <parameter name="currencyUomId"/>
+            <parameter name="locale"/>
+            <parameter name="timeZone"/>
+
+            <parameter name="loginAfterCreate" type="Boolean" default-value="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="userId" required="true"/>
+            <parameter name="partyId" required="true"/>
+        </out-parameters>
+        <actions>
+            <!-- do this first to get a password validation ASAP -->
+            <set field="userFullName" value="${firstName} ${middleName? middleName + ' ' : ''}${lastName}"/>
+            <service-call name="org.moqui.impl.UserServices.create#UserAccount" in-map="context" out-map="newUaOut"/>
+            <set field="userId" from="newUaOut.userId"/>
+
+            <service-call name="create#mantle.party.Party" in-map="[partyTypeEnumId:'PtyPerson', disabled:disabled]" out-map="newPartyOut"/>
+            <set field="partyId" from="newPartyOut.partyId"/>
+            <service-call name="create#mantle.party.Person"
+                    in-map="[partyId:partyId, firstName:firstName, middleName:middleName, lastName:lastName]"/>
+
+            <service-call name="update#UserAccount" in-map="[userId:newUaOut.userId, partyId:newPartyOut.partyId]"/>
+
+            <!-- add the emailAddress -->
+            <service-call name="mantle.party.ContactServices.create#EmailAddress"
+                    in-map="[emailAddress:emailAddress, partyId:partyId, contactMechPurposeId:'EmailPrimary']"/>
+
+            <!-- login the user -->
+            <if condition="loginAfterCreate">
+                <script>ec.user.loginUser(username, newPassword, null)</script>
+            </if>
+        </actions>
+    </service>
+    <service verb="update" noun="Account">
+        <in-parameters>
+            <parameter name="userId" required="true"/>
+            <parameter name="partyId" required="true"/>
+            <parameter name="firstName"/>
+            <parameter name="middleName"/>
+            <parameter name="lastName"/>
+            <parameter name="disabled"/>
+
+            <parameter name="emailAddress"><text-email/></parameter>
+            <parameter name="username"/>
+
+            <parameter name="currencyUomId"/>
+            <parameter name="locale"/>
+            <parameter name="timeZone"/>
+        </in-parameters>
+        <actions>
+            <service-call name="update#moqui.security.UserAccount" in-map="context"/>
+            <service-call name="update#mantle.party.Party" in-map="context"/>
+            <service-call name="update#mantle.party.Person" in-map="context"/>
+
+            <!-- TODO: update the emailAddress ContactMech if one exists -->
+            <!-- <service-call name="mantle.party.ContactServices.update#EmailAddress"
+                    in-map="[emailAddress:emailAddress, partyId:newPartyOut.partyId, contactMechPurposeId:'EmailPrimary']"/> -->
+        </actions>
+    </service>
+    
+    <service verb="create" noun="Organization">
+        <in-parameters>
+            <parameter name="organizationName" required="true"/>
+            <parameter name="roleTypeId"/>
+        </in-parameters>
+        <out-parameters><parameter name="partyId"/></out-parameters>
+        <actions>
+            <service-call name="create#mantle.party.Party" in-map="[partyTypeEnumId:'PtyOrganization']" out-map="context"/>
+            <service-call name="create#mantle.party.Organization" in-map="[partyId:partyId, organizationName:organizationName]"/>
+
+            <if condition="roleTypeId">
+                <service-call name="create#mantle.party.PartyRole" in-map="[partyId:partyId, roleTypeId:roleTypeId]"/>
+            </if>
+        </actions>
+    </service>
+    <service verb="update" noun="PartyDetail">
+        <in-parameters>
+            <auto-parameters entity-name="mantle.party.Party" include="nonpk"/>
+            <auto-parameters entity-name="mantle.party.Person" include="nonpk"/>
+            <auto-parameters entity-name="mantle.party.Organization" include="nonpk"/>
+            <parameter name="partyId" required="true"/>
+        </in-parameters>
+        <actions>
+            <entity-find-one entity-name="mantle.party.Party" value-field="party"/>
+            <entity-set value-field="party" include="nonpk" map="context"/>
+            <entity-update value-field="party"/>
+            <if condition="party.partyTypeEnumId == 'PtyPerson'">
+                <service-call name="update#mantle.party.Person" in-map="context"/>
+            </if>
+            <if condition="party.partyTypeEnumId == 'PtyOrganization'">
+                <service-call name="update#mantle.party.Organization" in-map="context"/>
+            </if>
+        </actions>
+    </service>
+</services>
