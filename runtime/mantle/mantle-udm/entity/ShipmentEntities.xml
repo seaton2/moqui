@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+
+This Work includes contributions authored by contributors to Apache OFBiz
+and those parts may be licensed under the Apache License 2.0.
+-->
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-1.3.xsd">
+    <!-- ========================================================= -->
+    <!--  - mantle.shipment.issuance -->
+    <!--  - mantle.shipment.picklist -->
+    <!--  - mantle.shipment.receipt -->
+    <!--  - mantle.shipment -->
+    <!-- ========================================================= -->
+
+
+    <!-- ========================================================= -->
+    <!-- mantle.shipment.carrier -->
+    <!-- ========================================================= -->
+
+    <entity entity-name="CarrierShipmentMethod" package-name="mantle.shipment.carrier">
+        <field name="carrierPartyId" type="id" is-pk="true"/>
+        <field name="shipmentMethodEnumId" type="id" is-pk="true"/>
+        <field name="sequenceNum" type="number-integer"/>
+        <field name="carrierServiceCode" type="text-short"/>
+        <relationship type="one" title="Carrier" related-entity-name="mantle.party.Party">
+            <key-map field-name="carrierPartyId"/>
+        </relationship>
+        <relationship type="one" title="ShipmentMethod" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="shipmentMethodEnumId"/>
+        </relationship>
+        <seed-data>
+            <!-- Shipment Method -->
+            <moqui.basic.EnumerationType description="Shipment Method" enumTypeId="ShipmentMethod"/>
+            <moqui.basic.Enumeration description="No Shipping" enumId="NO_SHIPPING" enumTypeId="ShipmentMethod"/>
+
+            <CarrierShipmentMethod carrierPartyId="_NA_" shipmentMethodEnumId="NO_SHIPPING" sequenceNum="0"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="CarrierShipmentBoxType" package-name="mantle.shipment.carrier">
+        <field name="carrierPartyId" type="id" is-pk="true"/>
+        <field name="shipmentBoxTypeId" type="id" is-pk="true"/>
+        <field name="packagingTypeCode" type="id"/>
+        <field name="oversizeCode" type="text-short"/>
+        <relationship type="one" related-entity-name="ShipmentBoxType"/>
+        <relationship type="one" title="Carrier" related-entity-name="Party">
+            <key-map field-name="carrierPartyId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="Delivery" package-name="mantle.shipment.carrier">
+        <field name="deliveryId" type="id" is-pk="true"/>
+        <field name="originFacilityId" type="id"/>
+        <field name="destFacilityId" type="id"/>
+        <field name="actualStartDate" type="date-time"/>
+        <field name="actualArrivalDate" type="date-time"/>
+        <field name="estimatedStartDate" type="date-time"/>
+        <field name="estimatedArrivalDate" type="date-time"/>
+        <field name="assetId" type="id"/>
+        <field name="startMileage" type="number-decimal"/>
+        <field name="endMileage" type="number-decimal"/>
+        <field name="fuelUsed" type="number-decimal"/>
+        <relationship type="one" related-entity-name="Asset"/>
+        <relationship type="one" title="Origin" related-entity-name="Facility">
+            <key-map field-name="originFacilityId"/>
+        </relationship>
+        <relationship type="one" title="Dest" related-entity-name="Facility">
+            <key-map field-name="destFacilityId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="PartyCarrierAccount" package-name="mantle.shipment.carrier">
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="carrierPartyId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="accountNumber" type="id"/>
+        <relationship type="one" related-entity-name="Party">
+            <key-map field-name="partyId"/>
+        </relationship>
+        <relationship type="one" title="Carrier" related-entity-name="Party">
+            <key-map field-name="carrierPartyId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="ShippingGatewayConfig" package-name="mantle.shipment.carrier">
+        <field name="shippingGatewayConfigId" type="id" is-pk="true"/>
+        <field name="shippingGatewayTypeEnumId" type="id"><description>Each shipping gateway integration should define a
+            ShippingGatewayType Enumeration record plus an entity with a shared PK (ie PK is shippingGatewayConfigId).</description></field>
+        <field name="description" type="text-medium"/>
+        <field name="estimateRateServiceName" type="text-medium"><description>Service implementing
+            mantle.shipment.CarrierServices.estimate#ShippingRate interface.</description></field>
+        <field name="requestLabelsServiceName" type="text-medium"><description>Service implementing
+            mantle.shipment.CarrierServices.request#ShippingLabels interface.</description></field>
+        <field name="voidLabelsServiceName" type="text-medium"><description>Service implementing
+            mantle.shipment.CarrierServices.void#ShippingLabels interface.</description></field>
+        <field name="trackLabelsServiceName" type="text-medium"><description>Service implementing
+            mantle.shipment.CarrierServices.track#ShippingLabels interface.</description></field>
+        <field name="validateAddressServiceName" type="text-medium"><description>Service implementing
+            mantle.shipment.CarrierServices.validate#ShippingPostalAddress interface.</description></field>
+        <relationship type="one" title="ShippingGatewayType" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="shippingGatewayTypeEnumId"/>
+        </relationship>
+    </entity>
+
+    <!-- ========================================================= -->
+    <!-- mantle.shipment.picklist -->
+    <!-- ========================================================= -->
+
+    <entity entity-name="Picklist" package-name="mantle.shipment.picklist">
+        <description>A Picklist is a way to organize pending Shipments during a pick/pack process.</description>
+        <field name="picklistId" type="id" is-pk="true"/>
+        <field name="description" type="text-medium"/>
+        <field name="facilityId" type="id"/>
+        <field name="shipmentMethodEnumId" type="id"/>
+        <field name="statusId" type="id" enable-audit-log="true"/>
+        <field name="picklistDate" type="date-time"/>
+        <relationship type="one" related-entity-name="Facility"/>
+        <relationship type="one" title="ShipmentMethod" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="shipmentMethodEnumId"/>
+        </relationship>
+        <relationship type="one" title="Picklist" related-entity-name="moqui.basic.StatusItem"/>
+    </entity>
+    <entity entity-name="PicklistParty" package-name="mantle.shipment.picklist">
+        <field name="picklistId" type="id" is-pk="true"/>
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="roleTypeId" type="id" is-pk="true"/>
+        <field name="fromDate" type="date-time" is-pk="true"/>
+        <field name="thruDate" type="date-time"/>
+        <relationship type="one" related-entity-name="Picklist"/>
+        <relationship type="one" related-entity-name="RoleType"/>
+    </entity>
+
+    <!-- ========================================================= -->
+    <!-- mantle.shipment.receipt -->
+    <!-- ========================================================= -->
+
+    <entity entity-name="ShipmentReceipt" package-name="mantle.shipment.receipt">
+        <field name="shipmentReceiptId" type="id" is-pk="true"/>
+        <field name="assetId" type="id"/>
+        <field name="productId" type="id"/>
+        <field name="shipmentId" type="id"/>
+        <field name="shipmentPackageSeqId" type="id"/>
+        <field name="orderId" type="id"/>
+        <field name="orderItemSeqId" type="id"/>
+        <field name="returnId" type="id"/>
+        <field name="returnItemSeqId" type="id"/>
+        <field name="rejectionReasonEnumId" type="id"/>
+        <field name="receivedByUserId" type="id-long"/>
+        <field name="datetimeReceived" type="date-time"/>
+        <field name="itemDescription" type="text-medium"/>
+        <field name="quantityAccepted" type="number-decimal"/>
+        <field name="quantityRejected" type="number-decimal"/>
+        <relationship type="one" related-entity-name="Asset"/>
+        <relationship type="one" related-entity-name="Product"/>
+        <relationship type="one" related-entity-name="ShipmentPackage">
+            <key-map field-name="shipmentId"/>
+            <key-map field-name="shipmentPackageSeqId"/>
+        </relationship>
+        <relationship type="one" related-entity-name="OrderItem">
+            <key-map field-name="orderId"/>
+            <key-map field-name="orderItemSeqId"/>
+        </relationship>
+        <relationship type="one" title="RejectionReason" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="rejectionReasonEnumId"/>
+        </relationship>
+        <relationship type="one" title="ReceivedBy" related-entity-name="moqui.security.UserAccount">
+            <key-map field-name="receivedByUserId"/>
+        </relationship>
+        <relationship type="one" related-entity-name="ShipmentItem">
+            <key-map field-name="shipmentId"/>
+            <key-map field-name="productId"/>
+        </relationship>
+        <relationship type="one" related-entity-name="ReturnItem">
+            <key-map field-name="returnId"/>
+            <key-map field-name="returnItemSeqId"/>
+        </relationship>
+        <seed-data>
+            <moqui.basic.EnumerationType description="Rejection Reason" enumTypeId="RejectionReason"/>
+            <moqui.basic.Enumeration enumId="SRJ_DAMAGED" description="Damaged" enumTypeId="RejectionReason"/>
+            <moqui.basic.Enumeration enumId="SRJ_NOT_ORDERED" description="Not Ordered" enumTypeId="RejectionReason"/>
+            <moqui.basic.Enumeration enumId="SRJ_OVER_SHIPPED" description="Over Shipped" enumTypeId="RejectionReason"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="ShipmentReceiptParty" package-name="mantle.shipment.receipt">
+        <field name="shipmentReceiptId" type="id" is-pk="true"/>
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="roleTypeId" type="id" is-pk="true"/>
+        <relationship type="one" related-entity-name="ShipmentReceipt"/>
+        <relationship type="one" related-entity-name="Party"/>
+        <relationship type="one" related-entity-name="RoleType"/>
+    </entity>
+
+    <!-- ========================================================= -->
+    <!-- mantle.shipment -->
+    <!-- ========================================================= -->
+
+    <entity entity-name="Shipment" package-name="mantle.shipment">
+        <field name="shipmentId" type="id" is-pk="true"/>
+        <field name="shipmentTypeEnumId" type="id"/>
+        <field name="statusId" type="id" enable-audit-log="true"/>
+
+        <field name="picklistId" type="id"/>
+        <field name="binLocationNumber" type="number-integer"/>
+
+        <field name="estimatedReadyDate" type="date-time"/>
+        <field name="estimatedShipDate" type="date-time"/>
+        <field name="estimatedArrivalDate" type="date-time"/>
+        <field name="latestCancelDate" type="date-time"/>
+
+        <field name="shipWorkEffortId" type="id"/>
+        <field name="arrivalWorkEffortId" type="id"/>
+
+        <field name="estimatedShipCost" type="currency-amount"/>
+        <field name="costUomId" type="id"/>
+        <field name="addtlShippingCharge" type="currency-amount"/>
+        <field name="addtlShippingChargeDesc" type="text-medium"/>
+
+        <field name="handlingInstructions" type="text-medium"/>
+
+        <field name="fromPartyId" type="id"/>
+        <field name="toPartyId" type="id"/>
+
+        <relationship type="one" title="ShipmentType" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="shipmentTypeEnumId"/>
+        </relationship>
+        <relationship type="one" title="Shipment" related-entity-name="moqui.basic.StatusItem"/>
+        <relationship type="one" related-entity-name="Picklist"/>
+        <relationship type="one" title="Ship" related-entity-name="WorkEffort">
+            <key-map field-name="shipWorkEffortId"/>
+        </relationship>
+        <relationship type="one" title="Arrival" related-entity-name="WorkEffort">
+            <key-map field-name="arrivalWorkEffortId"/>
+        </relationship>
+        <relationship type="one" title="Cost" related-entity-name="moqui.basic.Uom">
+            <key-map field-name="costUomId"/>
+        </relationship>
+        <relationship type="one" title="To" related-entity-name="Party"><key-map field-name="toPartyId"/></relationship>
+        <relationship type="one" title="From" related-entity-name="Party"><key-map field-name="fromPartyId"/></relationship>
+        <seed-data>
+            <!-- Shipment Type -->
+            <moqui.basic.EnumerationType description="Shipment Type" enumTypeId="ShipmentType"/>
+            <moqui.basic.Enumeration description="Incoming" enumId="INCOMING_SHIPMENT" enumTypeId="ShipmentType"/>
+            <moqui.basic.Enumeration description="Outgoing" enumId="OUTGOING_SHIPMENT" enumTypeId="ShipmentType"/>
+            <moqui.basic.Enumeration description="Sales Return" parentEnumId="INCOMING_SHIPMENT" enumId="SALES_RETURN" enumTypeId="ShipmentType"/>
+            <moqui.basic.Enumeration description="Sales Shipment" parentEnumId="OUTGOING_SHIPMENT" enumId="SALES_SHIPMENT" enumTypeId="ShipmentType"/>
+            <moqui.basic.Enumeration description="Purchase Shipment" parentEnumId="INCOMING_SHIPMENT" enumId="PURCHASE_SHIPMENT" enumTypeId="ShipmentType"/>
+            <moqui.basic.Enumeration description="Purchase Return" parentEnumId="OUTGOING_SHIPMENT" enumId="PURCHASE_RETURN" enumTypeId="ShipmentType"/>
+            <moqui.basic.Enumeration description="Drop Shipment" enumId="DROP_SHIPMENT" enumTypeId="ShipmentType"/>
+            <moqui.basic.Enumeration description="Transfer" enumId="TRANSFER" enumTypeId="ShipmentType"/>
+
+            <!-- Shipment Status -->
+            <moqui.basic.StatusType description="Shipment Status" statusTypeId="Shipment"/>
+            <moqui.basic.StatusItem description="Input" sequenceNum="1" statusId="SHIPMENT_INPUT" statusTypeId="Shipment"/>
+            <moqui.basic.StatusItem description="Scheduled" sequenceNum="2" statusId="SHIPMENT_SCHEDULED" statusTypeId="Shipment"/>
+            <moqui.basic.StatusItem description="Picked" sequenceNum="3" statusId="SHIPMENT_PICKED" statusTypeId="Shipment"/>
+            <moqui.basic.StatusItem description="Packed" sequenceNum="4" statusId="SHIPMENT_PACKED" statusTypeId="Shipment"/>
+            <moqui.basic.StatusItem description="Shipped" sequenceNum="5" statusId="SHIPMENT_SHIPPED" statusTypeId="Shipment"/>
+            <moqui.basic.StatusItem description="Delivered" sequenceNum="6" statusId="SHIPMENT_DELIVERED" statusTypeId="Shipment"/>
+            <moqui.basic.StatusItem description="Cancelled" sequenceNum="99" statusId="SHIPMENT_CANCELLED" statusTypeId="Shipment"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_INPUT" toStatusId="SHIPMENT_SCHEDULED" transitionName="Schedule"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_INPUT" toStatusId="SHIPMENT_PICKED" transitionName="Pick"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_INPUT" toStatusId="SHIPMENT_PACKED" transitionName="Pack"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_SCHEDULED" toStatusId="SHIPMENT_PICKED" transitionName="Pick"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_SCHEDULED" toStatusId="SHIPMENT_PACKED" transitionName="Pack"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_PICKED" toStatusId="SHIPMENT_PACKED" transitionName="Pack"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_INPUT" toStatusId="SHIPMENT_SHIPPED" transitionName="Ship"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_PACKED" toStatusId="SHIPMENT_SHIPPED" transitionName="Ship"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_SHIPPED" toStatusId="SHIPMENT_DELIVERED" transitionName="Deliver"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_INPUT" toStatusId="SHIPMENT_CANCELLED" transitionName="Cancel"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_SCHEDULED" toStatusId="SHIPMENT_CANCELLED" transitionName="Cancel"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHIPMENT_PICKED" toStatusId="SHIPMENT_CANCELLED" transitionName="Cancel"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="ShipmentBoxType" package-name="mantle.shipment">
+        <field name="shipmentBoxTypeId" type="id" is-pk="true"/>
+        <field name="description" type="text-medium"/>
+        <field name="dimensionUomId" type="id"/>
+        <field name="boxLength" type="number-decimal"/>
+        <field name="boxWidth" type="number-decimal"/>
+        <field name="boxHeight" type="number-decimal"/>
+        <field name="weightUomId" type="id"/>
+        <field name="boxWeight" type="number-decimal"/>
+        <relationship type="one" title="Dimension" related-entity-name="moqui.basic.Uom">
+            <key-map field-name="dimensionUomId"/>
+        </relationship>
+        <relationship type="one" title="Weight" related-entity-name="moqui.basic.Uom">
+            <key-map field-name="weightUomId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="ShipmentContactMech" package-name="mantle.shipment">
+        <field name="shipmentId" type="id" is-pk="true"/>
+        <field name="contactMechPurposeId" type="id" is-pk="true"/>
+        <field name="contactMechId" type="id"/>
+        <relationship type="one" related-entity-name="Shipment"/>
+        <relationship type="one" related-entity-name="ContactMechPurpose"/>
+        <relationship type="one" related-entity-name="ContactMech"/>
+    </entity>
+    <entity entity-name="ShipmentItem" package-name="mantle.shipment">
+        <field name="shipmentId" type="id" is-pk="true"/>
+        <field name="productId" type="id" is-pk="true"/>
+        <field name="quantity" type="number-decimal"/>
+        <relationship type="one" related-entity-name="Shipment"/>
+        <relationship type="one" related-entity-name="Product"/>
+    </entity>
+    <entity entity-name="ShipmentItemBilling" package-name="mantle.shipment">
+        <field name="shipmentId" type="id" is-pk="true"/>
+        <field name="productId" type="id" is-pk="true"/>
+        <field name="invoiceId" type="id" is-pk="true"/>
+        <field name="invoiceItemSeqId" type="id" is-pk="true"/>
+        <relationship type="one" related-entity-name="ShipmentItem">
+            <key-map field-name="shipmentId"/>
+            <key-map field-name="productId"/>
+        </relationship>
+        <relationship type="one" related-entity-name="InvoiceItem">
+            <key-map field-name="invoiceId"/>
+            <key-map field-name="invoiceItemSeqId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="ShipmentItemSource" package-name="mantle.shipment">
+        <field name="shipmentItemSourceId" type="id" is-pk="true"/>
+        <field name="shipmentId" type="id"/>
+        <field name="productId" type="id"/>
+        <field name="binLocationNumber" type="number-integer">
+            <description>This overrides the corresponding Shipment.binLocationNumber so that a shipment may be split
+                across bins, such as when one bin per order on the shipment is needed.</description>
+        </field>
+        <field name="orderId" type="id"/>
+        <field name="orderItemSeqId" type="id"/>
+        <field name="returnId" type="id"/>
+        <field name="returnItemSeqId" type="id"/>
+        <field name="statusId" type="id"/>
+        <field name="quantity" type="number-decimal"/>
+        <field name="quantityNotPacked" type="number-decimal"/>
+        <relationship type="one" related-entity-name="ShipmentItem"/>
+        <relationship type="one" related-entity-name="OrderItem"/>
+        <relationship type="one" related-entity-name="ReturnHeader"/>
+        <relationship type="one" title="ShipmentItemPick" related-entity-name="moqui.basic.StatusItem"/>
+        <seed-data>
+            <!-- Shipment Item Pick Status -->
+            <moqui.basic.StatusType description="Shipment Item Pick Status" statusTypeId="ShipmentItemPick"/>
+            <moqui.basic.StatusItem description="Pending" sequenceNum="1" statusId="PICKITEM_PENDING" statusTypeId="ShipmentItemPick"/>
+            <moqui.basic.StatusItem description="Picked" sequenceNum="5" statusId="PICKITEM_PICKED" statusTypeId="ShipmentItemPick"/>
+            <moqui.basic.StatusItem description="Packed" sequenceNum="9" statusId="PICKITEM_PACKED" statusTypeId="ShipmentItemPick"/>
+            <moqui.basic.StatusItem description="Cancelled" sequenceNum="99" statusId="PICKITEM_CANCELLED" statusTypeId="ShipmentItemPick"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PICKITEM_PENDING" toStatusId="PICKITEM_PICKED" transitionName="Pick"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PICKITEM_PENDING" toStatusId="PICKITEM_PACKED" transitionName="Pack"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PICKITEM_PICKED" toStatusId="PICKITEM_PACKED" transitionName="Pack"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PICKITEM_PENDING" toStatusId="PICKITEM_CANCELLED" transitionName="Cancel"/>
+        </seed-data>
+    </entity>
+    <entity entity-name="ShipmentPackage" package-name="mantle.shipment">
+        <field name="shipmentId" type="id" is-pk="true"/>
+        <field name="shipmentPackageSeqId" type="id" is-pk="true"/>
+        <field name="shipmentBoxTypeId" type="id"/>
+        <field name="weight" type="number-decimal"/>
+        <field name="weightUomId" type="id"/>
+        <relationship type="one" related-entity-name="Shipment"/>
+        <relationship type="one" related-entity-name="ShipmentBoxType"/>
+        <relationship type="one" title="Weight" related-entity-name="moqui.basic.Uom">
+            <key-map field-name="weightUomId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="ShipmentPackageContent" package-name="mantle.shipment">
+        <field name="shipmentId" type="id" is-pk="true"/>
+        <field name="shipmentPackageSeqId" type="id" is-pk="true"/>
+        <field name="productId" type="id" is-pk="true"/>
+        <field name="quantity" type="number-decimal"/>
+        <relationship type="one" related-entity-name="ShipmentPackage">
+            <key-map field-name="shipmentId"/>
+            <key-map field-name="shipmentPackageSeqId"/>
+        </relationship>
+        <relationship type="one" related-entity-name="ShipmentItem">
+            <key-map field-name="shipmentId"/>
+            <key-map field-name="productId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="ShipmentPackageRouteSeg" package-name="mantle.shipment">
+        <field name="shipmentId" type="id" is-pk="true"/>
+        <field name="shipmentPackageSeqId" type="id" is-pk="true"/>
+        <field name="shipmentRouteSegmentSeqId" type="id" is-pk="true"/>
+        <field name="trackingCode" type="text-short"/>
+        <field name="boxNumber" type="text-short"/>
+
+        <field name="labelImage" type="binary-very-long"/>
+        <field name="labelIntlSignImage" type="binary-very-long"/>
+        <field name="labelHtml" type="text-very-long"/>
+        <field name="labelPrinted" type="text-indicator"/>
+        <field name="internationalInvoice" type="binary-very-long"/>
+
+        <field name="estimatedAmount" type="currency-amount"/>
+        <field name="packageTransportAmount" type="currency-amount"/>
+        <field name="packageServiceAmount" type="currency-amount"/>
+        <field name="packageOtherAmount" type="currency-amount"/>
+        <field name="codAmount" type="currency-amount"/>
+        <field name="insuredAmount" type="currency-amount"/>
+        <field name="amountUomId" type="id"/>
+        <relationship type="one" related-entity-name="ShipmentPackage">
+            <key-map field-name="shipmentId"/>
+            <key-map field-name="shipmentPackageSeqId"/>
+        </relationship>
+        <relationship type="one" related-entity-name="ShipmentRouteSegment">
+            <key-map field-name="shipmentId"/>
+            <key-map field-name="shipmentRouteSegmentSeqId"/>
+        </relationship>
+        <relationship type="one" title="Amount" related-entity-name="moqui.basic.Uom">
+            <key-map field-name="amountUomId"/>
+        </relationship>
+    </entity>
+    <entity entity-name="ShipmentRouteSegment" package-name="mantle.shipment">
+        <field name="shipmentId" type="id" is-pk="true"/>
+        <field name="shipmentRouteSegmentSeqId" type="id" is-pk="true"/>
+        <field name="deliveryId" type="id"/>
+
+        <field name="originFacilityId" type="id"/>
+        <field name="originPostalContactMechId" type="id"/>
+        <field name="originTelecomContactMechId" type="id"/>
+        <field name="destinationFacilityId" type="id"/>
+        <field name="destPostalContactMechId" type="id"/>
+        <field name="destTelecomContactMechId" type="id"/>
+
+        <field name="carrierPartyId" type="id"/>
+        <field name="shipmentMethodEnumId" type="id"/>
+        <field name="statusId" type="id" enable-audit-log="true"/>
+        <field name="carrierDeliveryZone" type="text-short"/>
+        <field name="carrierRestrictionCodes" type="text-short"/>
+        <field name="carrierRestrictionDesc" type="text-very-long"/>
+
+        <field name="billingWeight" type="number-decimal"/>
+        <field name="billingWeightUomId" type="id"/>
+
+        <field name="actualTransportCost" type="currency-amount"/>
+        <field name="actualServiceCost" type="currency-amount"/>
+        <field name="actualOtherCost" type="currency-amount"/>
+        <field name="actualCost" type="currency-amount"/>
+        <field name="costUomId" type="id"/>
+
+        <field name="actualStartDate" type="date-time"/>
+        <field name="actualArrivalDate" type="date-time"/>
+        <field name="estimatedStartDate" type="date-time"/>
+        <field name="estimatedArrivalDate" type="date-time"/>
+
+        <field name="trackingIdNumber" type="text-short" enable-audit-log="true"/>
+        <field name="trackingDigest" type="text-very-long"/>
+
+        <field name="homeDeliveryType" type="id"/>
+        <field name="homeDeliveryDate" type="date-time"/>
+
+        <field name="thirdPartyAccountNumber" type="id"/>
+        <field name="thirdPartyPostalCode" type="id"/>
+        <field name="thirdPartyCountryGeoCode" type="id"/>
+
+        <field name="upsHighValueReport" type="binary-very-long"/>
+
+        <relationship type="one" related-entity-name="Shipment"/>
+        <relationship type="one" related-entity-name="Delivery"/>
+        <relationship type="one" title="Carrier" related-entity-name="Party">
+            <key-map field-name="carrierPartyId"/>
+        </relationship>
+        <relationship type="one" title="ShipmentMethod" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="shipmentMethodEnumId"/>
+        </relationship>
+        <relationship type="one" title="Origin" related-entity-name="Facility">
+            <key-map field-name="originFacilityId"/>
+        </relationship>
+        <relationship type="one" title="Origin" related-entity-name="PostalAddress">
+            <key-map field-name="originPostalContactMechId"/>
+        </relationship>
+        <relationship type="one" title="Origin" related-entity-name="TelecomNumber">
+            <key-map field-name="originTelecomContactMechId"/>
+        </relationship>
+        <relationship type="one" title="Destination" related-entity-name="Facility">
+            <key-map field-name="destinationFacilityId"/>
+        </relationship>
+        <relationship type="one" title="Destination" related-entity-name="PostalAddress">
+            <key-map field-name="destPostalContactMechId"/>
+        </relationship>
+        <relationship type="one" title="Destination" related-entity-name="TelecomNumber">
+            <key-map field-name="destTelecomContactMechId"/>
+        </relationship>
+        <relationship type="one" title="ShipmentRouteSegment" related-entity-name="moqui.basic.StatusItem"/>
+        <relationship type="one" title="Cost" related-entity-name="moqui.basic.Uom">
+            <key-map field-name="costUomId"/>
+        </relationship>
+        <relationship type="one" title="BillingWeight" related-entity-name="moqui.basic.Uom">
+            <key-map field-name="billingWeightUomId"/>
+        </relationship>
+        <seed-data>
+            <!-- Shipment Route Segment Status -->
+            <moqui.basic.StatusType description="Shipment Route Segment Status" statusTypeId="ShipmentRouteSegment"/>
+            <moqui.basic.StatusItem description="Not Started" sequenceNum="1" statusId="SHRSCS_NOT_STARTED" statusTypeId="ShipmentRouteSegment"/>
+            <moqui.basic.StatusItem description="Confirmed" sequenceNum="2" statusId="SHRSCS_CONFIRMED" statusTypeId="ShipmentRouteSegment"/>
+            <moqui.basic.StatusItem description="Accepted" sequenceNum="3" statusId="SHRSCS_ACCEPTED" statusTypeId="ShipmentRouteSegment"/>
+            <moqui.basic.StatusItem description="Voided" sequenceNum="8" statusId="SHRSCS_VOIDED" statusTypeId="ShipmentRouteSegment"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHRSCS_NOT_STARTED" toStatusId="SHRSCS_CONFIRMED" transitionName="Confirm"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHRSCS_CONFIRMED" toStatusId="SHRSCS_ACCEPTED" transitionName="Accept"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHRSCS_CONFIRMED" toStatusId="SHRSCS_VOIDED" transitionName="Void"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="SHRSCS_ACCEPTED" toStatusId="SHRSCS_VOIDED" transitionName="Void"/>
+        </seed-data>
+    </entity>
+</entities>
