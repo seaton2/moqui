@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<entity-facade-xml type="demo">
+
+    <!-- Security group memberships for Mantle demo parties -->
+    <moqui.security.UserGroupMember userGroupId="HIVE_MIND_USERS" userId="ORG_ACME_SA" fromDate="2010-02-03 00:00:00.000"/>
+    <moqui.security.UserGroupMember userGroupId="HIVE_MIND_USERS" userId="ORG_BLUTH_GOB" fromDate="2010-02-03 00:00:00.000"/>
+
+    <!-- ========== DEMO WIKI DATA ========== -->
+    <HiveMind.wiki.WikiSpace wikiSpaceId="DEMO" description="Demo Wiki Space" restrictView="N"
+            rootPageLocation="component://HiveMind/WikiSpace/DEMO.cwiki" decoratorScreenLocation=""/>
+    <HiveMind.wiki.WikiSpaceUser wikiSpaceId="DEMO" userId="EX_JOHN_DOE"
+            receiveNotifications="Y" allowAdmin="Y" allowView="Y" allowUpdate="Y"/>
+
+    <HiveMind.wiki.WikiPage wikiPageId="DEMO_DP1" wikiSpaceId="DEMO" pagePath="Demo Page 1" createdByUserId="EX_JOHN_DOE"/>
+    <HiveMind.wiki.WikiPageHistory wikiPageId="DEMO_DP1" historySeqId="01" userId="EX_JOHN_DOE" changeDateTime="2010-02-03 00:00:00"/>
+    <HiveMind.wiki.WikiPage wikiPageId="DEMO_DP1_CP1" wikiSpaceId="DEMO" pagePath="Demo Page 1/Child Page 1" createdByUserId="EX_JOHN_DOE"/>
+    <HiveMind.wiki.WikiPageHistory wikiPageId="DEMO_DP1_CP1" historySeqId="01" userId="EX_JOHN_DOE" changeDateTime="2010-02-03 00:00:00"/>
+    <HiveMind.wiki.WikiPage wikiPageId="DEMO_DP1_CP2" wikiSpaceId="DEMO" pagePath="Demo Page 1/Child Page 2" createdByUserId="EX_JOHN_DOE"/>
+    <HiveMind.wiki.WikiPageHistory wikiPageId="DEMO_DP1_CP2" historySeqId="01" userId="EX_JOHN_DOE" changeDateTime="2010-02-03 00:00:00"/>
+    <HiveMind.wiki.WikiPage wikiPageId="DEMO_DP2" wikiSpaceId="DEMO" pagePath="Demo Page 2" createdByUserId="EX_JOHN_DOE"/>
+    <HiveMind.wiki.WikiPageHistory wikiPageId="DEMO_DP2" historySeqId="01" userId="EX_JOHN_DOE" changeDateTime="2010-02-03 00:00:00"/>
+    <HiveMind.wiki.WikiPage wikiPageId="DEMO_DP2_CP1" wikiSpaceId="DEMO" pagePath="Demo Page 2/Child Page 1" createdByUserId="EX_JOHN_DOE"/>
+    <HiveMind.wiki.WikiPageHistory wikiPageId="DEMO_DP2_CP1" historySeqId="01" userId="EX_JOHN_DOE" changeDateTime="2010-02-03 00:00:00"/>
+
+    <HiveMind.wiki.WikiSpace wikiSpaceId="DBDEMO" description="DB Demo Wiki Space" restrictView="N"
+            rootPageLocation="dbresource://HiveMind/WikiSpace/DBDEMO.cwiki" decoratorScreenLocation=""/>
+    <moqui.resource.DbResource resourceId="HIVE_MIND" parentResourceId="" filename="HiveMind" isFile="N"/>
+    <moqui.resource.DbResource resourceId="WIKI_SPACE" parentResourceId="HIVE_MIND" filename="WikiSpace" isFile="N"/>
+    <moqui.resource.DbResource resourceId="DBDEMO_CWIKI" parentResourceId="WIKI_SPACE" filename="DBDEMO.cwiki" isFile="Y"/>
+    <moqui.resource.DbResourceFile resourceId="DBDEMO_CWIKI" mimeType="text/plain" fileData="h2. The DB Demo Root Page"/>
+
+    <!-- ========== DEMO PROJECT DATA ========== -->
+    <mantle.work.effort.WorkEffort workEffortId="HM" workEffortName="HiveMind PM Build Out"
+            workEffortTypeEnumId="WetProject" statusId="WeInProgress" statusFlowId="HmTaskSimple"/>
+    <mantle.work.effort.WorkEffortParty workEffortId="HM" partyId="ORG_BIZI_SERVICES" roleTypeId="VendorBillFrom" fromDate="2010-02-03 00:00:00"/>
+    <mantle.work.effort.WorkEffortParty workEffortId="HM" partyId="EX_JOHN_DOE" roleTypeId="Manager"
+            emplPositionClassId="SENIOR_PROGRAMMER"
+            fromDate="2010-02-03 00:00:00" statusId="PRTYASGN_ASSIGNED"/>
+    <mantle.work.effort.WorkEffortParty workEffortId="HM" partyId="ORG_ACME" roleTypeId="CustomerBillTo" fromDate="2010-02-03 00:00:00"/>
+    <mantle.work.effort.WorkEffortParty workEffortId="HM" partyId="ORG_ACME_SA" roleTypeId="ClientManager"
+            fromDate="2010-02-03 00:00:00" statusId="PRTYASGN_ASSIGNED"/>
+    <!-- Milestones -->
+    <mantle.work.effort.WorkEffort workEffortId="HM-MS-001" workEffortName="HM Milestone 1"
+            rootWorkEffortId="HM" workEffortTypeEnumId="WetMilestone" statusId="WeInProgress"
+            estimatedStartDate="2013-03-04 00:00:00" estimatedCompletionDate="2013-03-17 00:00:00"/>
+    <mantle.work.effort.WorkEffort workEffortId="HM-MS-002" workEffortName="HM Milestone 2"
+            rootWorkEffortId="HM" workEffortTypeEnumId="WetMilestone" statusId="WeInPlanning"
+            estimatedStartDate="2013-03-18 00:00:00" estimatedCompletionDate="2013-03-31 00:00:00"/>
+    <mantle.work.effort.WorkEffort workEffortId="HM-MS-003" workEffortName="HM Milestone 3"
+            rootWorkEffortId="HM" workEffortTypeEnumId="WetMilestone" statusId="WeInPlanning"
+            estimatedStartDate="2013-04-01 00:00:00" estimatedCompletionDate="2013-04-14 00:00:00"/>
+    <!-- Project Standard hourly rates in USD (not restricted to any particular Party) -->
+    <mantle.humanres.rate.RateAmount rateAmountId="HM-001" rateTypeEnumId="RT_STANDARD" timePeriodUomId="TF_hr"
+            workEffortId="HM" partyId="" emplPositionClassId="SENIOR_PROGRAMMER" fromDate="2010-02-03 00:00:00" thruDate=""
+            rateAmount="100.00" rateCurrencyUomId="USD"/>
+    <mantle.humanres.rate.RateAmount rateAmountId="HM-002" rateTypeEnumId="RT_STANDARD" timePeriodUomId="TF_hr"
+            workEffortId="HM" partyId="" emplPositionClassId="PROGRAMMER" fromDate="2010-02-03 00:00:00" thruDate=""
+            rateAmount="60.00" rateCurrencyUomId="USD"/>
+    <!-- Project StatusFlow -->
+    <moqui.basic.StatusFlow statusFlowId="HmTaskSimple" statusTypeId="WorkEffort" description="HiveMind Task Simple Status Flow"/>
+    <moqui.basic.StatusFlowItem statusFlowId="HmTaskSimple" statusId="WeApproved" isInitial="Y"/>
+    <moqui.basic.StatusFlowItem statusFlowId="HmTaskSimple" statusId="WeInProgress" isInitial="Y"/>
+    <moqui.basic.StatusFlowItem statusFlowId="HmTaskSimple" statusId="WeClosed" isInitial="N"/>
+    <moqui.basic.StatusFlowItem statusFlowId="HmTaskSimple" statusId="WeCancelled" isInitial="N"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="HmTaskSimple" statusId="WeApproved" toStatusId="WeInProgress" transitionName="Begin"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="HmTaskSimple" statusId="WeInProgress" toStatusId="WeClosed" transitionName="Complete"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="HmTaskSimple" statusId="WeApproved" toStatusId="WeCancelled" transitionName="Cancel"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="HmTaskSimple" statusId="WeInProgress" toStatusId="WeCancelled" transitionName="Cancel"/>
+    <!-- Project Expense (Purchase) Invoice - Travel paid by individual -->
+    <mantle.account.invoice.Invoice invoiceId="HM-001" invoiceTypeEnumId="InvoiceSales" fromPartyId="_NA_"
+            toPartyId="EX_JOHN_DOE" statusId="InvoicePaid" invoiceDate="2013-03-17 12:00:00" currencyUomId="USD"
+            description="March visit travel expenses"/>
+    <mantle.account.invoice.InvoiceItem invoiceId="HM-001" invoiceItemSeqId="01" itemTypeEnumId="ItemExpenseTravel"
+            quantity="1" amount="299.75" description="United Airfare"/>
+    <mantle.account.invoice.InvoiceItem invoiceId="HM-001" invoiceItemSeqId="02" itemTypeEnumId="ItemExpenseTravel"
+            quantity="1" amount="25.00" description="Seat upgrade (no standard economy seats left)"/>
+    <mantle.account.invoice.InvoiceItem invoiceId="HM-001" invoiceItemSeqId="03" itemTypeEnumId="ItemExpenseTravel"
+            quantity="1" amount="1499.67" description="Hilton Hotel"/>
+    <mantle.account.invoice.InvoiceItem invoiceId="HM-001" invoiceItemSeqId="04" itemTypeEnumId="ItemExpenseTravel"
+            quantity="1" amount="560.00" description="Avis Car Rental"/>
+    <mantle.account.invoice.InvoiceItem invoiceId="HM-001" invoiceItemSeqId="05" itemTypeEnumId="ItemExpenseTravel"
+            quantity="1" amount="84.00" description="Airport Parking"/>
+    <mantle.work.effort.WorkEffortInvoice invoiceId="HM-001" workEffortId="HM"/>
+    <!-- Project Expense (Purchase) Invoice - Hosting paid by Biziwork company-->
+    <mantle.party.Party partyId="HM_AWS" partyTypeEnumId="PtyOrganization"/>
+    <mantle.party.Organization partyId="HM_AWS" organizationName="Amazon Web Services"/>
+    <mantle.party.PartyRole partyId="HM_AWS" roleTypeId="VendorBillFrom"/>
+    <mantle.account.invoice.Invoice invoiceId="HM-002" invoiceTypeEnumId="InvoiceSales" fromPartyId="HM_AWS"
+            toPartyId="ORG_BIZI_SERVICES" statusId="InvoicePaid" invoiceDate="2013-03-01 12:00:00" currencyUomId="USD"
+            description="Amazon web hosting March 2013"/>
+    <mantle.account.invoice.InvoiceItem invoiceId="HM-002" invoiceItemSeqId="01" itemTypeEnumId="ItemExpenseHosting"
+            quantity="1" amount="216.00" description="RDS Services"/>
+    <mantle.account.invoice.InvoiceItem invoiceId="HM-002" invoiceItemSeqId="02" itemTypeEnumId="ItemExpenseHosting"
+            quantity="1" amount="315.80" description="Elastic Compute Cloud"/>
+    <mantle.account.invoice.InvoiceItem invoiceId="HM-002" invoiceItemSeqId="03" itemTypeEnumId="ItemExpenseHosting"
+            quantity="1" amount="7.12" description="Simple Storage Service"/>
+    <mantle.work.effort.WorkEffortInvoice invoiceId="HM-002" workEffortId="HM"/>
+
+
+    <mantle.work.effort.WorkEffort workEffortId="HM-001" workEffortName="HM Dashboard" priority="1"
+            rootWorkEffortId="HM" parentWorkEffortId=""
+            workEffortTypeEnumId="WetTask" purposeEnumId="WepTask" statusId="WeInProgress"/>
+    <mantle.work.effort.WorkEffortAssoc workEffortId="HM-MS-001" toWorkEffortId="HM-001"
+            workEffortAssocTypeEnumId="WeatMilestone" fromDate="2010-02-03 00:00:00" sequenceNum="1"/>
+
+    <mantle.work.effort.WorkEffort workEffortId="HM-002" workEffortName="Dashboard Project List" priority="2"
+            rootWorkEffortId="HM" parentWorkEffortId="HM-001" estimatedWorkTime="4" remainingWorkTime="4"
+            timeUomId="TF_hr" workEffortTypeEnumId="WetTask" purposeEnumId="WepNewFeature" statusId="WeInProgress"/>
+    <mantle.work.effort.WorkEffortParty workEffortId="HM-002" partyId="EX_JOHN_DOE" roleTypeId="Worker"
+            fromDate="2010-02-03 00:00:00.000" statusId="PRTYASGN_ASSIGNED"/>
+    <mantle.work.effort.WorkEffortAssoc workEffortId="HM-MS-001" toWorkEffortId="HM-002"
+            workEffortAssocTypeEnumId="WeatMilestone" fromDate="2010-02-03 00:00:00" sequenceNum="2"/>
+
+    <mantle.work.effort.WorkEffort workEffortId="HM-003" workEffortName="Dashboard Create Project" priority="2"
+            rootWorkEffortId="HM" parentWorkEffortId="HM-001"
+            workEffortTypeEnumId="WetTask" purposeEnumId="WepNewFeature" statusId="WeApproved"/>
+    <mantle.work.effort.WorkEffortAssoc workEffortId="HM-MS-001" toWorkEffortId="HM-003"
+            workEffortAssocTypeEnumId="WeatMilestone" fromDate="2010-02-03 00:00:00" sequenceNum="3"/>
+
+    <!-- this task has the most complete demo data -->
+    <mantle.work.effort.WorkEffort workEffortId="HM-004" workEffortName="Dashboard My Tasks" priority="1"
+            rootWorkEffortId="HM" parentWorkEffortId="HM-001" estimatedWorkTime="5" remainingWorkTime="2.5"
+            actualWorkTime="3.25" timeUomId="TF_hr" workEffortTypeEnumId="WetTask" purposeEnumId="WepTask"
+            statusId="WeInProgress" statusFlowId="Default">
+        <!-- NOTE: this task uses the Default StatusFlow instead of HmTaskSimple used for the rest of the project -->
+        <description><![CDATA[
+Show a list of open tasks (statusId not in WeClosed,WeCancelled) for the current logged in user.
+
+For each task include a link to the Project and Milestone the task is associated with. Also display the priority, purpose, status, due date, estimated hours and actual hours.
+
+The actual hours is populated automatically based on a sum of the TimeEntry records associated to the task.
+        ]]></description>
+    </mantle.work.effort.WorkEffort>
+    <!-- task worker and time entries -->
+    <mantle.work.effort.WorkEffortParty workEffortId="HM-004" partyId="EX_JOHN_DOE" roleTypeId="Worker"
+            fromDate="2010-02-03 00:00:00.000" statusId="PRTYASGN_ASSIGNED" receiveNotifications="Y"/>
+    <mantle.work.time.TimeEntry timeEntryId="HM-004-01" partyId="EX_JOHN_DOE" hours="2" breakHours="3"
+            workEffortId="HM-004" comments="Create Task and My Tasks first pass" rateTypeEnumId="RT_STANDARD"
+            rateAmountId="HM-001" fromDate="2013-03-02 12:00:00" thruDate="2013-03-02 17:00:00"/>
+    <mantle.work.time.TimeEntry timeEntryId="HM-004-02" partyId="EX_JOHN_DOE" hours="1.25" breakHours="1.75"
+            workEffortId="HM-004" comments="Create Task and My Tasks add more fields" rateTypeEnumId="RT_STANDARD"
+            rateAmountId="HM-001" fromDate="2013-03-04 14:00:00" thruDate="2013-03-02 17:00:00"/>
+    <!-- task milestone -->
+    <mantle.work.effort.WorkEffortAssoc workEffortId="HM-MS-001" toWorkEffortId="HM-004"
+            workEffortAssocTypeEnumId="WeatMilestone" fromDate="2010-02-03 00:00:00" sequenceNum="4"/>
+    <!-- task wiki pages -->
+    <HiveMind.wiki.WikiPageWorkEffort wikiPageId="DEMO_DP1" workEffortId="HM-004"/>
+    <HiveMind.wiki.WikiPageWorkEffort wikiPageId="DEMO_DP2_CP1" workEffortId="HM-004"/>
+    <!-- task comments -->
+    <mantle.work.effort.WorkEffortCommEvent workEffortId="HM-004" communicationEventId="HM-004-01" sequenceNum="1"/>
+    <mantle.party.communication.CommunicationEvent communicationEventId="HM-004-01" communicationEventTypeId="Comment"
+            contactMechTypeEnumId="CmtWebForm" statusId="CeSent" parentCommEventId="" rootCommEventId="HM-004-01"
+            fromPartyId="EX_JOHN_DOE" entryDate="2013-03-02 17:00:00" contentType="text/plain"
+            subject="Remaining hours question">
+        <body><![CDATA[
+Should we also display remaining hours?
+
+BTW: who would be using this? Whatever this is all just a demo anyway.
+
+BTW2: this has newlines just to demonstrate formatting.
+        ]]></body>
+    </mantle.party.communication.CommunicationEvent>
+    <mantle.party.communication.CommunicationEvent communicationEventId="HM-004-01-A" communicationEventTypeId="Comment"
+            contactMechTypeEnumId="CmtWebForm" statusId="CeSent" parentCommEventId="HM-004-01" rootCommEventId="HM-004-01"
+            fromPartyId="ORG_BLUTH_GOB" entryDate="2013-03-02 18:00:00" contentType="text/plain"
+            subject="RE: Remaining hours question"
+            body="Yes, please also display remaining hours."/>
+    <mantle.party.communication.CommunicationEvent communicationEventId="HM-004-01-A1" communicationEventTypeId="Comment"
+            contactMechTypeEnumId="CmtWebForm" statusId="CeSent" parentCommEventId="HM-004-01-A" rootCommEventId="HM-004-01"
+            fromPartyId="EX_JOHN_DOE" entryDate="2013-03-02 20:00:00" contentType="text/plain"
+            subject="RE: Remaining hours question"
+            body="It is done."/>
+    <mantle.party.communication.CommunicationEvent communicationEventId="HM-004-01-A1A" communicationEventTypeId="Comment"
+            contactMechTypeEnumId="CmtWebForm" statusId="CeSent" parentCommEventId="HM-004-01-A1" rootCommEventId="HM-004-01"
+            fromPartyId="ORG_BLUTH_GOB" entryDate="2013-03-02 21:00:00" contentType="text/plain"
+            subject="RE: Remaining hours question"
+            body="It's about time..."/>
+    <mantle.party.communication.CommunicationEvent communicationEventId="HM-004-01-B" communicationEventTypeId="Comment"
+            contactMechTypeEnumId="CmtWebForm" statusId="CeSent" parentCommEventId="HM-004-01" rootCommEventId="HM-004-01"
+            fromPartyId="ORG_BLUTH_GOB" entryDate="2013-03-02 19:00:00" contentType="text/plain"
+            subject="RE: Remaining hours question"
+            body="Make it pretty please! And fix your attitude while you're at it."/>
+
+    <mantle.work.effort.WorkEffortCommEvent workEffortId="HM-004" communicationEventId="HM-004-02" sequenceNum="2"/>
+    <mantle.party.communication.CommunicationEvent communicationEventId="HM-004-02" communicationEventTypeId="Comment"
+            contactMechTypeEnumId="CmtWebForm" statusId="CeSent" parentCommEventId="" rootCommEventId="HM-004-02"
+            fromPartyId="ORG_BLUTH_GOB" entryDate="2013-03-02 17:00:00" contentType="text/plain"
+            subject="Why isn't this working yet?!?"
+            body="This still doesn't seem to be right. You guys aren't even worth a detailed bug report so I won't bother. Just fix it."/>
+
+    <!-- more demo tasks -->
+    <mantle.work.effort.WorkEffort workEffortId="HM-005" workEffortName="Dashboard Create Task" priority="1"
+            rootWorkEffortId="HM" parentWorkEffortId="HM-001"
+            workEffortTypeEnumId="WetTask" purposeEnumId="WepNewFeature" statusId="WeInProgress"/>
+    <mantle.work.effort.WorkEffortAssoc workEffortId="HM-MS-002" toWorkEffortId="HM-005"
+            workEffortAssocTypeEnumId="WeatMilestone" fromDate="2010-02-03 00:00:00" sequenceNum="1"/>
+    <mantle.work.effort.WorkEffort workEffortId="HM-006" workEffortName="Dashboard My Requests" priority="5"
+            rootWorkEffortId="HM" parentWorkEffortId="HM-001"
+            workEffortTypeEnumId="WetTask" purposeEnumId="WepNewFeature" statusId="WeApproved"/>
+    <mantle.work.effort.WorkEffortAssoc workEffortId="HM-MS-002" toWorkEffortId="HM-006"
+            workEffortAssocTypeEnumId="WeatMilestone" fromDate="2010-02-03 00:00:00" sequenceNum="2"/>
+    <mantle.work.effort.WorkEffort workEffortId="HM-007" workEffortName="Dashboard Create Request" priority="5"
+            rootWorkEffortId="HM" parentWorkEffortId="HM-001"
+            workEffortTypeEnumId="WetTask" purposeEnumId="WepNewFeature" statusId="WeApproved"/>
+    <mantle.work.effort.WorkEffortAssoc workEffortId="HM-MS-002" toWorkEffortId="HM-007"
+            workEffortAssocTypeEnumId="WeatMilestone" fromDate="2010-02-03 00:00:00" sequenceNum="3"/>
+
+    <mantle.work.effort.WorkEffort workEffortId="HM-010" workEffortName="HM Task Screen"
+            rootWorkEffortId="HM" parentWorkEffortId=""
+            workEffortTypeEnumId="WetTask" purposeEnumId="WepTask" statusId="WeApproved"/>
+    <mantle.work.effort.WorkEffortAssoc workEffortId="HM-MS-003" toWorkEffortId="HM-010"
+            workEffortAssocTypeEnumId="WeatMilestone" fromDate="2010-02-03 00:00:00" sequenceNum="1"/>
+
+    <mantle.work.effort.WorkEffort workEffortId="HM-020" workEffortName="HM Request Screen"
+            rootWorkEffortId="HM" parentWorkEffortId=""
+            workEffortTypeEnumId="WetTask" purposeEnumId="WepTask" statusId="WeApproved"/>
+    <mantle.work.effort.WorkEffortAssoc workEffortId="HM-MS-003" toWorkEffortId="HM-020"
+            workEffortAssocTypeEnumId="WeatMilestone" fromDate="2010-02-03 00:00:00" sequenceNum="2"/>
+
+    <!-- ========== DEMO REQUEST DATA ========== -->
+    <mantle.request.Request requestId="DEMO_001" requestTypeEnumId="RF_FEATURE" requestCategoryId=""
+            statusId="REQUEST_IN_PROGRESS" requestName="Add Create Request on dashboard"
+            description="Please add Create Request popup on dashboard screen for convenient request creation."
+            fromPartyId="" priority="2" requestDate="2010-02-03 00:00:00" responseRequiredDate="2013-07-31 12:00:00"/>
+    <mantle.request.RequestParty requestId="DEMO_001" partyId="EX_JOHN_DOE" roleTypeId="Worker" fromDate="2010-02-03 00:00:00" thruDate=""/>
+    <mantle.request.RequestParty requestId="DEMO_001" partyId="ORG_ACME" roleTypeId="CustomerBillTo" fromDate="2010-02-03 00:00:00" thruDate=""/>
+    <mantle.request.RequestWorkEffort requestId="DEMO_001" workEffortId="HM-007"/>
+
+    <mantle.request.Request requestId="DEMO_002" requestTypeEnumId="RF_INFO" requestCategoryId=""
+            statusId="REQUEST_SUBMITTED" requestName="Why is there so little color in the app?" description=""
+            fromPartyId="" priority="2" requestDate="2010-02-03 00:00:00" responseRequiredDate="2013-07-31 12:00:00"/>
+    <mantle.request.RequestParty requestId="DEMO_002" partyId="EX_JOHN_DOE" roleTypeId="Worker" fromDate="2010-02-03 00:00:00" thruDate=""/>
+
+    <mantle.request.RequestWorkEffort requestId="DEMO_001" workEffortId="HM-004"/>
+    <mantle.request.RequestWorkEffort requestId="DEMO_002" workEffortId="HM-004"/>
+</entity-facade-xml>

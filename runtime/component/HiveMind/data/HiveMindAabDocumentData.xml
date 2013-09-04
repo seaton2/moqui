@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<entity-facade-xml type="seed">
+    <!-- Wiki Page -->
+    <moqui.entity.document.DataDocument dataDocumentId="HmWikiPage" indexName="hivemind" documentName="Wiki Page"
+            primaryEntityName="HiveMind.wiki.WikiPage" documentTitle="${wikiSpaceId}/${pagePath?:''}"
+            manualDataServiceName="HiveMind.WikiServices.getWikiPageManualDocumentData"/>
+    <!-- NOTE: service purpose is to get wiki page contents from the file (resource) -->
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmWikiPage" fieldPath="wikiPageId"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmWikiPage" fieldPath="wikiSpaceId"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmWikiPage" fieldPath="pagePath"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmWikiPage" fieldPath="HiveMind.wiki.WikiSpace:description" fieldNameAlias="space"/>
+    <!-- the history fields are useful for update history and search by users who have updated a page, but also trigger indexing on page update -->
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmWikiPage" fieldPath="HiveMind.wiki.WikiPageHistory:historySeqId"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmWikiPage" fieldPath="HiveMind.wiki.WikiPageHistory:changeDateTime"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmWikiPage" fieldPath="HiveMind.wiki.WikiPageHistory:userId"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmWikiPage"
+            fieldPath="HiveMind.wiki.WikiPageHistory:moqui.security.UserAccount:username"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmWikiPage" fieldPath="HiveMind.wiki.WikiPageHistory:changeDateTime"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmWikiPage"
+            relationshipName="HiveMind.wiki.WikiPage" documentAlias="WikiPage"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmWikiPage"
+            relationshipName="HiveMind.wiki.WikiSpace" documentAlias="WikiSpace"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmWikiPage"
+            relationshipName="HiveMind.wiki.WikiPageHistory" documentAlias="History"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmWikiPage"
+            relationshipName="moqui.security.UserAccount" documentAlias="UserAccount"/>
+    <moqui.entity.document.DataDocumentLink dataDocumentId="HmWikiPage" label="Wiki Page"
+            linkUrl="/apps/hm/wiki/${wikiSpaceId}/${pagePath?:''}"/>
+
+    <!-- Project -->
+    <moqui.entity.document.DataDocument dataDocumentId="HmProject" indexName="hivemind" documentName="Project"
+            primaryEntityName="mantle.work.effort.WorkEffort" documentTitle="${name}"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmProject" fieldPath="workEffortId"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmProject" fieldPath="workEffortName" fieldNameAlias="name"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmProject" fieldPath="workEffortTypeEnumId"/><!-- this is aliased so we can have a condition on it -->
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmProject"
+            fieldPath="WorkEffort#moqui.basic.StatusItem:description" fieldNameAlias="status"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmProject"
+            fieldPath="WorkEffortType#moqui.basic.Enumeration:description" fieldNameAlias="type"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmProject"
+            fieldPath="WorkEffortPurpose#moqui.basic.Enumeration:description" fieldNameAlias="purpose"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmProject"
+            fieldPath="mantle.work.effort.WorkEffortParty:partyId"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmProject"
+            fieldPath="mantle.work.effort.WorkEffortParty:mantle.party.RoleType:description" fieldNameAlias="role"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmProject"
+            fieldPath="mantle.work.effort.WorkEffortParty:mantle.party.Person:firstName"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmProject"
+            fieldPath="mantle.work.effort.WorkEffortParty:mantle.party.Person:lastName"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmProject"
+            relationshipName="mantle.work.effort.WorkEffort" documentAlias="WorkEffort"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmProject"
+            relationshipName="WorkEffort#moqui.basic.StatusItem" documentAlias="StatusItem"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmProject"
+            relationshipName="WorkEffortType#moqui.basic.Enumeration" documentAlias="WorkEffortType"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmProject"
+            relationshipName="WorkEffortPurpose#moqui.basic.Enumeration" documentAlias="WorkEffortPurpose"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmProject"
+            relationshipName="mantle.work.effort.WorkEffortParty" documentAlias="Party"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmProject"
+            relationshipName="mantle.party.RoleType" documentAlias="RoleType"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmProject"
+            relationshipName="mantle.party.Person" documentAlias="Person"/>
+    <moqui.entity.document.DataDocumentCondition dataDocumentId="HmProject"
+            fieldNameAlias="workEffortTypeEnumId" fieldValue="WetProject"/>
+    <moqui.entity.document.DataDocumentLink dataDocumentId="HmProject" label="Edit Project"
+            linkUrl="/apps/hm/Project/EditProject?workEffortId=${workEffortId}"/>
+
+    <!-- Task -->
+    <moqui.entity.document.DataDocument dataDocumentId="HmTask" indexName="hivemind" documentName="Task"
+            primaryEntityName="mantle.work.effort.WorkEffort" documentTitle="${name}"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmTask" fieldPath="workEffortId"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmTask" fieldPath="workEffortName" fieldNameAlias="name"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmTask" fieldPath="workEffortTypeEnumId"/><!-- this is aliased so we can have a condition on it -->
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmTask"
+            fieldPath="WorkEffort#moqui.basic.StatusItem:description" fieldNameAlias="status"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmTask"
+            fieldPath="WorkEffortType#moqui.basic.Enumeration:description" fieldNameAlias="type"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmTask"
+            fieldPath="WorkEffortPurpose#moqui.basic.Enumeration:description" fieldNameAlias="purpose"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmTask"
+            fieldPath="mantle.work.effort.WorkEffortParty:partyId"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmTask"
+            fieldPath="mantle.work.effort.WorkEffortParty:mantle.party.RoleType:description" fieldNameAlias="role"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmTask"
+            fieldPath="mantle.work.effort.WorkEffortParty:mantle.party.Person:firstName"/>
+    <moqui.entity.document.DataDocumentField dataDocumentId="HmTask"
+            fieldPath="mantle.work.effort.WorkEffortParty:mantle.party.Person:lastName"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmTask"
+            relationshipName="mantle.work.effort.WorkEffort" documentAlias="WorkEffort"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmTask"
+            relationshipName="WorkEffort#moqui.basic.StatusItem" documentAlias="StatusItem"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmTask"
+            relationshipName="WorkEffortType#moqui.basic.Enumeration" documentAlias="WorkEffortType"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmTask"
+            relationshipName="WorkEffortPurpose#moqui.basic.Enumeration" documentAlias="WorkEffortPurpose"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmTask"
+            relationshipName="mantle.work.effort.WorkEffortParty" documentAlias="Party"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmTask"
+            relationshipName="mantle.party.RoleType" documentAlias="RoleType"/>
+    <moqui.entity.document.DataDocumentRelAlias dataDocumentId="HmTask"
+            relationshipName="mantle.party.Person" documentAlias="Person"/>
+    <moqui.entity.document.DataDocumentCondition dataDocumentId="HmTask"
+            fieldNameAlias="workEffortTypeEnumId" fieldValue="WetTask"/>
+    <moqui.entity.document.DataDocumentLink dataDocumentId="HmTask" label="Edit Task"
+            linkUrl="/apps/hm/Task/EditTask?workEffortId=${workEffortId}"/>
+
+    <!-- ================ -->
+    <!-- Search Data Feed -->
+    <moqui.entity.feed.DataFeed dataFeedId="HiveMindSearch" dataFeedTypeEnumId="DTFDTP_RT_PUSH"
+            feedName="HiveMind Search" feedReceiveServiceName="HiveMind.SearchServices.indexAndNotify#HiveMindDocuments"/>
+    <moqui.entity.feed.DataFeedDocument dataFeedId="HiveMindSearch" dataDocumentId="HmWikiPage"/>
+    <moqui.entity.feed.DataFeedDocument dataFeedId="HiveMindSearch" dataDocumentId="HmProject"/>
+    <moqui.entity.feed.DataFeedDocument dataFeedId="HiveMindSearch" dataDocumentId="HmTask"/>
+
+    <!-- EmailTemplates for Feed-driven Update Notifications -->
+    <moqui.basic.email.EmailTemplate emailTemplateId="HM_TASK_UPDATE" description="HiveMind Task Update Notification"
+            emailServerId="SYSTEM" bodyScreenLocation="component://HiveMind/screen/TaskUpdateNotification.xml"
+            webappName="webroot" fromAddress="" ccAddresses="" bccAddresses=""
+            subject="Task Updated: ${document._id} - ${document.WorkEffort.name}" sendPartial="Y"/>
+    <moqui.basic.email.EmailTemplate emailTemplateId="HM_WIKI_PAGE_UPDATE" description="HiveMind WikiPage Update Notification"
+            emailServerId="SYSTEM" bodyScreenLocation="component://HiveMind/screen/WikiPageUpdateNotification.xml"
+            webappName="webroot" fromAddress="" ccAddresses="" bccAddresses=""
+            subject="Wiki Page Updated: ${document.WikiPage.wikiSpaceId}/${document.WikiPage.pagePath}" sendPartial="Y"/>
+
+</entity-facade-xml>
