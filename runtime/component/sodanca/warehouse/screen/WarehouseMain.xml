@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        standalone="true" default-menu-include="false">
+
+<actions>
+	<entity-find entity-name="">
+		<econdition field-name="" operator="" />
+	</entity-find>
+</actions>
+
+</screen>
