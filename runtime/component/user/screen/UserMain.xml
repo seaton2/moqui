@@ -98,7 +98,7 @@
 
         <container-dialog id="CNUA" button-text="Create New User">
             <form-single name="New User Account" transition="CUA">
-                <auto-fields-service service-name="usertoolsService.create#UserAccount"/>
+                <auto-fields-service service-name="userServices.create#UserAccount"/>
                 <field name="userGroupId">
                     <default-field>
                         <drop-down>
