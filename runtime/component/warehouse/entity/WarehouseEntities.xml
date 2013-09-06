@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-1.3.xsd">
+
+	<!--<entity entity-name="products" package-name="warehouse">-->
+		<!--<field name="productId" type="id" is-pk="true">-->
+			<!--<description>Primary ID descriptive of item e.g. BA01</description>-->
+		<!--</field>-->
+		<!--<field name="catalogId" type="id" />-->
+		<!--<field name="category" type="id" />-->
+		<!--<field name="subcategory" type="id" />-->
+		<!--<field name="gridId" type="id" />-->
+		<!--<field name="status" type="id" />-->
+		<!--<field name="defaultVendor" type="id" />-->
+	<!--</entity>-->
+
+	<!--<entity entity-name="items" package-name="warehouse">-->
+		<!--<field name="sku" type="id" is-pk="true" />-->
+		<!--<field name="productId" type="id" />-->
+		<!--<field name="colorName" type="id" />-->
+		<!--<field name="sizeName" type="id" />-->
+		<!--<field name="gridGroup" type="id" />-->
+		<!--<field name="gridPosition" type="number-integer" />-->
+		<!--<field name="columnPosition" type="number-integer" />-->
+		<!--<field name="rowPosition" type="number-integer" />-->
+		<!--<field name="grossWeight" type="number-float" />-->
+		<!--<field name="availability" type="text-short" />-->
+	<!--</entity>-->
+
+	<!--<entity entity-name="colors" package-name="warehouse">-->
+		<!--<field name="colorId" type="id" is-pk="true" />-->
+		<!--<field name="colorCode" type="id" />-->
+		<!--<field name="descriptionEn" type="text-short" />-->
+		<!--<field name="descriptionBr" type="text-short" />-->
+		<!--<field name="colorNameBr" type="text-short" />-->
+	<!--</entity>-->
+	<!--<entity entity-name="colorCombinations" package-name="warehouse">-->
+		<!--<field name="colorId" type="id" is-pk="true" />-->
+		<!--<field name="color1Id" type="id" />-->
+		<!--<field name="color2Id" type="id" />-->
+		<!--<field name="color3Id" type="id" />-->
+		<!--<field name="color4Id" type="id" />-->
+	<!--</entity>-->
+	<!--<entity entity-name="sizes" package-name="warehouse">-->
+		<!--<field name="sizeId" type="id" is-pk="true" />-->
+		<!--<field name="sizeCode" type="id" />-->
+		<!--<field name="sizeDescription" type="text-short" />-->
+	<!--</entity>-->
+	<!--<entity entity-name="widths" package-name="warehouse">-->
+		<!--<field name="widthId" type="id" is-pk="true" />-->
+		<!--<field name="widthCode" type="id" />-->
+		<!--<field name="widthDescription" type="text-short" />-->
+
+	<!--</entity>-->
+	<!--<entity entity-name="shankLengths" package-name="warehouse">-->
+		<!--<field name="shLengthId" type="id" is-pk="true" />-->
+		<!--<field name="shLengthCode" type="id" />-->
+		<!--<field name="shLenDescription" type="text-short" />-->
+	<!--</entity>-->
+	<!--<entity entity-name="shankHardness" package-name="warehouse">-->
+		<!--<field name="shHardnessId" type="id" is-pk="true" />-->
+		<!--<field name="shHardnessCode" type="id" />-->
+		<!--<field name="shHardDescription" type="text-short" />-->
+	<!--</entity>-->
+	<!--<entity entity-name="gridDefinitions" package-name="warehouse">-->
+		<!--<field name="gridId" type="id" is-pk="true" />-->
+		<!--<field name="noColumns" type="number-integer" />-->
+		<!--<field name="noRows" type="number-integer" />-->
+		<!--<field name="noGroups" type="number-integer" />-->
+	<!--</entity>-->
+	<!--<entity entity-name="catalogs" package-name="warehouse">-->
+		<!--<field name="catalogId" type="id" is-pk="true" />-->
+		<!--<field name="catalogName" type="text-short" />-->
+		<!--<field name="catalogYear" type="number-integer" />-->
+		<!--<field name="catalogDescription" type="text-short" />-->
+		<!--<field name="coverImageFile" type="text-long" />-->
+	<!--</entity>-->
+	<!--<entity entity-name="productDescriptions" package-name="warehouse">-->
+		<!--<field name="productId" type="id" is-pk="true" />-->
+		<!--<field name="descriptionText" type="text-long" />-->
+		<!--<field name="descriptionType" type="id" />-->
+		<!--<field name="seqNumber" type="number-integer" />-->
+		<!--<field name="descriptionLanguage" type="text-short" />-->
+	<!--</entity>-->
+	<!--<entity entity-name="productImages" package-name="warehouse">-->
+		<!--<field name="productId" type="id" is-pk="true" />-->
+		<!--<field name="imageType" type="id" />-->
+		<!--<field name="seqNumber" type="number-integer" />-->
+		<!--<field name="fileLocation" type="text-short" />-->
+		<!--<field name="fileName" type="text-short" />-->
+	<!--</entity>-->
+	<!--<entity entity-name="productPrices" package-name="warehouse">-->
+		<!--<field name="productId" type="id" is-pk="true" />-->
+		<!--<field name="wholesalePrice" type="currency-amount" />-->
+		<!--<field name="retailPrice" type="currency-amount" />-->
+		<!--<field name="msrp" type="currency-amount" />-->
+		<!--<field name="lastCost" type="currency-amount" />-->
+		<!--<field name="averageCost" type="currency-amount" />-->
+		<!--<field name="standardCost" type="currency-amount" />-->
+	<!--</entity>-->
+	<!--<entity entity-name="inventory" package-name="warehouse">-->
+		<!--<field name="sku" type="id" is-pk="true" />-->
+
+		<!--<field name="location" type="id">-->
+			<!--<description>Location for stock</description>-->
+		<!--</field>-->
+		<!--<field name="qoh" type="number-integer">-->
+			<!--<description>Quantity on hand</description>-->
+		<!--</field>-->
+		<!--<field name="qoo" type="number-integer">-->
+			<!--<description>Quantity on order</description>-->
+		<!--</field>-->
+		<!--<field name="qct" type="number-integer">-->
+			<!--<description>Quantity committed</description>-->
+		<!--</field>-->
+		<!--<field name="qap" type="number-integer">-->
+			<!--<description>Quantity available to promise</description>-->
+		<!--</field>-->
+	<!--</entity>-->
+
+</entities>

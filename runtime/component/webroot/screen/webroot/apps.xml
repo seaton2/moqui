@@ -15,18 +15,37 @@ This Work includes contributions authored by David E. Jones, not as a
         require-authentication="false" screen-theme-type-enum-id="STT_INTERNAL">
     <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
 
-    <subscreens default-item="example">
+
         <!-- refer to the various app roots here -->
-        <subscreens-item name="example" location="component://example/screen/ExampleApp.xml"
-                         menu-title="Example" menu-index="8"/>
-        <subscreens-item name="tools" location="component://tools/screen/Tools.xml"
-                         menu-title="Tools" menu-index="9"/>
-    </subscreens>
+        <!--<subscreens-item name="example" location="component://example/screen/ExampleApp.xml"-->
+                         <!--menu-title="Example" menu-index="8"/>-->
+        <subscreens default-item="Main">
+            <!--<subscreens-item name="blank" location="component://main/screen/Main.xml"-->
+                             <!--menu-title="Welcome" menu-index="1"/>-->
+            <!--<subscreens-item name="Warehouse" location="component://warehouse/screen/WarehouseMain.xml"-->
+                             <!--menu-title="Warehouse" menu-index="3"/>-->
+            <!--<subscreens-item name="Accounting" location="component://accounting/screen/AccountingMain.xml"-->
+                             <!--menu-title="Accounting" menu-index="4"/>-->
+            <!--<subscreens-item name="Customer" location="component://customer/screen/CustomerMain.xml"-->
+                             <!--menu-title="Customer" menu-index="5"/>-->
+            <!--<subscreens-item name="Order" location="component://order/screen/OrderMain.xml"-->
+                             <!--menu-title="Order" menu-index="6"/>-->
+            <!--<subscreens-item name="Reports" location="component://reports/screen/ReportsMain.xml"-->
+                             <!--menu-title="Reports" menu-index="7"/>-->
+            <!--<subscreens-item name="User" location="component://user/screen/UserMain.xml"-->
+                             <!--menu-title="User" menu-index="8"/>-->
+            <subscreens-item name="Tools" location="component://tools/screen/Tools.xml"
+                             menu-title="Tools" menu-index="7" />
+            <subscreens-item name="Example" location="component://example/screen/ExampleApp.xml"
+                             menu-title="Example" menu-index="8"/>
+
+        </subscreens>
+
 
     <widgets>
         <container-panel id="apps-container" dynamic="true">
             <panel-header>
-                <container id="header-logo"><label text="Welcome to Moqui" type="h1"/></container>
+                <container id="header-logo"><label text="Sodanca" type="h1"/></container>
                 <container id="header-menus">
                     <subscreens-menu type="popup" id="header-menu" title="Application"/>
                 </container>
@@ -35,6 +54,7 @@ This Work includes contributions authored by David E. Jones, not as a
                     <widgets>
                         <container id="header-user">
                             <label text="${ec.user.userAccount?.userFullName}"/>
+                            <label text="${ec.user.userAccount?.status}"/>
                             <link text="Logout" url="/Login/logout" link-type="hidden-form" icon="key"/>
                         </container>
                     </widgets>
@@ -55,11 +75,12 @@ This Work includes contributions authored by David E. Jones, not as a
                 <subscreens-active/>
             </panel-center>
             <panel-footer>
-                <render-mode><text type="html"><![CDATA[
-                    <div id="apps-footer-content">
-                        <h6><a href="http://www.moqui.org/">Built on Moqui</a></h6>
+                <render-mode><text type="html">
+                    <![CDATA[
+                    <div id="apps-footer-content"><h6><a href="http://www.moqui.org/">Built on Moqui</a></h6>
                     </div>
-                ]]></text></render-mode>
+                    ]]>
+                </text></render-mode>
             </panel-footer>
         </container-panel>
     </widgets>

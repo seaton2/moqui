@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        require-authentication="true" screen-theme-type-enum-id="STT_INTERNAL">
+    <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
+
+
+
+
+<transition name="CUA">
+    <service-call name="userServices.create#UserAccount"/>
+    <default-response url="."/>
+</transition>
+<!--<transition name="editUser"><default-response url="./editUser"/></transition>-->
+<transition name="runClock">
+
+    <service-call name="userServices.run#Timeclock"/>
+    <default-response url="."/>
+</transition>
+
+
+<actions>
+    <entity-find entity-name="moqui.security.UserGroupMemberCheck" list="UserCheckList" />
+
+
+    <entity-find entity-name="moqui.basic.Timeclock" list="Timeclock_new">
+        <econdition field-name="userId" value="${ec.user.getUserId()}"/>
+        <econditions combine="or">
+            <econdition field-name="status" value="TC_new" />
+            <econdition field-name="status" value="TC_in"/>
+        </econditions>
+        <select-field field-name="status"/>
+        <select-field field-name="autoInc"/>
+    </entity-find>
+
+
+    <entity-find entity-name="moqui.security.UserAccount" list="UserAccountList"/>
+    <entity-find entity-name="moqui.security.UserGroupMember" list="UserGroupMemberList"/>
+    <entity-find entity-name="moqui.security.UserGroup" list="userGroupList"/>
+    <entity-find entity-name="moqui.basic.Uom" list="currencyList">
+        <econdition field-name="uomTypeEnumId" value="UT_CURRENCY_MEASURE"/>
+        <order-by field-name="description"/>
+    </entity-find>
+
+
+
+</actions>
+
+<widgets>
+
+
+
+
+    <container id="User Accounts">
+
+
+
+
+
+        <container-dialog id="timeClockWindow" button-text="Time Clock Interface">
+            <form-single name="timeClock" transition="runClock">
+                <field name="autoInc">
+                    <default-field>
+                       <drop-down allow-empty="false">
+                           <list-options list="Timeclock_new" text="${autoInc}"/>
+                       </drop-down>
+                    </default-field>
+                </field>
+                <field name="userId">
+                    <default-field>
+                        <display text="${ec.user.getUserId()}"/>
+                    </default-field>
+                </field>
+                <field name="status">
+                    <default-field>
+                        <drop-down>
+                            <list-options list="Timeclock_new" text="${status}"/>
+                        </drop-down>
+                    </default-field>
+                </field>
+                <field name="timeStamp">
+                    <default-field >
+                        <display text="${ec.user.nowTimestamp}"/>
+                    </default-field>
+                </field>
+                <field name="Submit">
+                    <default-field title="Run Clock">
+                        <submit/>
+                    </default-field>
+                </field>
+            </form-single>
+        </container-dialog>
+
+
+
+
+
+
+        <container-dialog id="CNUA" button-text="Create New User">
+            <form-single name="New User Account" transition="CUA">
+                <auto-fields-service service-name="usertoolsService.create#UserAccount"/>
+                <field name="userGroupId">
+                    <default-field>
+                        <drop-down>
+                            <list-options list="userGroupList" text="${userGroupId}" />
+                        </drop-down>
+                    </default-field>
+                </field>
+                <field name="requirePasswordChange" hide="true"/>
+                <field name="newPassword">
+                    <default-field tooltip="Passwords must match and contain at least 6 characters, one UPPER character, one number, and one symbol">
+                        <password/>
+                    </default-field>
+                </field>
+                <field name="newPasswordVerify">
+                    <default-field>
+                        <password/>
+                    </default-field>
+                </field>
+                <field name="currentPassword" hide="true"/>
+                <field name="passwordSalt" hide="true"/>
+                <field name="passwordHashType" hide="true"/>
+                <field name="passwordSetDate" hide="true"/>
+                <field name="passwordHint" hide="true"/>
+                <field name="hasLoggedOut" hide="true"/>
+                <field name="disabled" hide="true"/>
+                <field name="disabledDateTime" hide="true"/>
+                <field name="successiveFailedLogins" hide="true"/>
+                <field name="currencyUomId">
+                    <default-field title="Type">
+                        <drop-down allow-empty="false" >
+                            <option key="USD" text="United States Dollar"/>
+                            <list-options list="currencyList" text="${description}" />
+                        </drop-down>
+                    </default-field>
+                </field>
+                <field name="locale">
+                    <default-field>
+                        <text-line default-value="en_us" size="10"/>
+                    </default-field>
+                </field>
+                <field name="timeZone">
+                    <default-field>
+                        <text-line default-value="US/Eastern" size="15"/>
+                    </default-field>
+                </field>
+                <field name="externalUserId" hide="true"/>
+                <field name="fromDate">
+                    <default-field>
+                        <date-time default-value="${ec.user.nowTimestamp}"/>
+                    </default-field>
+                </field>
+                <field name="status" hide="true"/>
+                <field name="submitButton">
+                    <default-field title="Create">
+                        <submit/>
+                    </default-field>
+                </field>
+            </form-single>
+        </container-dialog>
+    </container>
+
+
+
+
+    <container id="Permission Group">
+        <form-list name="ListUserPermissions" list="UserCheckList" >
+            <field name="userFullName">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
+
+            <field name="userId">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
+            <field name="username">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
+            <field name="userGroupId">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
+        </form-list>
+    </container>
+
+
+
+
+    </widgets>
+</screen>

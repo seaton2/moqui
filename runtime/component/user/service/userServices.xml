@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-1.3.xsd">
+
+    <service verb="create" noun="UserAccount">
+        <in-parameters>
+            <auto-parameters include="all"/>
+            <parameter name="newPassword" required="true"/>
+            <parameter name="newPasswordVerify" required="true"/>
+            <parameter name="emailAddress"><text-email/></parameter>
+            <parameter name="userFullName" required="true"/>
+            <parameter name="userId" required="true"/>
+            <parameter name="username" required="true"/>
+            <parameter name="currencyUomId"/>
+            <parameter name="fromDate"/>
+            <parameter name="userGroupId"/>
+            <parameter name="status" default-value="TC_new"/>
+
+        </in-parameters>
+        <out-parameters>
+            <auto-parameters include="pk" required="true"/>
+        </out-parameters>
+        <actions>
+            <entity-make-value entity-name="UserAccount" value-field="UAV"/>
+            <entity-set value-field="UAV" include="all"/>
+            <entity-create value-field="UAV" />
+            <service-call name="usertoolsService.create#UserGroupMember" in-map="[userId:userId, userGroupId:userGroupId, fromDate:fromDate]"/>
+            <service-call name="org.moqui.impl.UserServices.update#PasswordInternal"
+                          in-map="[userId:userId, newPassword:newPassword, newPasswordVerify:newPasswordVerify]"/>
+            <service-call name="usertoolsService.create#Timeclock" in-map="[userId:userId, status:status, timeIn:fromDate]"/>
+
+
+        </actions>
+
+
+    </service>
+
+    <service verb="run" noun="Timeclock" type="inline">
+        <in-parameters>
+            <parameter name="autoInc"/>
+            <parameter name="userId" />
+            <parameter name="status" />
+            <parameter name="timeStamp"/>
+        </in-parameters>
+        <actions>
+
+                <entity-find-one entity-name="moqui.basic.Timeclock" value-field="TimeClock">
+                    <field-map field-name="autoInc"/>
+                </entity-find-one>
+                <if condition="TimeClock.status=='TC_in'">
+                    <set field="status" value="TC_done"/>
+                    <service-call name="update#moqui.basic.Timeclock" in-map="[autoInc:autoInc, status:status, timeOut:timeStamp]"/>
+                    <set field="status" value="TC_new"/>
+                    <service-call name="create#moqui.basic.Timeclock" in-map="[userId:userId, status:status]"/>
+                    <set field="userIs" value="CLOCKED OUT"/>
+                    <service-call name="update#moqui.security.UserAccount" in-map="[userId:userId, status:userIs]"/>
+                </if>
+                <if condition="TimeClock.status=='TC_new'">
+                    <set field="status" value="TC_in"/>
+                    <service-call name="update#moqui.basic.Timeclock" in-map="[autoInc:autoInc, status:status, timeIn:timeStamp]"/>
+                    <set field="userIs" value="CLOCKED IN"/>
+                    <service-call name="update#moqui.security.UserAccount" in-map="[userId:userId, status:userIs]"/>
+                </if>
+
+
+
+
+        </actions>
+
+
+
+    </service>
+
+
+    <service verb="create" noun="UserGroupMember" type="entity-auto">
+        <in-parameters>
+            <parameter name="userId" />
+            <parameter name="userGroupId" />
+            <parameter name="fromDate"/>
+
+        </in-parameters>
+        <out-parameters>
+            <auto-parameters include="pk" required="true"/>
+        </out-parameters>
+    </service>
+
+    <service verb="create" noun="Timeclock" type="entity-auto">
+        <in-parameters>
+            <parameter name="userId"/>
+            <parameter name="status"/>
+            <parameter name="timeIn"/>
+
+        </in-parameters>
+    </service>
+
+</services>

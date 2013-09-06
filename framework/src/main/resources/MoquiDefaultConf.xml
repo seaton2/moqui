@@ -193,33 +193,33 @@
         To use the non-XA variety just specify the normal JDBC parameters (like jdbc-uri, etc) and leave out the
         xa-properties element. If the xa-properties element is present the normal JDBC parameters will be ignored.
         -->
-        <datasource group-name="transactional" database-conf-name="derby" schema-name="MOQUI">
-            <inline-jdbc pool-minsize="5" pool-maxsize="50">
-                <xa-properties databaseName="${moqui.runtime}/db/derby/MoquiTransactional" createDatabase="create"/>
-            </inline-jdbc>
+        <!--<datasource group-name="transactional" database-conf-name="derby" schema-name="MOQUI">-->
+            <!--<inline-jdbc pool-minsize="5" pool-maxsize="50">-->
+                <!--<xa-properties databaseName="${moqui.runtime}/db/derby/MoquiTransactional" createDatabase="create"/>-->
+            <!--</inline-jdbc>-->
             <!-- <inline-jdbc jdbc-uri="jdbc:derby:MoquiTransactional;create=true"
                          jdbc-username="moqui" jdbc-password="moqui"
                          pool-minsize="5" pool-maxsize="50"/> -->
             <!-- <jndi-jdbc jndi-name="java:/MoquiTransactionalDataSource"/> -->
-        </datasource>
-        <datasource group-name="analytical" database-conf-name="derby" schema-name="MOQUI">
-            <inline-jdbc pool-minsize="2" pool-maxsize="10">
-                <xa-properties databaseName="${moqui.runtime}/db/derby/MoquiAnalytical" createDatabase="create"/>
-            </inline-jdbc>
+        <!--</datasource>-->
+        <!--<datasource group-name="analytical" database-conf-name="derby" schema-name="MOQUI">-->
+            <!--<inline-jdbc pool-minsize="2" pool-maxsize="10">-->
+                <!--<xa-properties databaseName="${moqui.runtime}/db/derby/MoquiAnalytical" createDatabase="create"/>-->
+            <!--</inline-jdbc>-->
             <!-- <inline-jdbc jdbc-uri="jdbc:derby:MoquiAnalytical;create=true"
                          jdbc-username="moqui" jdbc-password="moqui"
                          pool-minsize="2" pool-maxsize="10"/> -->
             <!-- <jndi-jdbc jndi-name="java:/MoquiAnalyticalDataSource"/> -->
-        </datasource>
-        <datasource group-name="tenantcommon" database-conf-name="derby" schema-name="MOQUI">
-            <inline-jdbc pool-minsize="2" pool-maxsize="10">
-                <xa-properties databaseName="${moqui.runtime}/db/derby/MoquiTenant" createDatabase="create"/>
-            </inline-jdbc>
+        <!--</datasource>-->
+        <!--<datasource group-name="tenantcommon" database-conf-name="derby" schema-name="MOQUI">-->
+            <!--<inline-jdbc pool-minsize="2" pool-maxsize="10">-->
+                <!--<xa-properties databaseName="${moqui.runtime}/db/derby/MoquiTenant" createDatabase="create"/>-->
+            <!--</inline-jdbc>-->
             <!-- <inline-jdbc jdbc-uri="jdbc:derby:MoquiTenant;create=true"
                          jdbc-username="moqui" jdbc-password="moqui"
                          pool-minsize="2" pool-maxsize="10"/> -->
             <!-- <jndi-jdbc jndi-name="java:/MoquiTenantDataSource"/> -->
-        </datasource>
+        <!--</datasource>-->
 
         <!-- some examples of how other databases would be configured -->
         <!-- PostgreSQL

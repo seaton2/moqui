@@ -20,9 +20,36 @@
         </webapp>
     </webapp-list>
 
+    <artifact-execution-facade>
+        <artifact-execution type="AT_XML_SCREEN" authz-enabled="true" tarpit-enabled="true"/>
+        <artifact-execution type="AT_XML_SCREEN_TRANS" authz-enabled="true" tarpit-enabled="true"/>
+        <artifact-execution type="AT_SERVICE" authz-enabled="true" tarpit-enabled="true"/>
+        <!-- NOTE: entity tarpit disabled by default for performance and tracking overhead reasons -->
+        <artifact-execution type="AT_ENTITY" authz-enabled="true" tarpit-enabled="false"/>
+    </artifact-execution-facade>
+
     <screen-facade boundary-comments="false"/>
 
-    <entity-facade crypt-pass="MoquiProductionDefaultPassword:CHANGEME"/>
+    <entity-facade crypt-pass="MoquiProductionDefaultPassword:CHANGEME">
+
+    <datasource group-name="transactional" database-conf-name="mysql" >
+        <inline-jdbc jdbc-uri="jdbc:mysql://1.0.0.3:3306/MoquiTransactional?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8"
+                     jdbc-username="moqui" jdbc-password="password"
+                     pool-minsize="2" pool-maxsize="50"/>
+    </datasource>
+    <datasource group-name="analytical" database-conf-name="mysql"
+                >
+        <inline-jdbc jdbc-uri="jdbc:mysql://1.0.0.3:3306/MoquiAnalytical?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8"
+                     jdbc-username="moqui" jdbc-password="password"
+                     pool-minsize="2" pool-maxsize="50"/>
+    </datasource>
+    <datasource group-name="tenantcommon" database-conf-name="mysql"
+                >
+    <inline-jdbc jdbc-uri="jdbc:mysql://1.0.0.3:3306/MoquiTenantcommon?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8"
+                 jdbc-username="moqui" jdbc-password="password"
+                 pool-minsize="2" pool-maxsize="50"/>
+    </datasource>
+    </entity-facade>
 
     <repository-list>
         <repository name="main" location="http://localhost:8081/rmi" type="rmi" workspace="default"

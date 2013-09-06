@@ -48,6 +48,14 @@
         </webapp>
     </webapp-list>
 
+    <artifact-execution-facade>
+        <artifact-execution type="AT_XML_SCREEN" authz-enabled="true" tarpit-enabled="true"/>
+        <artifact-execution type="AT_XML_SCREEN_TRANS" authz-enabled="true" tarpit-enabled="true"/>
+        <artifact-execution type="AT_SERVICE" authz-enabled="true" tarpit-enabled="true"/>
+        <!-- NOTE: entity tarpit disabled by default for performance and tracking overhead reasons -->
+        <artifact-execution type="AT_ENTITY" authz-enabled="true" tarpit-enabled="false"/>
+    </artifact-execution-facade>
+
     <screen-facade boundary-comments="true">
         <!-- The default conf file has a macro location defined for html already, but this is an example of how to
             refer to a file to override the default macros. -->
@@ -56,7 +64,28 @@
     </screen-facade>
 
     <entity-facade crypt-pass="MoquiDevDefaultPassword:CHANGEME">
-        <!-- add datasource elements here to configure databases -->
+        <!-- add datasource elements here to configure databases <subscreens-item screenLocation="component://webroot/
+                    screen/webroot/apps.xml" subscreenName="tutorial"
+                                            userGroupId="ALL_USERS" subscreenLocation="component://
+                    tutorial/screen/tutorial.xml" menuTitle="Tutorial"
+                                            menuIndex="1" menuInclude="Y"/>-->
+               <datasource group-name="transactional" database-conf-name="mysql"  >
+            <inline-jdbc jdbc-uri="jdbc:mysql://1.0.0.3:3306/MoquiTransactional?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8"
+                         jdbc-username="moqui" jdbc-password="password"
+                         pool-minsize="2" pool-maxsize="50"/>
+        </datasource>
+        <datasource group-name="analytical" database-conf-name="mysql"
+                   >
+            <inline-jdbc jdbc-uri="jdbc:mysql://1.0.0.3:3306/MoquiAnalytical?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8"
+                         jdbc-username="moqui" jdbc-password="password"
+                         pool-minsize="2" pool-maxsize="50"/>
+        </datasource>
+        <datasource group-name="tenantcommon" database-conf-name="mysql"
+                   >
+            <inline-jdbc jdbc-uri="jdbc:mysql://1.0.0.3:3306/MoquiTenantcommon?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8"
+                         jdbc-username="moqui" jdbc-password="password"
+                         pool-minsize="2" pool-maxsize="50"/>
+        </datasource>
     </entity-facade>
 
     <repository-list>
@@ -65,7 +94,7 @@
     </repository-list>
     <component-list>
         <!-- This loads the tools component over top of the default one, which will result in a warning but works
-            fine. Use something like this to refer to components in a JCR repository. -->
-        <component name="tools" location="component/tools"/>
+            fine. Use something like this to refer to components in a JCR repository. <component name="tools" location="component/tools"/>-->
+
     </component-list>
 </moqui-conf>
