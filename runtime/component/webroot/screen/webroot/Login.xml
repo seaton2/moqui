@@ -39,7 +39,10 @@ This Work includes contributions authored by David E. Jones, not as a
 
 
 
+
     </transition>
+
+
 
 
 
@@ -85,17 +88,18 @@ This Work includes contributions authored by David E. Jones, not as a
                             <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
                         </form-single>
                     </container-dialog>
-                    <container-dialog id="timeclock" button-text="Timeclock" >
+
+                    <container-dialog id="timeclock" button-text="Timeclock App" >
 
                         <form-single name="timeclock-login" transition="timeclock">
                             <field name="username">
-                                <default-field>
-                                    <text-line/>
+                                <default-field >
+                                    <text-line size="15"/>
                                 </default-field>
                             </field>
                             <field name="password">
                                 <default-field>
-                                    <password/>
+                                    <password size="15"/>
                                 </default-field>
                             </field>
                             <field name="submit">

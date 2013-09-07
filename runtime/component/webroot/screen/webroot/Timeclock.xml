@@ -94,7 +94,7 @@ This Work includes contributions authored by David E. Jones, not as a
         </field-layout>
     </form-single>
     <link url="main" text="Main Application" link-type="anchor-button"/>
-    <link url="logout" text="Close"/>
+    <link url="logout" text="Close" icon="key"/>
 
 
 

@@ -8,13 +8,13 @@
 
 
 <transition name="CUA">
-    <service-call name="userServices.create#UserAccount"/>
+    <service-call name="customUserServices.create#UserAccount"/>
     <default-response url="."/>
 </transition>
 <!--<transition name="editUser"><default-response url="./editUser"/></transition>-->
 <transition name="runClock">
 
-    <service-call name="userServices.run#Timeclock"/>
+    <service-call name="customUserServices.run#Timeclock"/>
     <default-response url="."/>
 </transition>
 
@@ -34,8 +34,8 @@
     </entity-find>
 
 
-    <entity-find entity-name="moqui.security.UserAccount" list="UserAccountList"/>
-    <entity-find entity-name="moqui.security.UserGroupMember" list="UserGroupMemberList"/>
+    <!--<entity-find entity-name="moqui.security.UserAccount" list="UserAccountList"/>-->
+    <!--<entity-find entity-name="moqui.security.UserGroupMember" list="UserGroupMemberList"/>-->
     <entity-find entity-name="moqui.security.UserGroup" list="userGroupList"/>
     <entity-find entity-name="moqui.basic.Uom" list="currencyList">
         <econdition field-name="uomTypeEnumId" value="UT_CURRENCY_MEASURE"/>
@@ -98,7 +98,7 @@
 
         <container-dialog id="CNUA" button-text="Create New User">
             <form-single name="New User Account" transition="CUA">
-                <auto-fields-service service-name="userServices.create#UserAccount"/>
+                <auto-fields-service service-name="customUserServices.create#UserAccount"/>
                 <field name="userGroupId">
                     <default-field>
                         <drop-down>

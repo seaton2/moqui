@@ -55,6 +55,7 @@ This Work includes contributions authored by David E. Jones, not as a
                         <container id="header-user">
                             <label text="${ec.user.userAccount?.userFullName}"/>
                             <label text="${ec.user.userAccount?.status}"/>
+                            <link text="Timeclock" url="/Timeclock" link-type="anchor-button" />
                             <link text="Logout" url="/Login/logout" link-type="hidden-form" icon="key"/>
                         </container>
                     </widgets>
