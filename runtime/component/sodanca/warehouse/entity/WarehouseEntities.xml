@@ -26,8 +26,22 @@
 		<relationship type="one" title="gridId" related-entity-name="SdGridDefinition">
 			<key-map field-name="gridId"/>
 		</relationship>
+		<seed-data>
+			<moqui.basic.EnumerationType description="Category Type" enumTypeId="CategoryType"/>
+			<moqui.basic.Enumeration description="Shoes" enumId="SHOES" enumTypeId="CategoryType"/>
+			<moqui.basic.Enumeration description="Dancewear" enumId="DANCEWEAR" enumTypeId="CategoryType"/>
+			<moqui.basic.Enumeration description="T-shirts" enumId="TSHIRT" enumTypeId="CategoryType"/>
+			<moqui.basic.Enumeration description="Tights" enumId="TIGHTS" enumTypeId="CategoryType"/>
+			<moqui.basic.Enumeration description="Warm-up Gear" enumId="WARMUP" enumTypeId="CategoryType"/>
+			<moqui.basic.Enumeration description="Bags" enumId="BAGS" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Accessories" enumId="ACC" enumTypeId="CategoryType"/>
+			<moqui.basic.Enumeration description="Fashion Shoes" enumId="FSHOES" enumTypeId="CategoryType"/>
+			<moqui.basic.Enumeration description="Private Label" enumId="PRIV" enumTypeId="CategoryType"/>
+			
 		
+		</seed-data>		
 	</entity>
+
 
 	<entity entity-name="SdItem" package-name="warehouse">
 		<field name="sku" type="id" is-pk="true" />
@@ -48,6 +62,29 @@
 		</relationship>
 		<relationship type="one" title="sizeId" related-entity-name="SdSize">
 			<key-map field-name="sizeId"/>
+		</relationship>
+	</entity>
+	
+		<entity entity-name="inventory" package-name="warehouse">
+		<field name="sku" type="id" is-pk="true" />
+
+		<field name="location" type="id">
+			<description>Location for stock</description>
+		</field>
+		<field name="qoh" type="number-integer">
+			<description>Quantity on hand</description>
+		</field>
+		<field name="qoo" type="number-integer">
+			<description>Quantity on order</description>
+		</field>
+		<field name="qct" type="number-integer">
+			<description>Quantity committed</description>
+		</field>
+		<field name="qap" type="number-integer">
+			<description>Quantity available to promise</description>
+		</field>
+		<relationship type="one" related-entity-name="sdItem">
+			<key-map field-name="sku"/>
 		</relationship>
 	</entity>
 	
@@ -125,24 +162,6 @@
 		<field name="averageCost" type="currency-amount" />
 		<field name="standardCost" type="currency-amount" />
 	</entity>
-	<entity entity-name="inventory" package-name="warehouse">
-		<field name="sku" type="id" is-pk="true" />
 
-		<field name="location" type="id">
-			<description>Location for stock</description>
-		</field>
-		<field name="qoh" type="number-integer">
-			<description>Quantity on hand</description>
-		</field>
-		<field name="qoo" type="number-integer">
-			<description>Quantity on order</description>
-		</field>
-		<field name="qct" type="number-integer">
-			<description>Quantity committed</description>
-		</field>
-		<field name="qap" type="number-integer">
-			<description>Quantity available to promise</description>
-		</field>
-	</entity>
 
 </entities>
