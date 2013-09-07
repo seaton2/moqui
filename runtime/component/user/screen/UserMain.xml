@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
-        require-authentication="true" screen-theme-type-enum-id="STT_INTERNAL">
+        require-authentication="true" screen-theme-type-enum-id="STT_INTERNAL" include-child-content="true">
     <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
 
 
@@ -58,7 +58,7 @@
 
 
         <container-dialog id="timeClockWindow" button-text="Time Clock Interface">
-            <form-single name="timeClock" transition="runClock">
+            <form-single name="timeClock" transition="runClock" >
                 <field name="autoInc">
                     <default-field>
                        <drop-down allow-empty="false">
