@@ -34,10 +34,10 @@ This Work includes contributions authored by David E. Jones, not as a
             <entity-make-value entity-name="UserAccount" value-field="UAV"/>
             <entity-set value-field="UAV" include="all"/>
             <entity-create value-field="UAV" />
-            <service-call name="usertoolsService.create#UserGroupMember" in-map="[userId:userId, userGroupId:userGroupId, fromDate:fromDate]"/>
+            <service-call name="customUserServices.create#UserGroupMember" in-map="[userId:userId, userGroupId:userGroupId, fromDate:fromDate]"/>
             <service-call name="org.moqui.impl.UserServices.update#PasswordInternal"
                           in-map="[userId:userId, newPassword:newPassword, newPasswordVerify:newPasswordVerify]"/>
-            <service-call name="usertoolsService.create#Timeclock" in-map="[userId:userId, status:status, timeIn:fromDate]"/>
+            <service-call name="customUserServices.create#Timeclock" in-map="[userId:userId, status:status, timeIn:fromDate]"/>
 
 
         </actions>

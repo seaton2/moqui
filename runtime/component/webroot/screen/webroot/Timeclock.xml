@@ -15,7 +15,7 @@ This Work includes contributions authored by David E. Jones, not as a
         default-menu-include="false" require-authentication="true" screen-theme-type-enum-id="STT_INTERNAL" >
 <transition name="runClock">
 
-    <service-call name="userServices.run#Timeclock"/>
+    <service-call name="customUserServices.run#Timeclock"/>
     
     <default-response url="."/>
 </transition>
