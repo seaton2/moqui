@@ -78,6 +78,8 @@
 		<field name="rowPosition" type="number-integer" />
 		<field name="grossWeight" type="number-float" />
 		<field name="availability" type="text-short" />
+		<field name="statusId" type="id"></field>
+		<field name="catalogId" type="id"></field>
 		<relationship type="one" title="productId"
 			related-entity-name="SdProduct">
 			<key-map field-name="productId" />
@@ -90,6 +92,19 @@
 			related-entity-name="SdSize">
 			<key-map field-name="sizeId" />
 		</relationship>
+		<relationship type="one" title="catalogId" related-entity-name="SdCatalog">
+			<key-map field-name="catalogId"/>
+		</relationship>
+		<relationship type="one" title="statusId" related-entity-name="moqui.basic.statusItem">
+			<key-map field-name="statusId"/>
+		</relationship>
+		
+		<seed-data>
+			<moqui.basic.statusType description="Item Status" statusTypeId="ItemStatus"></moqui.basic.statusType>
+			<moqui.basic.statusItem description="Discontinued" statusTypeId="DISCONTINUED"></moqui.basic.statusItem>
+			<moqui.basic.statusItem description="Current" statusTypeId="CURRENT"></moqui.basic.statusItem>
+			
+		</seed-data>
 	</entity>
 
 	<entity entity-name="inventory" package-name="warehouse">
