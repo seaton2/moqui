@@ -11,35 +11,59 @@
 		<field name="gridId" type="id" />
 		<field name="statusId" type="id" />
 		<field name="defaultVendorId" type="id" />
-		<relationship type="one" title="productCatalogId" related-entity-name="SdCatalog">
-			<key-map field-name="catalogId"/>
+		<field name="fromDate" type="date" />
+		<field name="thruDate" type="date" />
+		<relationship type="one" title="productCatalogId"
+			related-entity-name="SdCatalog">
+			<key-map field-name="catalogId" />
 		</relationship>
-		<relationship type="one" title="enumId" related-entity-name="moqui.basic.Enumeration">
-			<key-map field-name="categoryId"/>
+		<relationship type="one" title="enumId"
+			related-entity-name="moqui.basic.Enumeration">
+			<key-map field-name="categoryId" />
 		</relationship>
-		<relationship type="one" title="statusId" related-entity-name="moqui.basic.StatusItem">
-			<key-map field-name="statusId"/>
+		<relationship type="one" title="statusId"
+			related-entity-name="moqui.basic.StatusItem">
+			<key-map field-name="statusId" />
 		</relationship>
-		<relationship type="one" title="partyId" related-entity-name="mantle.party.Party">
-			<key-map field-name="defaultVendorId"/>
+		<relationship type="one" title="partyId"
+			related-entity-name="mantle.party.Party">
+			<key-map field-name="defaultVendorId" />
 		</relationship>
-		<relationship type="one" title="gridId" related-entity-name="SdGridDefinition">
-			<key-map field-name="gridId"/>
+		<relationship type="one" title="gridId"
+			related-entity-name="SdGridDefinition">
+			<key-map field-name="gridId" />
 		</relationship>
 		<seed-data>
-			<moqui.basic.EnumerationType description="Category Type" enumTypeId="CategoryType"/>
-			<moqui.basic.Enumeration description="Shoes" enumId="SHOES" enumTypeId="CategoryType"/>
-			<moqui.basic.Enumeration description="Dancewear" enumId="DANCEWEAR" enumTypeId="CategoryType"/>
-			<moqui.basic.Enumeration description="T-shirts" enumId="TSHIRT" enumTypeId="CategoryType"/>
-			<moqui.basic.Enumeration description="Tights" enumId="TIGHTS" enumTypeId="CategoryType"/>
-			<moqui.basic.Enumeration description="Warm-up Gear" enumId="WARMUP" enumTypeId="CategoryType"/>
-			<moqui.basic.Enumeration description="Bags" enumId="BAGS" enumTypeId="CategoryType" />
-			<moqui.basic.Enumeration description="Accessories" enumId="ACC" enumTypeId="CategoryType"/>
-			<moqui.basic.Enumeration description="Fashion Shoes" enumId="FSHOES" enumTypeId="CategoryType"/>
-			<moqui.basic.Enumeration description="Private Label" enumId="PRIV" enumTypeId="CategoryType"/>
+			<moqui.basic.EnumerationType description="Category Type"
+				enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Shoes"
+				enumId="SHOES" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Dancewear"
+				enumId="DANCEWEAR" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="T-shirts"
+				enumId="TSHIRT" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Tights"
+				enumId="TIGHTS" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Warm-up Gear"
+				enumId="WARMUP" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Bags"
+				enumId="BAGS" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Accessories"
+				enumId="ACC" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Fashion Shoes"
+				enumId="FSHOES" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Private Label"
+				enumId="PRIV" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Ballet Shoes"
+				enumId="BALLET_SHOES" parentEnumId="SHOES" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Jazz Shoes"
+				enumId="JAZZ_SHOES" parentEnumId="SHOES" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Tap Shoes"
+				enumId="TAP_SHOES" parentEnumId="SHOES" enumTypeId="CategoryType" />
+			<moqui.basic.Enumeration description="Pointe Shoes"
+				enumId="POINTE_SHOES" parentEnumId="SHOES" enumTypeId="CategoryType" />
 			
-		
-		</seed-data>		
+			</seed-data>
 	</entity>
 
 
@@ -54,18 +78,21 @@
 		<field name="rowPosition" type="number-integer" />
 		<field name="grossWeight" type="number-float" />
 		<field name="availability" type="text-short" />
-		<relationship type="one" title="productId" related-entity-name="SdProduct">
-			<key-map field-name="productId"/>
+		<relationship type="one" title="productId"
+			related-entity-name="SdProduct">
+			<key-map field-name="productId" />
 		</relationship>
-		<relationship type="one" title="colorId" related-entity-name="SdColor">
-			<key-map field-name="colorId"/>
+		<relationship type="one" title="colorId"
+			related-entity-name="SdColor">
+			<key-map field-name="colorId" />
 		</relationship>
-		<relationship type="one" title="sizeId" related-entity-name="SdSize">
-			<key-map field-name="sizeId"/>
+		<relationship type="one" title="sizeId"
+			related-entity-name="SdSize">
+			<key-map field-name="sizeId" />
 		</relationship>
 	</entity>
-	
-		<entity entity-name="inventory" package-name="warehouse">
+
+	<entity entity-name="inventory" package-name="warehouse">
 		<field name="sku" type="id" is-pk="true" />
 
 		<field name="location" type="id">
@@ -84,10 +111,10 @@
 			<description>Quantity available to promise</description>
 		</field>
 		<relationship type="one" related-entity-name="sdItem">
-			<key-map field-name="sku"/>
+			<key-map field-name="sku" />
 		</relationship>
 	</entity>
-	
+
 	<entity entity-name="SdColor" package-name="warehouse">
 		<field name="colorId" type="id" is-pk="true" />
 		<field name="colorCode" type="id" />
@@ -132,12 +159,26 @@
 	<entity entity-name="SdCatalog" package-name="warehouse">
 		<field name="catalogId" type="id" is-pk="true" />
 		<field name="catalogName" type="text-short" />
-		<field name="catalogYear" type="date" /> <!-- FS Comment: I am not sure if this should be an integer or date, 
-													  we can either keep a list of years or maybe format the date to show just year
-													  or scrap this field altogether and use just the name since the year is always 
-													  part of the name or description? -->
+		<!-- <field name="catalogYear" type="number-integer" /> I will leave this 
+			out since Moqui already implements from/to dates we can use that and the 
+			nominal will be in the catalog name -->
+		<!-- FS Comment: I am not sure if this should be an integer or date, we 
+			can either keep a list of years or maybe format the date to show just year 
+			or scrap this field altogether and use just the name since the year is always 
+			part of the name or description? -->
 		<field name="catalogDescription" type="text-short" />
 		<field name="coverImageFile" type="text-long" />
+		<field name="fromDate" type="date" />
+		<field name="thruDate" type="date" />
+	</entity>
+	<entity entity-name="SdCatalogSection" package-name="warehouse">
+		<field name="sectionId" type="id" is-pk="true" />
+		<field name="catalogId" type="id" />
+		<field name="sectionName" type="text-short" />
+		<relationship type="one" related-entity-name="SdCatalog">
+			<key-map field-name="catalogId" />
+		</relationship>
+
 	</entity>
 	<entity entity-name="SdProductDescription" package-name="warehouse">
 		<field name="productId" type="id" is-pk="true" />
