@@ -19,6 +19,7 @@ This Work includes contributions authored by David E. Jones, not as a
 
         <field name="timeIn" type="date-time"/>
         <field name="timeOut" type="date-time"/>
+        <field name="hoursWorked" type="id"/>
         <relationship type="one" related-entity-name="moqui.security.UserAccount" fk-name="userId">
             <key-map field-name="userId"/>
         </relationship>

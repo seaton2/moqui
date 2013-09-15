@@ -40,6 +40,22 @@ This Work includes contributions authored by David E. Jones, not as a
                              menu-title="Example" menu-index="8"/>
 
         </subscreens>
+    <transition name="runClock">
+
+        <service-call name="customUserServices.run#Timeclock"/>
+        <default-response type="screen-last"/>
+    </transition>
+    <actions>
+        <!--<entity-find entity-name="moqui.basic.Timeclock" list="Timeclock_new">-->
+            <!--<econdition field-name="userId" value="${ec.user.getUserId()}"/>-->
+            <!--<econditions combine="or">-->
+                <!--<econdition field-name="status" value="TC_new" />-->
+                <!--<econdition field-name="status" value="TC_in"/>-->
+            <!--</econditions>-->
+            <!--<select-field field-name="status"/>-->
+            <!--<select-field field-name="autoInc"/>-->
+        <!--</entity-find>-->
+    </actions>
 
 
     <widgets>
@@ -55,7 +71,64 @@ This Work includes contributions authored by David E. Jones, not as a
                         <container id="header-user">
                             <label text="${ec.user.userAccount?.userFullName}"/>
                             <label text="${ec.user.userAccount?.status}"/>
-                            <link text="Timeclock" url="/Timeclock" link-type="anchor-button" />
+                            <!--<container-dialog id="timeClockWindow" button-text="Time Clock Interface" >-->
+                                <!--<form-single name="timeClock" transition="runClock" >-->
+                                    <!--<field name="autoInc" >-->
+                                        <!--<default-field>-->
+                                            <!--<drop-down allow-empty="false">-->
+                                                <!--<list-options list="Timeclock_new" text="${autoInc}"/>-->
+                                            <!--</drop-down>-->
+                                        <!--</default-field>-->
+                                    <!--</field>-->
+                                    <!--<field name="userId" >-->
+                                        <!--<default-field>-->
+                                            <!--<display text="${ec.user.getUserId()}"/>-->
+                                        <!--</default-field>-->
+                                    <!--</field>-->
+                                    <!--<field name="Currently">-->
+                                        <!--<default-field>-->
+                                            <!--<text-line default-value="${ec.user.userAccount?.userFullName}"/>-->
+                                        <!--</default-field>-->
+                                    <!--</field>-->
+                                    <!--<field name="is">-->
+                                        <!--<default-field >-->
+                                            <!--<text-line default-value="${ec.user.userAccount?.status}" />-->
+                                        <!--</default-field>-->
+                                    <!--</field>-->
+                                    <!--<field name="status">-->
+                                        <!--<default-field>-->
+                                            <!--<drop-down>-->
+                                                <!--<list-options list="Timeclock_new" text="${status}"/>-->
+                                            <!--</drop-down>-->
+                                        <!--</default-field>-->
+                                    <!--</field>-->
+                                    <!--<field name="timeStamp">-->
+                                        <!--<default-field >-->
+                                            <!--<display text="${ec.user.nowTimestamp}"/>-->
+                                        <!--</default-field>-->
+                                    <!--</field>-->
+                                    <!--<field name="Submit">-->
+                                        <!--<default-field title="Run Clock">-->
+                                            <!--<submit/>-->
+                                        <!--</default-field>-->
+                                    <!--</field>-->
+                                    <!--<field-layout collapsible="true" >-->
+                                        <!--<field-group title="Timeclock Application" >-->
+                                            <!--<field-ref name="Currently"/>-->
+                                            <!--<field-ref name="is"/>-->
+                                            <!--<field-ref name="Submit"/>-->
+                                        <!--</field-group>-->
+                                        <!--<field-group title="Technical Data">-->
+                                            <!--<field-ref name="autoInc"/>-->
+                                            <!--<field-ref name="userId"/>-->
+                                            <!--<field-ref name="status"/>-->
+                                            <!--<field-ref name="timeStamp"/>-->
+                                        <!--</field-group>-->
+
+                                    <!--</field-layout>-->
+                                <!--</form-single>-->
+                            <!--</container-dialog>-->
+                            <link text="Timeclock" url="runClock" link-type="anchor-button" />
                             <link text="Logout" url="/Login/logout" link-type="hidden-form" icon="key"/>
                         </container>
                     </widgets>

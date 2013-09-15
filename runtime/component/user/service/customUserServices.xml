@@ -45,32 +45,98 @@ This Work includes contributions authored by David E. Jones, not as a
 
     </service>
 
-    <service verb="run" noun="Timeclock" type="inline">
-        <in-parameters>
-            <parameter name="autoInc"/>
-            <parameter name="userId" />
-            <parameter name="status" />
-            <parameter name="timeStamp"/>
-        </in-parameters>
+    <service verb="run" noun="Timeclock" type="script" location="component://user/service/timeclock.groovy">
+        <!--<in-parameters>-->
+            <!--<parameter name="autoInc"/>-->
+            <!--<parameter name="userId" />-->
+            <!--<parameter name="status" />-->
+            <!--<parameter name="timeStamp"/>-->
+        <!--</in-parameters>-->
         <actions>
+                <!--<entity-find entity-name="moqui.basic.Timeclocak" list="Timeclock_new">-->
+                    <!--<econdition field-name="userId" value="${ec.user.getUserId()}"/>-->
+                    <!--<econditions combine="or">-->
+                        <!--<econdition field-name="status" value="TC_new" />-->
+                        <!--<econdition field-name="status" value="TC_in"/>-->
+                    <!--</econditions>-->
+                    <!--<select-field field-name="status"/>-->
+                    <!--<select-field field-name="autoInc"/>-->
+                <!--</entity-find>-->
 
-                <entity-find-one entity-name="moqui.basic.Timeclock" value-field="TimeClock">
-                    <field-map field-name="autoInc"/>
-                </entity-find-one>
-                <if condition="TimeClock.status=='TC_in'">
-                    <set field="status" value="TC_done"/>
-                    <service-call name="update#moqui.basic.Timeclock" in-map="[autoInc:autoInc, status:status, timeOut:timeStamp]"/>
-                    <set field="status" value="TC_new"/>
-                    <service-call name="create#moqui.basic.Timeclock" in-map="[userId:userId, status:status]"/>
-                    <set field="userIs" value="CLOCKED OUT"/>
-                    <service-call name="update#moqui.security.UserAccount" in-map="[userId:userId, status:userIs]"/>
-                </if>
-                <if condition="TimeClock.status=='TC_new'">
-                    <set field="status" value="TC_in"/>
-                    <service-call name="update#moqui.basic.Timeclock" in-map="[autoInc:autoInc, status:status, timeIn:timeStamp]"/>
-                    <set field="userIs" value="CLOCKED IN"/>
-                    <service-call name="update#moqui.security.UserAccount" in-map="[userId:userId, status:userIs]"/>
-                </if>
+                <!--<entity-find-one entity-name="moqui.basic.Timeclock" value-field="TimeClock">-->
+                    <!--<field-map field-name="autoInc"/>-->
+                <!--</entity-find-one>-->
+                <!--<if condition="TimeClock.status=='TC_in'">-->
+                    <!--<set field="status" value="TC_done"/>-->
+                    <!--<script>-->
+                        <!--import java.text.DateFormat-->
+                        <!--import java.text.SimpleDateFormat-->
+
+                        <!--TimeClock = ec.entity.makeFind("moqui.basic.Timeclock").condition(ec.entity.conditionFactory.makeActionCondition("userId", "equals", "userId", "${ec.user.getUserId()}", null, false, false,false)).condition(ec.entity.conditionFactory.makeCondition([ec.entity.conditionFactory.makeActionCondition("status", "equals", "status", "TC_new", null, false, false, false), ec.entity.conditionFactory.makeActionCondition("status", "equals", "status", "TC_in", null, false, false, false)], org.moqui.impl.entity.EntityConditionFactoryImpl.getJoinOperator("or"))).one()-->
+                        <!--DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")-->
+
+                        <!--DateFormat d1=format(TimeClock.timeIn)-->
+                        <!--DateFormat d2=format(ec.user.getNowTimestamp())-->
+
+
+
+
+
+                        <!--if (TimeClock.status=='TC_in') {-->
+                        <!--status = ("TC_done")-->
+
+                        <!--if (true) {-->
+                        <!--ec.service.sync().name("update#moqui.basic.Timeclock")-->
+                        <!--.parameters([autoInc:TimeClock.autoInc, status:status, timeOut:ec.user.nowTimestamp, hoursWorked:hoursWorked]).call()-->
+                        <!--if (ec.message.errors) return-->
+                        <!--}-->
+                        <!--status = ("TC_new")-->
+                        <!--if (true) {-->
+                        <!--ec.service.sync().name("create#moqui.basic.Timeclock")-->
+                        <!--.parameters([userId:TimeClock.userId, status:status]).call()-->
+                        <!--if (ec.message.errors) return-->
+                        <!--}-->
+                        <!--userIs = ("CLOCKED OUT")-->
+                        <!--if (true) {-->
+                        <!--ec.service.sync().name("update#moqui.security.UserAccount")-->
+                        <!--.parameters([userId:TimeClock.userId, status:userIs]).call()-->
+                        <!--if (ec.message.errors) return-->
+                        <!--}-->
+                        <!--}-->
+                        <!--if (TimeClock.status=='TC_new') {-->
+                        <!--status = ("TC_in")-->
+                        <!--if (true) {-->
+                        <!--ec.service.sync().name("update#moqui.basic.Timeclock")-->
+                        <!--.parameters([autoInc:TimeClock.autoInc, status:status, timeIn:ec.user.nowTimestamp]).call()-->
+                        <!--if (ec.message.errors) return-->
+                        <!--}-->
+                        <!--userIs = ("CLOCKED IN")-->
+                        <!--if (true) {-->
+                        <!--ec.service.sync().name("update#moqui.security.UserAccount")-->
+                        <!--.parameters([userId:TimeClock.userId, status:userIs]).call()-->
+                        <!--if (ec.message.errors) return-->
+                        <!--}-->
+                        <!--}-->
+
+
+
+
+
+
+
+                    <!--</script>-->
+                    <!--<service-call name="update#moqui.basic.Timeclock" in-map="[autoInc:autoInc, status:status, timeOut:timeStamp, hoursWorked:hoursWorked]"/>-->
+                    <!--<set field="status" value="TC_new"/>-->
+                    <!--<service-call name="create#moqui.basic.Timeclock" in-map="[userId:userId, status:status]"/>-->
+                    <!--<set field="userIs" value="CLOCKED OUT"/>-->
+                    <!--<service-call name="update#moqui.security.UserAccount" in-map="[userId:userId, status:userIs]"/>-->
+                <!--</if>-->
+                <!--<if condition="TimeClock.status=='TC_new'">-->
+                    <!--<set field="status" value="TC_in"/>-->
+                    <!--<service-call name="update#moqui.basic.Timeclock" in-map="[autoInc:autoInc, status:status, timeIn:timeStamp]"/>-->
+                    <!--<set field="userIs" value="CLOCKED IN"/>-->
+                    <!--<service-call name="update#moqui.security.UserAccount" in-map="[userId:userId, status:userIs]"/>-->
+                <!--</if>-->
 
 
 
@@ -80,6 +146,9 @@ This Work includes contributions authored by David E. Jones, not as a
 
 
     </service>
+
+
+
 
 
     <service verb="create" noun="UserGroupMember" type="entity-auto">

@@ -93,7 +93,7 @@ This Work includes contributions authored by David E. Jones, not as a
                             "moquiRealm")
                 </script>
                 <if condition="!ec.ecfi.getCredentialsMatcher(userAccount.passwordHashType).doCredentialsMatch(token, info)">
-                    <return message="Current password did not match" error="true"/>
+                    <return message="Current password did not match" error="true" />
                 </if>
             </if>
 
