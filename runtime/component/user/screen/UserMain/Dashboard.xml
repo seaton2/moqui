@@ -17,6 +17,10 @@
 
     <default-response url="../EditTimeClock"/>
     </transition>
+    <transition name="deleteTimeclock">
+        <service-call name="delete#Timeclock"/>
+        <default-response url="../../User"/>
+    </transition>
 
 
 
@@ -154,6 +158,7 @@
                 <field name="autoInc">
                     <default-field>
                         <dynamic-dialog id="Edit" button-text="Edit ${autoInc}" transition="EditTimeClock"/>
+                        <link text="Delete Record" url="deleteTimeclock"/>
 
                     </default-field>
                 </field>
