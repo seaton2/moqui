@@ -1,4 +1,4 @@
-import java.util.Formatter
+
 
 TimeClock = ec.entity.makeFind("moqui.basic.Timeclock").condition(ec.entity.conditionFactory.makeActionCondition("userId", "equals", "userId", "${ec.user.getUserId()}", null, false, false,false)).condition(ec.entity.conditionFactory.makeCondition([ec.entity.conditionFactory.makeActionCondition("status", "equals", "status", "TC_new", null, false, false, false), ec.entity.conditionFactory.makeActionCondition("status", "equals", "status", "TC_in", null, false, false, false)], org.moqui.impl.entity.EntityConditionFactoryImpl.getJoinOperator("or"))).one()
 
@@ -8,8 +8,8 @@ if (TimeClock.status=='TC_in') {
 
     int hours = duration/3600000
     int minutes = (duration-(3600000*hours))/60000
-    Formatter format = new Formatter()
     finalCount= String.format("%02d:%02d",hours,minutes)
+
 
 
 

@@ -147,6 +147,15 @@ This Work includes contributions authored by David E. Jones, not as a
 
     </service>
 
+    <service verb="refresh" noun="Timeclock" type="script" location="component://user/service/refreshtimeclock.groovy">
+        <in-parameters>
+            <parameter name="autoInc"/>
+            <parameter name="timeIn"/>
+            <parameter name="timeOut"/>
+        </in-parameters>
+
+    </service>
+
 
 
 

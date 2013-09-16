@@ -14,7 +14,7 @@ This Work includes contributions authored by David E. Jones, not as a
     <!-- the subscreen -->
     <moqui.screen.SubscreensItem screenLocation="component://webroot/screen/webroot/apps.xml"
                                  subscreenName="User" userGroupId="ALL_USERS" subscreenLocation="component://user/screen/UserMain.xml"
-                                 menuTitle="User" menuIndex="8" menuInclude="Y"/>
+                                 menuTitle="User" menuIndex="8" menuInclude="Y" />
 
     <!-- authz/permission for admin -->
     <moqui.security.ArtifactGroup artifactGroupId="USER" description="User Tools (via root screen)"/>
