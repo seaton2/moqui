@@ -15,8 +15,9 @@
 
     <transition name="EditTimeClock">
 
-    <default-response url="../EditTimeClock"/>
+        <default-response url="../EditTimeClock"/>
     </transition>
+
     <transition name="deleteTimeclock">
         <service-call name="delete#Timeclock"/>
         <default-response url="../../User"/>
@@ -38,157 +39,134 @@
         </entity-find>
         <entity-find entity-name="moqui.basic.Timeclock" list="Timeclock_list">
             <econdition field-name="userId" value="${ec.user.getUserId()}"/>
+            <!--Example of criteria structure building-->
             <!--<econditions combine="or">-->
-            <!--<econdition field-name="status" value="TC_new" />-->
-            <!--<econdition field-name="status" value="TC_in"/>-->
-            <!--<econdition field-name="status" value="TC_done"/>-->
+                <!--<econdition field-name="status" value="TC_new" />-->
+                <!--<econdition field-name="status" value="TC_in"/>-->
+                <!--<econdition field-name="status" value="TC_done"/>-->
             <!--</econditions>-->
-
-
         </entity-find>
     </actions>
 
-    <widgets>
+<widgets>
+    <container id="User Accounts">
 
+        <form-list name="ListUserPermissions" list="UserCheckList" >
+            <field name="userFullName">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
 
-        <container id="User Accounts">
-
-
-
-
-
-
-
-
-
-            <container-dialog id="CNUA" button-text="Create New User">
-                <form-single name="New User Account" transition="CUA">
-                    <auto-fields-service service-name="customUserServices.create#UserAccount"/>
-                    <field name="userGroupId">
-                        <default-field>
-                            <drop-down>
-                                <list-options list="userGroupList" text="${userGroupId}" />
-                            </drop-down>
-                        </default-field>
-                    </field>
-                    <field name="requirePasswordChange" hide="true"/>
-                    <field name="newPassword">
-                        <default-field tooltip="Passwords must match and contain at least 6 characters, one UPPER character, one number, and one symbol">
-                            <password/>
-                        </default-field>
-                    </field>
-                    <field name="newPasswordVerify">
-                        <default-field>
-                            <password/>
-                        </default-field>
-                    </field>
-                    <field name="currentPassword" hide="true"/>
-                    <field name="passwordSalt" hide="true"/>
-                    <field name="passwordHashType" hide="true"/>
-                    <field name="passwordSetDate" hide="true"/>
-                    <field name="passwordHint" hide="true"/>
-                    <field name="hasLoggedOut" hide="true"/>
-                    <field name="disabled" hide="true"/>
-                    <field name="disabledDateTime" hide="true"/>
-                    <field name="successiveFailedLogins" hide="true"/>
-                    <field name="currencyUomId">
-                        <default-field title="Type">
-                            <drop-down allow-empty="false" >
-                                <option key="USD" text="United States Dollar"/>
-                                <list-options list="currencyList" text="${description}" />
-                            </drop-down>
-                        </default-field>
-                    </field>
-                    <field name="locale">
-                        <default-field>
-                            <text-line default-value="en_us" size="10"/>
-                        </default-field>
-                    </field>
-                    <field name="timeZone">
-                        <default-field>
-                            <text-line default-value="US/Eastern" size="15"/>
-                        </default-field>
-                    </field>
-                    <field name="externalUserId" hide="true"/>
-                    <field name="fromDate">
-                        <default-field>
-                            <date-time default-value="${ec.user.nowTimestamp}"/>
-                        </default-field>
-                    </field>
-                    <field name="status" hide="true"/>
-                    <field name="submitButton">
-                        <default-field title="Create">
-                            <submit/>
-                        </default-field>
-                    </field>
-                </form-single>
-            </container-dialog>
-        </container>
-
-
-
-
-        <container id="Permission Group">
-            <form-list name="ListUserPermissions" list="UserCheckList" >
-                <field name="userFullName">
-                    <default-field>
-                        <display/>
-                    </default-field>
-                </field>
-
-                <field name="userId">
-                    <default-field>
-                        <display/>
-                    </default-field>
-                </field>
-                <field name="username">
-                    <default-field>
-                        <display/>
-                    </default-field>
-                </field>
+            <field name="userId">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
+            <field name="username">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
+            <field name="userGroupId">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
+        </form-list>
+        <container-dialog id="CNUA" button-text="Create New User">
+            <form-single name="New User Account" transition="CUA">
+                <auto-fields-service service-name="customUserServices.create#UserAccount"/>
                 <field name="userGroupId">
                     <default-field>
-                        <display/>
+                        <drop-down>
+                            <list-options list="userGroupList" text="${userGroupId}" />
+                        </drop-down>
                     </default-field>
                 </field>
-            </form-list>
-
-
-            <form-list name="ListTimeclockData" list="Timeclock_list">
-                <field name="autoInc">
+                <field name="requirePasswordChange" hide="true"/>
+                <field name="newPassword">
+                    <default-field tooltip="Passwords must match and contain at least 6 characters, one UPPER character, one number, and one symbol">
+                        <password/>
+                    </default-field>
+                </field>
+                <field name="newPasswordVerify">
                     <default-field>
-                        <dynamic-dialog id="Edit" button-text="Edit ${autoInc}" transition="EditTimeClock"/>
-                        <link text="Delete Record" url="deleteTimeclock"/>
-
+                        <password/>
                     </default-field>
                 </field>
-                <field name="userId">
+                <field name="currentPassword" hide="true"/>
+                <field name="passwordSalt" hide="true"/>
+                <field name="passwordHashType" hide="true"/>
+                <field name="passwordSetDate" hide="true"/>
+                <field name="passwordHint" hide="true"/>
+                <field name="hasLoggedOut" hide="true"/>
+                <field name="disabled" hide="true"/>
+                <field name="disabledDateTime" hide="true"/>
+                <field name="successiveFailedLogins" hide="true"/>
+                <field name="currencyUomId">
+                    <default-field title="Type">
+                        <drop-down allow-empty="false" >
+                            <option key="USD" text="United States Dollar"/>
+                            <list-options list="currencyList" text="${description}" />
+                        </drop-down>
+                    </default-field>
+                </field>
+                <field name="locale">
                     <default-field>
-                        <display/>
+                        <text-line default-value="en_us" size="10"/>
                     </default-field>
                 </field>
-                <field name="timeIn">
+                <field name="timeZone">
                     <default-field>
-                        <display/>
+                        <text-line default-value="US/Eastern" size="15"/>
                     </default-field>
                 </field>
-                <field name="timeOut">
+                <field name="externalUserId" hide="true"/>
+                <field name="fromDate">
                     <default-field>
-                        <display/>
+                        <date-time default-value="${ec.user.nowTimestamp}"/>
                     </default-field>
                 </field>
-                <field name="hoursWorked">
-                    <default-field>
-                        <display/>
+                <field name="status" hide="true"/>
+                <field name="submitButton">
+                    <default-field title="Create">
+                        <submit/>
                     </default-field>
                 </field>
+            </form-single>
+        </container-dialog>
+        <form-list name="ListTimeclockData" list="Timeclock_list">
+            <field name="autoInc">
+                <default-field>
+                    <dynamic-dialog id="Edit" button-text="Edit ${autoInc}" transition="EditTimeClock"/>
+                    <link text="Delete Record" url="deleteTimeclock"/>
+
+                </default-field>
+            </field>
+            <field name="userId">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
+            <field name="timeIn">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
+            <field name="timeOut">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
+            <field name="hoursWorked">
+                <default-field>
+                    <display/>
+                </default-field>
+            </field>
 
 
-            </form-list>
-        </container>
-
-
-
-
-    </widgets>
+        </form-list>
+    </container>
+</widgets>
 </screen>

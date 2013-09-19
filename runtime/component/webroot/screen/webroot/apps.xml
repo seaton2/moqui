@@ -61,7 +61,7 @@ This Work includes contributions authored by David E. Jones, not as a
     <widgets>
         <container-panel id="apps-container" dynamic="true">
             <panel-header>
-                <container id="header-logo"><label text="Sodanca" type="h1"/></container>
+                <container id="header-logo"><label text="${ec.user.userAccount?.userFullName}" type="h1"/></container>
                 <container id="header-menus">
                     <subscreens-menu type="popup" id="header-menu" title="Application"/>
                 </container>
@@ -69,8 +69,8 @@ This Work includes contributions authored by David E. Jones, not as a
                     <condition><compare field="ec.user.userId" operator="not-empty"/></condition>
                     <widgets>
                         <container id="header-user">
-                            <label text="${ec.user.userAccount?.userFullName}"/>
-                            <label text="${ec.user.userAccount?.status}"/>
+                            <label text="You are " type="strong"/>
+                            <label text="${ec.user.userAccount?.status}" type="strong"/>
                             <!--<container-dialog id="timeClockWindow" button-text="Time Clock Interface" >-->
                                 <!--<form-single name="timeClock" transition="runClock" >-->
                                     <!--<field name="autoInc" >-->

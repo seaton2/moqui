@@ -30,7 +30,7 @@ body { overflow: auto; background: #DDDDDF; }
 
 /* The overflow: auto is needed for scroll in non-dynamic layouts, and for dynamic ones is replaced by jquery layout */
 #body-decorator { position: absolute; top: 8px; left: 8px; bottom: 8px; right: 8px;
-    background: white; padding: 8px; -moz-border-radius: 5px; -webkit-border-radius: 5px; border-radius: 5px; overflow: auto; }
+    background: white; padding: 8px; -moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius:0px; overflow: auto; }
 
 #header-logo { float: left; width: 260px; height: 30px; }
 #header-logo h1, #header-logo a { font-size: 1.6em; font-family: Courier, "Courier New", monospace; font-weight: bold; border: 0px; padding: 0px; margin: 0px; }
@@ -83,7 +83,7 @@ border-color: #999 #bbb #ddd; color: #666;
 .ui-button-text { font-size: 1em; font-weight: bold; text-decoration: none; }
 
 input[type=""], input[type="text"], input[type="email"], input[type="url"], input[type="number"], input[type="password"], textarea, select {
--moz-border-radius: 4px; -webkit-border-radius: 4px; border-radius: 4px; border: 1px solid; border-color: #999 #bbb #ddd;
+-moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius: 0px; border: 1px solid; border-color: #999 #bbb #ddd;
 margin: 2px 2px 2px 2px; padding: 2px 4px 2px 4px;
 font-size: 1em; font-family: Lucida Console, Monaco, monospace;
 }
@@ -138,7 +138,7 @@ div.panel-right { float: right; width: 180px; margin-left: 10px; }
     font-family: "Courier New", monospace; font-weight: bold; font-size: .8em; vertical-align: top; }
 
 fieldset.form-single-outer { padding: 4px;
--moz-border-radius: 4px; -webkit-border-radius: 4px; border-radius: 4px; border: 1px solid #DDDDDF;
+-moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius: 0px; border: 1px solid #DDDDDF;
 }
 
 .single-form-field { padding-right: 10px; }
@@ -151,7 +151,7 @@ label.form-title { vertical-align: middle; display: inline-block; width: 120px; 
 
 .form-list-outer {
 margin: 0;
-border: 1px solid #DDDDDF; -moz-border-radius: 4px; -webkit-border-radius: 4px; border-radius: 4px;
+border: 1px solid #DDDDDF; -moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius:0px;
 padding: 4px; width: 100%;
 display: table; table-layout: auto; border-collapse: separate; empty-cells: show;
 }
