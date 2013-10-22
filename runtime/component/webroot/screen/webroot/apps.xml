@@ -21,6 +21,7 @@ This Work includes contributions authored by David E. Jones, not as a
                          menu-title="Example" menu-index="8"/>
         <subscreens-item name="tools" location="component://tools/screen/Tools.xml"
                          menu-title="Tools" menu-index="9"/>
+        <subscreens-item name="Warehouse" location="component://sodanca/warehouse/CreateColor.xml"/>
     </subscreens>
 
     <widgets>
