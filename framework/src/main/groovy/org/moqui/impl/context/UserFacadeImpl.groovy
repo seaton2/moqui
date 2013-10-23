@@ -49,12 +49,15 @@ class UserFacadeImpl implements UserFacade {
     protected Set<String> internalUserGroupIdSet = null
     protected EntityList internalArtifactTarpitCheckList = null
     protected EntityList internalArtifactAuthzCheckList = null
+    protected Locale localeCache = null
 
     // these are used only when there is no logged in user
-    protected Locale internalLocale = null
-    protected TimeZone internalTimeZone = null
-    protected String internalCurrencyUomId = null
-    // TODO: if one of these is set before login, set it on the account on login?
+    protected Locale noUserLocale = null
+    protected TimeZone noUserTimeZone = null
+    protected String noUserCurrencyUomId = null
+    // if one of these is set before login, set it on the account on login? probably best not...
+
+    protected Calendar calendarForTzLcOnly = null
 
     /** This is set instead of adding _NA_ user as logged in to pass authc tests but not generally behave as if a user is logged in */
     protected boolean loggedInAnonymous = false
@@ -70,6 +73,11 @@ class UserFacadeImpl implements UserFacade {
 
     UserFacadeImpl(ExecutionContextImpl eci) {
         this.eci = eci
+    }
+
+    protected void clearPerUserValues() {
+        localeCache = null
+        calendarForTzLcOnly = null
     }
 
     void initFromHttpRequest(HttpServletRequest request, HttpServletResponse response) {
@@ -221,6 +229,7 @@ class UserFacadeImpl implements UserFacade {
 
     @Override
     Locale getLocale() {
+        if (localeCache != null) return localeCache
         Locale locale = null
         if (this.username) {
             String localeStr = this.userAccount.locale
@@ -228,9 +237,9 @@ class UserFacadeImpl implements UserFacade {
                 new Locale(localeStr.substring(0, localeStr.indexOf("_")), localeStr.substring(localeStr.indexOf("_")+1).toUpperCase()) :
                 new Locale(localeStr)
         } else {
-            locale = internalLocale
+            locale = noUserLocale
         }
-        return (locale ?: (request ? request.getLocale() : Locale.getDefault()))
+        return localeCache = (locale ?: (request ? request.getLocale() : Locale.getDefault()))
     }
 
     @Override
@@ -248,8 +257,9 @@ class UserFacadeImpl implements UserFacade {
                 if (!alreadyDisabled) eci.getArtifactExecution().enableAuthz()
             }
         } else {
-            internalLocale = locale
+            noUserLocale = locale
         }
+        clearPerUserValues()
     }
 
     @Override
@@ -259,7 +269,7 @@ class UserFacadeImpl implements UserFacade {
             String tzStr = this.userAccount.timeZone
             if (tzStr) tz = TimeZone.getTimeZone(tzStr)
         } else {
-            tz = internalTimeZone
+            tz = noUserTimeZone
         }
         return tz ?: TimeZone.getDefault()
     }
@@ -268,9 +278,14 @@ class UserFacadeImpl implements UserFacade {
         if (internalUserAccount != null) {
             return Calendar.getInstance(getTimeZone(), getLocale())
         } else {
-            return Calendar.getInstance(internalTimeZone ?: TimeZone.getDefault(),
-                    internalLocale ?: (request ? request.getLocale() : Locale.getDefault()))
+            return Calendar.getInstance(noUserTimeZone ?: TimeZone.getDefault(),
+                    noUserLocale ?: (request ? request.getLocale() : Locale.getDefault()))
         }
+    }
+
+    Calendar getCalendarForTzLcOnly() {
+        if (calendarForTzLcOnly != null) return calendarForTzLcOnly
+        return calendarForTzLcOnly = getCalendarSafe()
     }
 
     @Override
@@ -288,12 +303,13 @@ class UserFacadeImpl implements UserFacade {
                 if (!alreadyDisabled) eci.getArtifactExecution().enableAuthz()
             }
         } else {
-            internalTimeZone = tz
+            noUserTimeZone = tz
         }
+        clearPerUserValues()
     }
 
     @Override
-    String getCurrencyUomId() { return this.username ? this.userAccount.currencyUomId : internalCurrencyUomId }
+    String getCurrencyUomId() { return this.username ? this.userAccount.currencyUomId : noUserCurrencyUomId }
 
     @Override
     void setCurrencyUomId(String uomId) {
@@ -310,7 +326,7 @@ class UserFacadeImpl implements UserFacade {
                 if (!alreadyDisabled) eci.getArtifactExecution().enableAuthz()
             }
         } else {
-            internalCurrencyUomId = uomId
+            noUserCurrencyUomId = uomId
         }
     }
 
@@ -386,6 +402,7 @@ class UserFacadeImpl implements UserFacade {
             return false
         }
 
+        clearPerUserValues()
         return true
     }
 
@@ -406,6 +423,7 @@ class UserFacadeImpl implements UserFacade {
             eci.web.session.removeAttribute("moqui.visitId")
         }
         currentUser.logout()
+        clearPerUserValues()
     }
 
     boolean loginAnonymousIfNoUser() {
@@ -422,8 +440,8 @@ class UserFacadeImpl implements UserFacade {
     @Override
     boolean hasPermission(String userPermissionId) { return hasPermission(getUserId(), userPermissionId, getNowTimestamp(), eci) }
 
-    static boolean hasPermission(String username, String userPermissionId, Timestamp nowTimestamp, ExecutionContextImpl eci) {
-        if (nowTimestamp == null) nowTimestamp = new Timestamp(System.currentTimeMillis())
+    static boolean hasPermission(String username, String userPermissionId, Timestamp whenTimestamp, ExecutionContextImpl eci) {
+        if (whenTimestamp == null) whenTimestamp = new Timestamp(System.currentTimeMillis())
         boolean alreadyDisabled = eci.getArtifactExecution().disableAuthz()
         try {
             EntityValue ua = eci.getEntity().makeFind("moqui.security.UserAccount").condition("userId", username).useCache(true).one()
@@ -431,8 +449,8 @@ class UserFacadeImpl implements UserFacade {
             if (ua == null) return false
             return (eci.getEntity().makeFind("moqui.security.UserPermissionCheck")
                     .condition([userId:ua.userId, userPermissionId:userPermissionId]).useCache(true).list()
-                    .filterByDate("groupFromDate", "groupThruDate", nowTimestamp)
-                    .filterByDate("permissionFromDate", "permissionThruDate", nowTimestamp)) as boolean
+                    .filterByDate("groupFromDate", "groupThruDate", whenTimestamp)
+                    .filterByDate("permissionFromDate", "permissionThruDate", whenTimestamp)) as boolean
         } finally {
             if (!alreadyDisabled) eci.getArtifactExecution().enableAuthz()
         }
@@ -441,16 +459,16 @@ class UserFacadeImpl implements UserFacade {
     @Override
     boolean isInGroup(String userGroupId) { return isInGroup(getUserId(), userGroupId, getNowTimestamp(), eci) }
 
-    static boolean isInGroup(String username, String userGroupId, Timestamp nowTimestamp, ExecutionContextImpl eci) {
+    static boolean isInGroup(String username, String userGroupId, Timestamp whenTimestamp, ExecutionContextImpl eci) {
         if (userGroupId == "ALL_USERS") return true
-        if (nowTimestamp == null) nowTimestamp = new Timestamp(System.currentTimeMillis())
+        if (whenTimestamp == null) whenTimestamp = new Timestamp(System.currentTimeMillis())
         boolean alreadyDisabled = eci.getArtifactExecution().disableAuthz()
         try {
             EntityValue ua = eci.getEntity().makeFind("moqui.security.UserAccount").condition("userId", username).useCache(true).one()
             if (ua == null) ua = eci.getEntity().makeFind("moqui.security.UserAccount").condition("username", username).useCache(true).one()
             if (ua == null) return false
             return (eci.getEntity().makeFind("moqui.security.UserGroupMember").condition([userId:ua.userId, userGroupId:userGroupId])
-                    .useCache(true).list().filterByDate("fromDate", "thruDate", nowTimestamp)) as boolean
+                    .useCache(true).list().filterByDate("fromDate", "thruDate", whenTimestamp)) as boolean
         } finally {
             if (!alreadyDisabled) eci.getArtifactExecution().enableAuthz()
         }

@@ -12,11 +12,11 @@
 
 /* defaults */
 * {
-margin: 0px; border: 0px; outline: 0px; padding: 0px;
-background: transparent; text-decoration: none;
-font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif; font-weight: normal;
-font-size: 14px; /* set base font size here, all others relative using em */
-vertical-align: middle;
+    margin: 0px; border: 0px; outline: 0px; padding: 0px;
+    background: transparent; text-decoration: none;
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif; font-weight: normal;
+    font-size: 14px; /* set base font size here, all others relative using em */
+    vertical-align: middle;
 }
 
 /* needed to get buttons inside and outside forms to align */
@@ -83,14 +83,14 @@ border-color: #999 #bbb #ddd; color: #666;
 .ui-button-text { font-size: 1em; font-weight: bold; text-decoration: none; }
 
 input[type=""], input[type="text"], input[type="email"], input[type="url"], input[type="number"], input[type="password"], textarea, select {
--moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius: 0px; border: 1px solid; border-color: #999 #bbb #ddd;
-margin: 2px 2px 2px 2px; padding: 2px 4px 2px 4px;
-font-size: 1em; font-family: Lucida Console, Monaco, monospace;
+    -moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius: 0px; border: 1px solid; border-color: #999 #bbb #ddd;
+    margin: 2px 2px 2px 2px; padding: 2px 4px 2px 4px;
+    font-size: 1em; font-family: Lucida Console, Monaco, monospace;
 }
 
 select option {
-margin: 2px 2px 2px 2px; padding: 2px 4px 2px 4px;
-font-size: 1em; font-family: Lucida Console, Monaco, monospace;
+    margin: 2px 2px 2px 2px; padding: 2px 4px 2px 4px;
+    font-size: 1em; font-family: Lucida Console, Monaco, monospace;
 }
 
 input:required:invalid, input:invalid, textarea:invalid { background-color: #FDD; }
@@ -138,7 +138,7 @@ div.panel-right { float: right; width: 180px; margin-left: 10px; }
     font-family: "Courier New", monospace; font-weight: bold; font-size: .8em; vertical-align: top; }
 
 fieldset.form-single-outer { padding: 4px;
--moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius: 0px; border: 1px solid #DDDDDF;
+    -moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius: 0px; border: 1px solid #DDDDDF;
 }
 
 .single-form-field { padding-right: 10px; }
@@ -150,10 +150,10 @@ label.form-title { vertical-align: middle; display: inline-block; width: 120px; 
 .field-row-item { float: left; display: inline-block; }
 
 .form-list-outer {
-margin: 0;
-border: 1px solid #DDDDDF; -moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius:0px;
-padding: 4px; width: 100%;
-display: table; table-layout: auto; border-collapse: separate; empty-cells: show;
+    margin: 0;
+    border: 1px solid #DDDDDF; -moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius:0px;
+    padding: 4px; width: 100%;
+    display: table; table-layout: auto; border-collapse: separate; empty-cells: show;
 }
 .form-header-group { display: table-header-group; }
 .form-header-row { display: table-row; }

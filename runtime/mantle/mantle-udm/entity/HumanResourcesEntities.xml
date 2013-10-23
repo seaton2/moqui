@@ -413,10 +413,16 @@ and those parts may be licensed under the Apache License 2.0.
         <!-- TODO: associate skills with position type -->
         <seed-data>
             <!-- Employment Position Classes -->
-            <EmplPositionClass title="Programmer" emplPositionClassId="PROGRAMMER"/>
-            <EmplPositionClass title="Senior Programmer" emplPositionClassId="SENIOR_PROGRAMMER"/>
-            <EmplPositionClass title="System Administrator" emplPositionClassId="SYS_ADMIN"/>
-            <EmplPositionClass title="Business Analyst" emplPositionClassId="BIZ_ANALYST"/>
+            <mantle.humanres.position.EmplPositionClass title="Quality Analyst" emplPositionClassId="QualityAnalyst"/>
+            <mantle.humanres.position.EmplPositionClass title="Quality Lead" emplPositionClassId="QualityLead"/>
+            <mantle.humanres.position.EmplPositionClass title="Programmer" emplPositionClassId="Programmer"/>
+            <mantle.humanres.position.EmplPositionClass title="Programmer Lead" emplPositionClassId="ProgrammerLead"/>
+            <mantle.humanres.position.EmplPositionClass title="System Administrator" emplPositionClassId="SysAdmin"/>
+            <mantle.humanres.position.EmplPositionClass title="System Architect" emplPositionClassId="SysArchitect"/>
+            <mantle.humanres.position.EmplPositionClass title="Business Analyst" emplPositionClassId="BusinessAnalyst"/>
+            <mantle.humanres.position.EmplPositionClass title="Expert User" emplPositionClassId="ExpertUser"/>
+            <mantle.humanres.position.EmplPositionClass title="Project Manager" emplPositionClassId="ProjectManager"/>
+            <mantle.humanres.position.EmplPositionClass title="General Manager" emplPositionClassId="GeneralManager"/>
         </seed-data>
     </entity>
     <entity entity-name="EmplPositionClassParty" package-name="mantle.humanres.position">
@@ -493,6 +499,7 @@ and those parts may be licensed under the Apache License 2.0.
     <entity entity-name="RateAmount" package-name="mantle.humanres.rate">
         <field name="rateAmountId" type="id" is-pk="true"/>
         <field name="rateTypeEnumId" type="id"/>
+        <field name="ratePurposeEnumId" type="id"/>
         <field name="timePeriodUomId" type="id"/>
         <field name="workEffortId" type="id"/>
         <field name="partyId" type="id"/>
@@ -503,6 +510,9 @@ and those parts may be licensed under the Apache License 2.0.
         <field name="rateCurrencyUomId" type="id"/>
         <relationship type="one" title="RateType" related-entity-name="moqui.basic.Enumeration">
             <key-map field-name="rateTypeEnumId"/>
+        </relationship>
+        <relationship type="one" title="RatePurpose" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="ratePurposeEnumId"/>
         </relationship>
         <relationship type="one" title="TimePeriod" related-entity-name="moqui.basic.Uom">
             <key-map field-name="timePeriodUomId"/>
@@ -516,12 +526,20 @@ and those parts may be licensed under the Apache License 2.0.
         <seed-data>
             <!-- Rate Type -->
             <moqui.basic.EnumerationType description="Rate Type" enumTypeId="RateType"/>
-            <moqui.basic.Enumeration enumId="RT_STANDARD" description="Standard Rate" enumTypeId="RateType"/>
-            <moqui.basic.Enumeration enumId="RT_DISCOUNTED" description="Discounted Rate" enumTypeId="RateType"/>
-            <moqui.basic.Enumeration enumId="RT_OVERTIME" description="Overtime Rate" enumTypeId="RateType"/>
-            <moqui.basic.Enumeration enumId="RT_AVERAGE_RATE" description="Average Pay Rate" enumTypeId="RateType"/>
-            <moqui.basic.Enumeration enumId="RT_HIGH_PAY_RATE" description="Highest Pay Rate" enumTypeId="RateType"/>
-            <moqui.basic.Enumeration enumId="RT_LOW_PAY_RATE" description="Lowest Pay Rate" enumTypeId="RateType"/>
+            <moqui.basic.Enumeration enumId="RatpStandard" description="Standard" enumTypeId="RateType"/>
+            <moqui.basic.Enumeration enumId="RatpDiscounted" description="Discounted" enumTypeId="RateType"/>
+            <moqui.basic.Enumeration enumId="RatpOvertime" description="Overtime" enumTypeId="RateType"/>
+            <moqui.basic.Enumeration enumId="RatpOnsite" description="On-site Work" enumTypeId="RateType"/>
+            <!-- leave these out until we have a reason to use them:
+            <moqui.basic.Enumeration enumId="RatpAverage" description="Average Pay" enumTypeId="RateType"/>
+            <moqui.basic.Enumeration enumId="RatpHighest" description="Highest Pay" enumTypeId="RateType"/>
+            <moqui.basic.Enumeration enumId="RatpLowest" description="Lowest Pay" enumTypeId="RateType"/>
+            -->
+
+            <!-- Rate Purpose -->
+            <moqui.basic.EnumerationType description="Rate Purpose" enumTypeId="RatePurpose"/>
+            <moqui.basic.Enumeration enumId="RaprClient" description="Client Billing" enumTypeId="RatePurpose"/>
+            <moqui.basic.Enumeration enumId="RaprVendor" description="Vendor Payment" enumTypeId="RatePurpose"/>
         </seed-data>
     </entity>
 

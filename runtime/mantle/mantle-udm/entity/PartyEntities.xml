@@ -276,7 +276,7 @@ and those parts may be licensed under the Apache License 2.0.
         <relationship type="one" related-entity-name="mantle.party.Party"/>
         <relationship type="one" related-entity-name="mantle.party.RoleType"/>
     </entity>
-    <entity entity-name="RoleType" package-name="mantle.party">
+    <entity entity-name="RoleType" package-name="mantle.party" cache="true">
         <field name="roleTypeId" type="id" is-pk="true"/>
         <field name="parentTypeId" type="id"/>
         <field name="description" type="text-medium"/>
@@ -346,7 +346,7 @@ and those parts may be licensed under the Apache License 2.0.
             <RoleType description="Organization - Government Agency" parentTypeId="OrganizationRole" roleTypeId="OrgGovernmentAgency"/>
             <RoleType description="Organization - Household" parentTypeId="OrganizationRole" roleTypeId="OrgHousehold"/>
             <RoleType description="Organization - Internal" parentTypeId="OrganizationRole" roleTypeId="OrgInternal"/>
-            <RoleType description="Organization - Team" parentTypeId="OrganizationRole" roleTypeId="TEAM"/>
+            <RoleType description="Organization - Team" parentTypeId="OrganizationRole" roleTypeId="OrgTeam"/>
             <RoleType description="Organization - Unit" parentTypeId="OrganizationRole" roleTypeId="ORGANIZATION_UNIT"/>
             <RoleType description="Organization - Parent" parentTypeId="OrganizationRole" roleTypeId="PARENT_ORGANIZATION"/>
             <RoleType description="Organization - Regulatory Agency" parentTypeId="OrganizationRole" roleTypeId="REGULATORY_AGENCY"/>
@@ -970,8 +970,8 @@ and those parts may be licensed under the Apache License 2.0.
         <field name="partyId" type="id"/>
         <field name="periodNum" type="number-integer"/>
         <field name="periodName" type="text-medium"/>
-        <field name="fromDate" type="date"/>
-        <field name="thruDate" type="date"/>
+        <field name="fromDate" type="date"><description>The first day of the period.</description></field>
+        <field name="thruDate" type="date"><description>The last day of the period.</description></field>
         <field name="isClosed" type="text-indicator"/>
         <relationship type="one" title="Parent" related-entity-name="mantle.party.time.TimePeriod">
             <key-map field-name="parentPeriodId" related-field-name="timePeriodId"/>
@@ -987,13 +987,13 @@ and those parts may be licensed under the Apache License 2.0.
             <key-map field-name="lengthUomId" related-field-name="uomId"/>
         </relationship>
         <seed-data>
-            <TimePeriodType description="Fiscal Year" timePeriodTypeId="FiscalYear" periodLength="1" lengthUomId="TF_yr"/>
-            <TimePeriodType description="Fiscal Quarter" timePeriodTypeId="FiscalQuarter" periodLength="3" lengthUomId="TF_mon"/>
-            <TimePeriodType description="Fiscal Month" timePeriodTypeId="FiscalMonth" periodLength="1" lengthUomId="TF_mon"/>
-            <TimePeriodType description="Fiscal Week" timePeriodTypeId="FiscalWeek" periodLength="1" lengthUomId="TF_wk"/>
-            <TimePeriodType description="Fiscal Bi-Week" timePeriodTypeId="FiscalBiWeek" periodLength="2" lengthUomId="TF_wk"/>
-            <TimePeriodType description="Sales Quarter" timePeriodTypeId="SalesQuarter" periodLength="3" lengthUomId="TF_mon"/>
-            <TimePeriodType description="Sales Month" timePeriodTypeId="SalesMonth" periodLength="1" lengthUomId="TF_mon"/>
+            <mantle.party.time.TimePeriodType description="Fiscal Year" timePeriodTypeId="FiscalYear" periodLength="1" lengthUomId="TF_yr"/>
+            <mantle.party.time.TimePeriodType description="Fiscal Quarter" timePeriodTypeId="FiscalQuarter" periodLength="3" lengthUomId="TF_mon"/>
+            <mantle.party.time.TimePeriodType description="Fiscal Month" timePeriodTypeId="FiscalMonth" periodLength="1" lengthUomId="TF_mon"/>
+            <mantle.party.time.TimePeriodType description="Fiscal Week" timePeriodTypeId="FiscalWeek" periodLength="1" lengthUomId="TF_wk"/>
+            <mantle.party.time.TimePeriodType description="Fiscal Bi-Week" timePeriodTypeId="FiscalBiWeek" periodLength="2" lengthUomId="TF_wk"/>
+            <mantle.party.time.TimePeriodType description="Sales Quarter" timePeriodTypeId="SalesQuarter" periodLength="3" lengthUomId="TF_mon"/>
+            <mantle.party.time.TimePeriodType description="Sales Month" timePeriodTypeId="SalesMonth" periodLength="1" lengthUomId="TF_mon"/>
         </seed-data>
     </entity>
 </entities>

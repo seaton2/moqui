@@ -49,10 +49,12 @@ class ScreenRenderImpl implements ScreenRender {
     protected final static URLCodec urlCodec = new URLCodec()
 
     protected final ScreenFacadeImpl sfi
+    protected ExecutionContext localEc = null
     protected boolean rendering = false
 
     protected String rootScreenLocation = null
     protected ScreenDefinition rootScreenDef = null
+    protected ScreenDefinition overrideActiveScreenDef = null
 
     protected List<String> originalScreenPathNameList = new ArrayList<String>()
     protected ScreenUrlInfo screenUrlInfo = null
@@ -84,6 +86,7 @@ class ScreenRenderImpl implements ScreenRender {
 
     ScreenRenderImpl(ScreenFacadeImpl sfi) {
         this.sfi = sfi
+        this.localEc = sfi.ecfi.getExecutionContext()
     }
 
     Writer getWriter() {
@@ -95,7 +98,7 @@ class ScreenRenderImpl implements ScreenRender {
         throw new BaseException("Could not render screen, no writer available")
     }
 
-    ExecutionContext getEc() { return sfi.ecfi.getExecutionContext() }
+    ExecutionContext getEc() { return localEc }
     ScreenFacadeImpl getSfi() { return sfi }
     ScreenUrlInfo getScreenUrlInfo() { return screenUrlInfo }
 
@@ -367,6 +370,7 @@ class ScreenRenderImpl implements ScreenRender {
                     fullUrl.addParameters(ri.expandParameters(ec))
                     // if this was a screen-last and the screen has declared parameters include them in the URL
                     Map savedParameters = ((WebFacadeImpl) ec.web)?.getSavedParameters()
+                    ScreenUrlInfo.copySpecialParameters(savedParameters, fullUrl.getPathParameterMap())
                     if (ri.type == "screen-last" && savedParameters && fullUrl.getTargetScreen()?.getParameterMap()) {
                         for (String parmName in fullUrl.getTargetScreen().getParameterMap().keySet()) {
                             if (savedParameters.get(parmName))
@@ -657,7 +661,7 @@ class ScreenRenderImpl implements ScreenRender {
     }
 
     ScreenDefinition getRootScreenDef() { return rootScreenDef }
-    ScreenDefinition getActiveScreenDef() { return screenUrlInfo.screenRenderDefList[screenPathIndex] }
+    ScreenDefinition getActiveScreenDef() { return overrideActiveScreenDef ?: screenUrlInfo.screenRenderDefList[screenPathIndex] }
 
     List<String> getActiveScreenPath() {
         // handle case where root screen is first/zero in list versus a standalone screen
@@ -716,11 +720,16 @@ class ScreenRenderImpl implements ScreenRender {
 
     String renderSection(String sectionName) {
         ScreenDefinition sd = getActiveScreenDef()
-        ScreenSection section = sd.getSection(sectionName)
-        if (!section) throw new IllegalArgumentException("No section with name [${sectionName}] in screen [${sd.location}]")
-        writer.flush()
-        section.render(this)
-        writer.flush()
+        try {
+            ScreenSection section = sd.getSection(sectionName)
+            if (!section) throw new IllegalArgumentException("No section with name [${sectionName}] in screen [${sd.location}]")
+            writer.flush()
+            section.render(this)
+            writer.flush()
+        } catch (Throwable t) {
+            logger.error("Error rendering section [${sectionName}] in screen [${sd.location}]: " + t.toString(), t)
+            return "Error rendering section [${sectionName}] in screen [${sd.location}]: ${t.toString()}"
+        }
         // NOTE: this returns a String so that it can be used in an FTL interpolation, but it always writes to the writer
         return ""
     }
@@ -731,17 +740,17 @@ class ScreenRenderImpl implements ScreenRender {
         if (form == null) throw new IllegalArgumentException("No form with name [${formName}] in screen [${sd.location}]")
         ((ContextStack) ec.context).push()
         form.runFormListRowActions(this, listEntry, index, hasNext)
-        // NOTE: this returns a String so that it can be used in an FTL interpolation, but nothing it written
+        // NOTE: this returns an empty String so that it can be used in an FTL interpolation, but nothing is written
         return ""
     }
     String endFormListRow() {
         ((ContextStack) ec.context).pop()
-        // NOTE: this returns a String so that it can be used in an FTL interpolation, but nothing it written
+        // NOTE: this returns an empty String so that it can be used in an FTL interpolation, but nothing is written
         return ""
     }
     String safeCloseList(Object listObject) {
         if (listObject instanceof EntityListIterator) ((EntityListIterator) listObject).close()
-        // NOTE: this returns a String so that it can be used in an FTL interpolation, but nothing it written
+        // NOTE: this returns an empty String so that it can be used in an FTL interpolation, but nothing is written
         return ""
     }
     Node getFormNode(String formName) {
@@ -809,17 +818,41 @@ class ScreenRenderImpl implements ScreenRender {
         return sb.toString()
     }
 
+    Map getFormFieldValidationRegexpInfo(String formName, String fieldName) {
+        ScreenForm form = getActiveScreenDef().getForm(formName)
+        Node cachedFormNode = getFormNode(formName)
+        Node parameterNode = form.getFieldInParameterNode(fieldName, cachedFormNode)
+        if (parameterNode?."matches") {
+            Node matchesNode = parameterNode."matches"[0]
+            return [regexp:matchesNode."@regexp", message:matchesNode."@message"]
+        }
+        return null
+    }
+
     String renderIncludeScreen(String location, String shareScopeStr) {
         boolean shareScope = shareScopeStr == "true"
 
         ContextStack cs = (ContextStack) ec.context
+        ScreenDefinition oldOverrideActiveScreenDef = overrideActiveScreenDef
         try {
             if (!shareScope) cs.push()
             writer.flush()
-            sfi.makeRender().rootScreen(location).renderMode(renderMode).encoding(characterEncoding)
-                    .macroTemplate(macroTemplateLocation).render(writer)
+
+            ScreenDefinition screenDef = sfi.getScreenDefinition(location)
+            if (!screenDef) throw new BaseException("Could not find screen at location [${location}]")
+            overrideActiveScreenDef = screenDef
+            screenDef.render(this, false)
+
+            // this way is more literal, but has issues with relative paths and such:
+            // sfi.makeRender().rootScreen(location).renderMode(renderMode).encoding(characterEncoding)
+            //         .macroTemplate(macroTemplateLocation).render(writer)
+
             writer.flush()
+        } catch (Throwable t) {
+            logger.error("Error rendering screen [${location}]", t)
+            return "Error rendering screen [${location}]: ${t.toString()}"
         } finally {
+            overrideActiveScreenDef = oldOverrideActiveScreenDef
             if (!shareScope) cs.pop()
         }
 
@@ -923,6 +956,14 @@ class ScreenRenderImpl implements ScreenRender {
             return ""
         }
     }
+    String setInContext(FtlNodeWrapper setNodeWrapper) {
+        Node setNode = setNodeWrapper.getGroovyNode()
+        ec.resource.setInContext((String) setNode."@field", (String) setNode."@from", (String) setNode."@value",
+                (String) setNode."@default-value", (String) setNode."@type", (String) setNode."@set-if-empty")
+        return ""
+    }
+    String pushContext() { ec.getContext().push(); return "" }
+    String popContext() { ec.getContext().pop(); return "" }
 
     String getFieldValueString(FtlNodeWrapper fieldNodeWrapper, String defaultValue, String format) {
         Object obj = getFieldValue(fieldNodeWrapper, defaultValue)
@@ -1076,7 +1117,7 @@ class ScreenRenderImpl implements ScreenRender {
         // see if there is a user setting for the theme
         String themeId = sfi.ecfi.entityFacade.makeFind("moqui.security.UserScreenTheme")
                 .condition([userId:ec.user.userId, screenThemeTypeEnumId:stteId])
-                .one()?.screenThemeId
+                .useCache(true).one()?.screenThemeId
         // use the Enumeration.enumCode from the type to find the theme type's default screenThemeId
         if (!themeId) {
             boolean alreadyDisabled = ec.getArtifactExecution().disableAuthz()
@@ -1101,7 +1142,7 @@ class ScreenRenderImpl implements ScreenRender {
     List<String> getThemeValues(String resourceTypeEnumId) {
         EntityList strList = sfi.ecfi.entityFacade.makeFind("moqui.screen.ScreenThemeResource")
                 .condition([screenThemeId:getCurrentThemeId(), resourceTypeEnumId:resourceTypeEnumId])
-                .orderBy("sequenceNum").list()
+                .orderBy("sequenceNum").useCache(true).list()
         List<String> values = new LinkedList()
         for (EntityValue str in strList) values.add(str.resourceValue as String)
         return values

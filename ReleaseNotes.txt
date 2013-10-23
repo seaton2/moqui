@@ -2,24 +2,76 @@
 Moqui Framework Release Notes
 
 ===========================================================================
-Release 1.3.1 - Date TBD
+Release 1.3.2 - Date TBD
 ===========================================================================
 
-Moqui Framework 1.3.1 is a minor new feature and bug fix release. TODO
+Moqui Framework 1.3.1 is a minor new feature and bug fix release.
 
 New Features:
 
-- form-list and section-iterate now automatically add *_index and
+
+Bug Fixes:
+
+
+===========================================================================
+Release 1.3.1 - 20 Oct 2013
+===========================================================================
+
+Moqui Framework 1.3.1 is a minor new feature, bug fix, and performance
+enhancement release.
+
+New Features:
+
+- Performance improvements based on profiling (tested screens run
+  around 1.3 to 2 times as fast)
+- form-list and section-iterate automatically add *_index and
   *_has_next context fields following the pattern used in Freemarker
+- formDisplayOnly parameter (or context value) to make the form render as
+  display-only (read-only)
 - dynamic and static layouts
   - static layout uses entire browser width and is CSS based
   - dynamic layout uses jQuery Layout plugin and supports closing,
     resizing, fixed header/footer, separate scrolling left/right, etc
 - popup menus are in the header to save space and for easier layout
+- set action inside form field sub-elements and widget-template-include for
+  parameterized widget-template definitions
+- XML Form pass through of matches (regexp) validation from service
+- Added ServiceTrigger entity to call a service when the record is created;
+  useful for triggering data setup services on data load and so on
+- The loadData execution uses anonymous user for authc and allows any authz
+  for services triggered on data load
 
 Bug Fixes:
 
 - Fixed extraneous close script tags in screen/form HTML output
+- Fixed right/east container-panel field name so size, etc settings apply
+- Fixed calls to startFormListRow that were missing new parameters added
+  to the method; resolves SourceForce Bug #39
+- Fixed issue with a form-list with header form in a dynamic-container; now
+  updates within the containing div using the results of the form submit
+- Fixed issue with service name comparison when running SECA rules
+- Auto reverse relationships better support titles
+- DataDocument no longer includes null fields, empty Maps and Lists
+- Fixed issue with null oldStatusId and setting new statusChanged automatic
+  fields in entity-auto service implementation
+- Fixed entity-find.search-form-inputs.@input-fields-map attribute, groovy
+  generated left out quotes
+- Fixed NPE in EntityUserField code
+- Changed searchFormInputs to default to equals instead of contains; more
+  efficient queries and works for numbers, dates, etc
+- Changed saved session messages and errors to be separate from
+  MessageFacade ones so they still display but don't stop other services
+  from running
+- Fixed EntityFacadeImpl.getAllEntityNames() to not return invalid entity
+  names, caused problems with AuthScreen, etc after an attempt to use an
+  entity with an invalid name
+- Fixed issue with Entity ECA rules where fields set to null were reset
+  back to the value from the DB
+- Fixed issues with export with dependents including making sure all
+  auto-reverse relationships are in place and properly handing
+  relationships with titles when deferring export for fk dependency
+- Fixed issue where secondary sequenced ID did not preserve disableAuthz
+- Fixed issue with DENY record not stopping sub-screens access
 
 ===========================================================================
 Release 1.3.0 - 27 July 2013
@@ -1177,6 +1229,8 @@ Features considered, but may not to be included in 1.x series
 - Interesting JS plugins
   - http://arshaw.com/fullcalendar/
   - http://www.datatables.net
+  - http://www.datatables.net/examples/data_sources/server_side.html
+  - http://code.google.com/p/jquery-datatables-editable/
   - http://code.drewwilson.com/entry/autosuggest-jquery-plugin
 
 - User Notification
@@ -1242,6 +1296,7 @@ Features considered, but may not to be included in 1.x series
     - retry processing on fail (manual or automatic - number of retries and/or time delay before sending fail confirmation)
     - send async success/fail confirmation
     - keep status in separate transaction
+  - Camel endpoint for sending and receiving (custom, or use service facade endpoint?)
   - Useful for OAGIS and many other system-to-system messages; idea similar to OAGIS services and entities in OFBiz
   - SystemMessage: systemMessageId*, systemMessageTypeId, statusId, isOutgoing (i), sentDate, receivedDate,
     messageText (vl), remoteMessageId (text-medium), systemMessageRemoteId

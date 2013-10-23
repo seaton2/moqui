@@ -12,12 +12,12 @@ This Work includes contributions authored by David E. Jones, not as a
 -->
 <entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-1.3.xsd">
 
-    <entity entity-name="Timeclock" package-name="moqui.basic">
+    <entity entity-name="Timeclock" package-name="moqui.basic" no-update-stamp="true">
         <field name="autoInc" type="number-integer" is-pk="true"/>
         <field name="userId" type="id"/>
         <field name="status" type="id"/>
 
-        <field name="timeIn" type="date-time"/>
+        <field name="timeIn" type="date-time" />
         <field name="timeOut" type="date-time"/>
         <field name="hoursWorked" type="id"/>
         <relationship type="one" related-entity-name="moqui.security.UserAccount" fk-name="userId">

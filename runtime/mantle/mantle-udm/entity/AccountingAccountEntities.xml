@@ -196,7 +196,7 @@ and those parts may be licensed under the Apache License 2.0.
         <relationship type="one" title="To" related-entity-name="mantle.party.Party">
             <key-map field-name="toPartyId"/>
         </relationship>
-        <relationship type="one" related-entity-name="Payment"/>
+        <relationship type="one" related-entity-name="mantle.account.payment.Payment"/>
         <relationship type="one" related-entity-name="OrderItem">
             <key-map field-name="orderId"/>
             <key-map field-name="orderItemSeqId"/>
@@ -308,25 +308,34 @@ and those parts may be licensed under the Apache License 2.0.
         <field name="billingAccountId" type="id"/>
         <field name="invoiceDate" type="date-time"/>
         <field name="dueDate" type="date-time"/>
+        <field name="settlementTermId" type="id"/>
         <field name="paidDate" type="date-time"/>
         <field name="invoiceMessage" type="text-long"/>
         <field name="referenceNumber" type="text-medium"><description>Vendor or other invoice number.</description></field>
         <field name="description" type="text-medium"/>
         <field name="currencyUomId" type="id"/>
+        <field name="overrideOrgPartyId" type="id"><description>Used to specify the organization override rather than
+            using the fromPartyId and/or toPartyId (depending on which is an internal org).</description></field>
+
         <relationship type="one" title="InvoiceType" related-entity-name="moqui.basic.Enumeration">
             <key-map field-name="invoiceTypeEnumId"/>
         </relationship>
-        <relationship type="one" title="From" related-entity-name="Party">
+        <relationship type="one" title="From" related-entity-name="mantle.party.Party">
             <key-map field-name="fromPartyId"/>
         </relationship>
-        <relationship type="one" title="To" related-entity-name="Party">
+        <relationship type="one" title="To" related-entity-name="mantle.party.Party">
             <key-map field-name="toPartyId"/>
         </relationship>
         <relationship type="one" title="Invoice" related-entity-name="moqui.basic.StatusItem"/>
-        <relationship type="one" related-entity-name="BillingAccount"/>
+        <relationship type="one" related-entity-name="mantle.account.billing.BillingAccount"/>
+        <relationship type="one" related-entity-name="mantle.account.invoice.SettlementTerm"/>
         <relationship type="one" title="Currency" related-entity-name="moqui.basic.Uom">
             <key-map field-name="currencyUomId"/>
         </relationship>
+        <relationship type="one" title="OverrideOrg" related-entity-name="mantle.party.Party">
+            <key-map field-name="overrideOrgPartyId"/>
+        </relationship>
+
         <seed-data>
             <!-- Invoice Type -->
             <moqui.basic.EnumerationType description="Invoice Type" enumTypeId="InvoiceType"/>
@@ -354,43 +363,61 @@ and those parts may be licensed under the Apache License 2.0.
             <!-- Invoice Status -->
             <moqui.basic.StatusType description="Invoice Status" statusTypeId="Invoice"/>
             <moqui.basic.StatusItem description="In-Process" sequenceNum="1" statusId="InvoiceInProcess" statusTypeId="Invoice"/>
-            <moqui.basic.StatusItem description="Approved" sequenceNum="2" statusId="InvoiceApproved" statusTypeId="Invoice"/>
-            <moqui.basic.StatusItem description="Sent" sequenceNum="10" statusId="InvoiceSent" statusTypeId="Invoice"/>
+            <moqui.basic.StatusItem description="Finalized" sequenceNum="2" statusId="InvoiceFinalized" statusTypeId="Invoice"/>
+            <moqui.basic.StatusItem description="Sent" sequenceNum="3" statusId="InvoiceSent" statusTypeId="Invoice"/>
+            <moqui.basic.StatusItem description="Payment Received" sequenceNum="4" statusId="InvoicePmtRecvd" statusTypeId="Invoice"/>
+            <moqui.basic.StatusItem description="Write Off" sequenceNum="9" statusId="InvoiceWriteOff" statusTypeId="Invoice"/>
+
+            <moqui.basic.StatusItem description="Incoming" sequenceNum="10" statusId="InvoiceIncoming" statusTypeId="Invoice"/>
             <moqui.basic.StatusItem description="Received" sequenceNum="11" statusId="InvoiceReceived" statusTypeId="Invoice"/>
-            <!-- READY is a very important state - it triggers general ledger postings.  Make sure your invoices go through this state -->
-            <moqui.basic.StatusItem description="Ready for Posting" sequenceNum="20" statusId="InvoiceReady" statusTypeId="Invoice"/>
-            <moqui.basic.StatusItem description="Paid" sequenceNum="30" statusId="InvoicePaid" statusTypeId="Invoice"/>
-            <moqui.basic.StatusItem description="Write Off" sequenceNum="31" statusId="InvoiceWriteOff" statusTypeId="Invoice"/>
-            <moqui.basic.StatusItem description="Reimbursed" sequenceNum="40" statusId="InvoiceReimbursed" statusTypeId="Invoice"/>
+            <moqui.basic.StatusItem description="Approved" sequenceNum="12" statusId="InvoiceApproved" statusTypeId="Invoice"/>
+            <moqui.basic.StatusItem description="Payment Sent" sequenceNum="13" statusId="InvoicePmtSent" statusTypeId="Invoice"/>
+            <moqui.basic.StatusItem description="Billed Through" sequenceNum="15" statusId="InvoiceBilledThrough" statusTypeId="Invoice"/>
             <moqui.basic.StatusItem description="Cancelled" sequenceNum="99" statusId="InvoiceCancelled" statusTypeId="Invoice"/>
-            <!-- this is the simplest process: IN_PROCESS -> READY or CANCELLED -->
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceInProcess" toStatusId="InvoiceReady" transitionName="Mark Ready"/>
+
+            <!-- The basic process is: In Process, Finalized/Approved, Sent (optional), Payment Received or Write Off -->
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceInProcess" toStatusId="InvoiceFinalized" transitionName="Finalize"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceFinalized" toStatusId="InvoiceSent" transitionName="Send"/>
+
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceFinalized" toStatusId="InvoicePmtRecvd" transitionName="Receive Payment"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceSent" toStatusId="InvoicePmtRecvd" transitionName="Receive Payment"/>
+
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceFinalized" toStatusId="InvoiceWriteOff" transitionName="Write Off"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceSent" toStatusId="InvoiceWriteOff" transitionName="Write Off"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceWriteOff" toStatusId="InvoicePmtRecvd" transitionName="Receive Payment"/>
+
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceInProcess" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
-            <!-- this is a more complicated process: IN_PROCESS -> SENT -> (optionally RECEIVED) -> READY or CANCELLED -->
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceInProcess" toStatusId="InvoiceSent" transitionName="Send"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceInProcess" toStatusId="InvoiceReceived" transitionName="Receive"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceSent" toStatusId="InvoiceApproved" transitionName="Approve"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceSent" toStatusId="InvoiceReady" transitionName="Mark Ready"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceSent" toStatusId="InvoiceReceived" transitionName="Receive"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceReceived" toStatusId="InvoiceReady" transitionName="Receive"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceFinalized" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceSent" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceReceived" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
-            <!-- this is a process to enable modification via the Status IN_PROCESS when the receiver/sender wants an invoice change or to cancel it -->
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoicePmtRecvd" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceWriteOff" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
+
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoicePmtRecvd" toStatusId="InvoiceFinalized" transitionName="Unpay"/>
+
+            <!-- if changes are needed after Finalized or Sent then go back to In Process -->
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceSent" toStatusId="InvoiceInProcess" transitionName="Resume Changes"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceReceived" toStatusId="InvoiceInProcess" transitionName="Resume Changes"/>
-            <!-- an optional approval state is put in before invoice is sent or after it is received -->
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceInProcess" toStatusId="InvoiceApproved" transitionName="Approve"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceApproved" toStatusId="InvoiceSent" transitionName="Send"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceInProcess" toStatusId="InvoiceReceived" transitionName="Receive"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceFinalized" toStatusId="InvoiceInProcess" transitionName="Resume Changes"/>
+
+            <!-- Incoming invoices should start in Received and then move to Approved, then Payment Sent -->
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceIncoming" toStatusId="InvoiceReceived" transitionName="Receive"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceReceived" toStatusId="InvoiceApproved" transitionName="Approve"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceApproved" toStatusId="InvoiceReady" transitionName="Mark Ready"/>
-            <!-- finally the invoice can be paid or written off.   -->
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceReady" toStatusId="InvoicePaid" transitionName="Pay"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoicePaid" toStatusId="InvoiceReimbursed" transitionName="Reimburse"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceReady" toStatusId="InvoiceWriteOff" transitionName="Write Off"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoicePaid" toStatusId="InvoiceReady" transitionName="Unpay"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceReady" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoicePaid" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceApproved" toStatusId="InvoicePmtSent" transitionName="Send Payment"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoicePmtSent" toStatusId="InvoiceBilledThrough" transitionName="Bill Through"/>
+
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoicePmtSent" toStatusId="InvoiceApproved" transitionName="Unpay"/>
+
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceIncoming" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceReceived" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoiceApproved" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="InvoicePmtSent" toStatusId="InvoiceCancelled" transitionName="Cancel"/>
+
+            <!--
+            - GL Posting on any transition to Finalized or Approved statuses.
+            - TODO: Reverse GL Posting on Finalized/Approved/Sent/Payment* to Cancelled, Finalized/Sent to In Process
+            - TODO: GL Postings on transition to Write Off, and on Write Off to Payment
+            - TODO: On Payment* to Finalized/Approved/Cancelled, unapply Payment(s)
+            -->
+
         </seed-data>
     </entity>
     <entity entity-name="InvoiceContactMech" package-name="mantle.account.invoice">
@@ -407,10 +434,9 @@ and those parts may be licensed under the Apache License 2.0.
         <field name="invoiceId" type="id" is-pk="true"/>
         <field name="invoiceItemSeqId" type="id" is-pk="true"/>
         <field name="itemTypeEnumId" type="id"/>
-        <field name="overrideGlAccountId" type="id"><description>used to specify the override or actual glAccountId
-            used for the invoice, avoids problems if configuration changes after initial posting, etc</description></field>
-        <field name="overrideOrgPartyId" type="id"><description>Used to specify the organization override rather than
-            using the payToPartyId</description></field>
+        <field name="overrideGlAccountId" type="id"><description>The override or actual glAccountId used for the
+            AcctgTransEntry based on the InvoiceItem. If empty the glAccountId will be determined based on configuration
+            or custom code.</description></field>
         <field name="assetId" type="id"/>
         <field name="productId" type="id"/>
         <field name="parentInvoiceId" type="id"/>
@@ -427,6 +453,7 @@ and those parts may be licensed under the Apache License 2.0.
         <field name="taxAuthGeoId" type="id"/>
         <field name="taxAuthorityRateId" type="id"/>
         -->
+
         <relationship type="one" title="ItemType" related-entity-name="moqui.basic.Enumeration">
             <key-map field-name="itemTypeEnumId"/>
         </relationship>
@@ -439,9 +466,6 @@ and those parts may be licensed under the Apache License 2.0.
         </relationship>
         <relationship type="one" title="Override" related-entity-name="GlAccount">
             <key-map field-name="overrideGlAccountId"/>
-        </relationship>
-        <relationship type="one" title="OverrideOrg" related-entity-name="Party">
-            <key-map field-name="overrideOrgPartyId"/>
         </relationship>
         <relationship type="one" title="Quantity" related-entity-name="moqui.basic.Uom">
             <key-map field-name="quantityUomId"/>
@@ -512,11 +536,11 @@ and those parts may be licensed under the Apache License 2.0.
         <relationship type="one" related-entity-name="Invoice">
             <key-map field-name="invoiceId"/>
         </relationship>
-        <relationship type="one-nofk" related-entity-name="InvoiceItem">
+        <relationship type="one-nofk" related-entity-name="mantle.account.invoice.InvoiceItem">
             <key-map field-name="invoiceId"/>
             <key-map field-name="invoiceItemSeqId"/>
         </relationship>
-        <relationship type="one" related-entity-name="SettlementTerm"/>
+        <relationship type="one" related-entity-name="mantle.account.invoice.SettlementTerm"/>
     </entity>
     <entity entity-name="SettlementTerm" package-name="mantle.account.invoice">
         <field name="settlementTermId" type="id" is-pk="true"/>
@@ -599,7 +623,7 @@ and those parts may be licensed under the Apache License 2.0.
             <moqui.basic.Enumeration description="Company Account" enumId="PmtCompanyAccount" enumTypeId="PaymentMethodType"/>
             <moqui.basic.Enumeration description="Billing Account" enumId="PmtBillingAccount" enumTypeId="PaymentMethodType"/>
             <moqui.basic.Enumeration description="Cash On Delivery" enumId="PmtCod" enumTypeId="PaymentMethodType"/>
-            <moqui.basic.Enumeration description="Offline Payment" enumId="PmtOffline" enumTypeId="PaymentMethodType"/>
+            <!-- really need this? implied by various others... <moqui.basic.Enumeration description="Offline Payment" enumId="PmtOffline" enumTypeId="PaymentMethodType"/> -->
         </seed-data>
     </entity>
     <entity entity-name="BitcoinWallet" package-name="mantle.account.method">
@@ -799,14 +823,18 @@ and those parts may be licensed under the Apache License 2.0.
         <field name="effectiveDate" type="date-time"/>
         <field name="paymentAuthCode" type="text-short"/>
         <field name="paymentRefNum" type="text-short"/>
+        <field name="comments" type="text-medium"/>
 
         <field name="amount" type="currency-amount"/>
         <field name="amountUomId" type="id"/>
 
-        <field name="comments" type="text-medium"/>
+        <field name="finAccountId" type="id"/>
         <field name="finAccountAuthId" type="id"/>
         <field name="finAccountTransId" type="id"/>
-        <field name="overrideGlAccountId" type="id"/>
+        <field name="overrideGlAccountId" type="id"><description>Overrides the GlAccount for the PaymentMethod entry,
+            ie for the cash account the payment goes into.</description></field>
+        <field name="overrideOrgPartyId" type="id"><description>Used to specify the organization override rather than
+            using the fromPartyId and/or toPartyId (depending on which is an internal org).</description></field>
 
         <!-- The Original Currency amount and uomId are for the values coming from the bank (if known) and are to be used for reconciliation and such later, and not for PaymentApplication. -->
         <field name="originalCurrencyAmount" type="currency-amount"/>
@@ -824,7 +852,7 @@ and those parts may be licensed under the Apache License 2.0.
             <key-map field-name="paymentMethodTypeEnumId"/>
         </relationship>
         <relationship type="one" related-entity-name="mantle.account.method.PaymentMethod"/>
-        <relationship type="one" related-entity-name="OrderHeader"/>
+        <relationship type="one" related-entity-name="mantle.order.OrderHeader"/>
 
         <relationship type="one" title="Amount" related-entity-name="moqui.basic.Uom">
             <key-map field-name="amountUomId"/>
@@ -832,78 +860,55 @@ and those parts may be licensed under the Apache License 2.0.
         <relationship type="one" title="OriginalCurrency" related-entity-name="moqui.basic.Uom">
             <key-map field-name="originalCurrencyUomId"/>
         </relationship>
-        <relationship type="one" title="From" related-entity-name="Party"><key-map field-name="fromPartyId"/></relationship>
-        <relationship type="one" title="To" related-entity-name="Party"><key-map field-name="toPartyId"/></relationship>
+        <relationship type="one" title="From" related-entity-name="mantle.party.Party"><key-map field-name="fromPartyId"/></relationship>
+        <relationship type="one" title="To" related-entity-name="mantle.party.Party"><key-map field-name="toPartyId"/></relationship>
         <relationship type="one" related-entity-name="moqui.basic.StatusItem"/>
-        <relationship type="one" related-entity-name="FinancialAccountAuth"/>
-        <relationship type="one" related-entity-name="FinancialAccountTrans"/>
+        <relationship type="one" related-entity-name="mantle.account.financial.FinancialAccount"/>
+        <relationship type="one" related-entity-name="mantle.account.financial.FinancialAccountAuth"/>
+        <relationship type="one" related-entity-name="mantle.account.financial.FinancialAccountTrans"/>
         <relationship type="one" title="Override" related-entity-name="GlAccount">
             <key-map field-name="overrideGlAccountId"/>
         </relationship>
+        <relationship type="one" title="OverrideOrg" related-entity-name="mantle.party.Party">
+            <key-map field-name="overrideOrgPartyId"/>
+        </relationship>
+
         <seed-data>
             <!-- Payment Type -->
             <moqui.basic.EnumerationType description="Payment Type" enumTypeId="PaymentType"/>
             <moqui.basic.Enumeration description="Disbursement" enumId="PtDisbursement" enumTypeId="PaymentType"/>
             <moqui.basic.Enumeration description="Refund" enumId="PtRefund" enumTypeId="PaymentType"/>
             <moqui.basic.Enumeration description="Invoice Payment" enumId="PtInvoicePayment" enumTypeId="PaymentType"/>
-            <!-- OLD payment types, not party or invoice type sensitive:
-            <moqui.basic.Enumeration description="Disbursement" enumId="DISBURSEMENT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Customer Refund" parentEnumId="DISBURSEMENT" enumId="CUSTOMER_REFUND" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Vendor Payment" parentEnumId="DISBURSEMENT" enumId="VENDOR_PAYMENT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Vendor Prepayment" parentEnumId="DISBURSEMENT" enumId="VENDOR_PREPAY" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Commission Payment" parentEnumId="DISBURSEMENT" enumId="COMMISSION_PAYMENT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Payroll Payment" parentEnumId="DISBURSEMENT" enumId="PAYROLL_PAYMENT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Pay Check" parentEnumId="DISBURSEMENT" enumId="PAY_CHECK" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Tax Payment" parentEnumId="DISBURSEMENT" enumId="TAX_PAYMENT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Sales Tax Payment" parentEnumId="TAX_PAYMENT" enumId="SALES_TAX_PAYMENT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Payroll Tax Payment" parentEnumId="TAX_PAYMENT" enumId="PAYROLL_TAX_PAYMENT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Income Tax Payment" parentEnumId="TAX_PAYMENT" enumId="INCOME_TAX_PAYMENT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Gift Certificate Withdrawal"  parentEnumId="DISBURSEMENT" enumId="GC_WITHDRAWAL" enumTypeId="PaymentType"/>
-
-            <moqui.basic.Enumeration description="Receipt" enumId="RECEIPT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Customer Payment" parentEnumId="RECEIPT" enumId="CUSTOMER_PAYMENT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Customer Deposit" parentEnumId="RECEIPT" enumId="CUSTOMER_DEPOSIT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Interest Receipt" parentEnumId="RECEIPT" enumId="INTEREST_RECEIPT" enumTypeId="PaymentType"/>
-            <moqui.basic.Enumeration description="Gift Certificate Deposit"  parentEnumId="RECEIPT" enumId="GC_DEPOSIT" enumTypeId="PaymentType"/>
-            -->
 
             <!-- Payment Status -->
             <moqui.basic.StatusType description="Payment Status" statusTypeId="Payment"/>
             <moqui.basic.StatusItem description="Proposed" sequenceNum="1" statusId="PmntProposed" statusTypeId="Payment"/>
             <moqui.basic.StatusItem description="Promised" sequenceNum="2" statusId="PmntPromised" statusTypeId="Payment"/>
             <moqui.basic.StatusItem description="Authorized" sequenceNum="3" statusId="PmntAuthorized" statusTypeId="Payment"/>
-            <moqui.basic.StatusItem description="Sent/Settled" sequenceNum="4" statusId="PmntSent" statusTypeId="Payment"/>
-            <moqui.basic.StatusItem description="Received" sequenceNum="5" statusId="PmntReceived" statusTypeId="Payment"/>
+            <moqui.basic.StatusItem description="Delivered" sequenceNum="4" statusId="PmntDelivered" statusTypeId="Payment"/>
             <moqui.basic.StatusItem description="Confirmed Paid" sequenceNum="6" statusId="PmntConfirmed" statusTypeId="Payment"/>
             <moqui.basic.StatusItem description="Cancelled" sequenceNum="91" statusId="PmntCancelled" statusTypeId="Payment"/>
             <moqui.basic.StatusItem description="Void" sequenceNum="92" statusId="PmntVoid" statusTypeId="Payment"/>
             <moqui.basic.StatusItem description="Declined" sequenceNum="93" statusId="PmntDeclined" statusTypeId="Payment"/>
             <moqui.basic.StatusItem description="Refunded" sequenceNum="94" statusId="PmntRefunded" statusTypeId="Payment"/>
 
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntProposed" toStatusId="PmntPromised" transitionName="Promised"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntPromised" toStatusId="PmntAuthorized" transitionName="Sent"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntPromised" toStatusId="PmntSent" transitionName="Sent"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntPromised" toStatusId="PmntReceived" transitionName="Received"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntPromised" toStatusId="PmntCancelled" transitionName="Cancelled"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntProposed" toStatusId="PmntPromised" transitionName="Promise"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntPromised" toStatusId="PmntAuthorized" transitionName="Authorize"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntPromised" toStatusId="PmntDelivered" transitionName="Deliver"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntPromised" toStatusId="PmntCancelled" transitionName="Cancel"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntPromised" toStatusId="PmntDeclined" transitionName="Sent"/>
 
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntAuthorized" toStatusId="PmntSent" transitionName="Sent"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntAuthorized" toStatusId="PmntVoid" transitionName="Voided"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntAuthorized" toStatusId="PmntDeclined" transitionName="Declined"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntAuthorized" toStatusId="PmntDelivered" transitionName="Deliver"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntAuthorized" toStatusId="PmntVoid" transitionName="Void"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntAuthorized" toStatusId="PmntDeclined" transitionName="Decline"/>
 
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntSent" toStatusId="PmntRefunded" transitionName="Refunded"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntReceived" toStatusId="PmntRefunded" transitionName="Refunded"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntConfirmed" toStatusId="PmntRefunded" transitionName="Refunded"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntDelivered" toStatusId="PmntRefunded" transitionName="Refund"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntConfirmed" toStatusId="PmntRefunded" transitionName="Refund"/>
 
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntSent" toStatusId="PmntConfirmed" transitionName="Confirmed"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntReceived" toStatusId="PmntConfirmed" transitionName="Confirmed"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntSent" toStatusId="PmntVoid" transitionName="Voided"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntReceived" toStatusId="PmntVoid" transitionName="Voided"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntPromised" toStatusId="PmntVoid" transitionName="Voided"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntSent" toStatusId="PmntPromised" transitionName="Not Paid"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntReceived" toStatusId="PmntPromised" transitionName="Not Paid"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntConfirmed" toStatusId="PmntSent" transitionName="Confirmed to Sent"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntConfirmed" toStatusId="PmntReceived" transitionName="Confirmed to Received"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntDelivered" toStatusId="PmntConfirmed" transitionName="Confirm"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntDelivered" toStatusId="PmntVoid" transitionName="Void"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntDelivered" toStatusId="PmntPromised" transitionName="Undeliver"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PmntConfirmed" toStatusId="PmntDelivered" transitionName="Uncomfirm"/>
         </seed-data>
     </entity>
     <entity entity-name="PaymentFraudEvidence" package-name="mantle.account.payment">

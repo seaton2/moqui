@@ -35,11 +35,79 @@ This Work includes contributions authored by David E. Jones, not as a
         </actions>
     </service>
 
-    <service verb="apply" noun="PaymentToInvoice">
+    <service verb="create" noun="InvoicePayment">
+        <description>
+            Create a Payment for an Invoice and apply it to the Invoice.
+
+            The from/to Parties from the Invoice are reversed on the Payment.
+
+            If the amount is greater than the unpaid Invoice total the full amount will be set on the Payment, but only
+            the unpaid Invoice total will be applied to the Invoice.
+
+            If the Invoice statusId is InvoiceInProcess/InvoiceReceived updates it to InvoiceFinalized/InvoiceApproved.
+
+            If the amount (alone or combined with previously applied Payments) is the full invoiceTotal also updates
+            the Invoice statusId to InvoicePmtRecvd.
+        </description>
+        <in-parameters>
+            <parameter name="invoiceId" required="true"/>
+            <parameter name="statusId" default-value="PmntDelivered"/>
+            <parameter name="amountUomId"/>
+            <parameter name="amount" type="BigDecimal" required="true"/>
+            <parameter name="paymentMethodTypeEnumId" default-value="PmtCompanyCheck"/>
+            <parameter name="effectiveDate" type="Timestamp" default-value="${ec.user.nowTimestamp}"/>
+            <parameter name="paymentRefNum"/>
+            <parameter name="comments"/>
+            <parameter name="paymentOverrideGlAccountId"/>
+            <parameter name="applicationOverrideGlAccountId"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="paymentId"/>
+            <parameter name="paymentApplicationId"/>
+        </out-parameters>
+        <actions>
+            <entity-find-one entity-name="mantle.account.invoice.Invoice" value-field="invoice"/>
+
+            <set field="validStatusIds" from="['InvoiceInProcess', 'InvoiceFinalized', 'InvoiceSent', 'InvoiceWriteOff', 'InvoiceReceived', 'InvoiceApproved']"/>
+            <if condition="!validStatusIds.contains(invoice.statusId)">
+                <entity-find-related-one value-field="invoice" relationship-name="Invoice#moqui.basic.StatusItem" to-value-field="statusEnum"/>
+                <return error="true" message="Invoice is in ${statusEnum.description} status, payment not allowed."/>
+            </if>
+
+            <if condition="invoice.statusId == 'InvoiceInProcess'">
+                <service-call name="update#mantle.account.invoice.Invoice" in-map="[invoiceId:invoiceId, statusId:'InvoiceFinalized']"/></if>
+            <if condition="invoice.statusId == 'InvoiceReceived'">
+                <service-call name="update#mantle.account.invoice.Invoice" in-map="[invoiceId:invoiceId, statusId:'InvoiceApproved']"/></if>
+
+            <set field="initialStatusId" from="statusId == 'PmntProposed' ? statusId : 'PmntPromised'"/>
+
+            <if condition="!amountUomId"><set field="amountUomId" from="invoice.currencyUomId"/></if>
+            <service-call name="create#mantle.account.payment.Payment" out-map="context"
+                    in-map="[paymentTypeEnumId:'PtInvoicePayment', fromPartyId:invoice.toPartyId,
+                        toPartyId:invoice.fromPartyId, paymentMethodTypeEnumId:paymentMethodTypeEnumId,
+                        statusId:initialStatusId, effectiveDate:effectiveDate, paymentRefNum:paymentRefNum,
+                        amountUomId:amountUomId, amount:amount, comments:comments,
+                        overrideGlAccountId:paymentOverrideGlAccountId]"/>
+
+            <service-call name="mantle.account.PaymentServices.apply#InvoicePayment" out-map="context"
+                    in-map="[paymentId:paymentId, invoiceId:invoiceId, amount:amount,
+                        overrideGlAccountId:applicationOverrideGlAccountId]"/>
+
+            <!-- now that Payment is applied, move to target status (mainly so that we go through PmntDelivered for GL posting, etc) -->
+
+            <!-- if target status is PmntConfirmed go to PmntDelivered first -->
+            <if condition="statusId == 'PmntConfirmed'">
+                <service-call name="update#mantle.account.payment.Payment" in-map="[paymentId:paymentId, statusId:'PmntDelivered']"/>
+            </if>
+            <service-call name="update#mantle.account.payment.Payment" in-map="[paymentId:paymentId, statusId:statusId]"/>
+        </actions>
+    </service>
+    <service verb="apply" noun="InvoicePayment">
         <in-parameters>
             <parameter name="paymentId" required="true"/>
             <parameter name="invoiceId" required="true"/>
-            <parameter name="billingAccountId" required="true"/>
+            <parameter name="billingAccountId"/>
+            <parameter name="overrideGlAccountId"/>
             <parameter name="amount" type="BigDecimal"/>
         </in-parameters>
         <out-parameters>
@@ -47,7 +115,25 @@ This Work includes contributions authored by David E. Jones, not as a
             <parameter name="amountApplied" type="BigDecimal"/>
         </out-parameters>
         <actions>
-            <!-- TODO: implement this... -->
+            <service-call name="mantle.account.InvoiceServices.get#InvoiceTotal" out-map="context"
+                    in-map="[invoiceId:invoiceId]"/>
+            <set field="amountApplied" from="amount > unpaidTotal ? unpaidTotal : amount"/>
+
+            <service-call name="create#mantle.account.payment.PaymentApplication" out-map="context"
+                    in-map="[paymentId:paymentId, invoiceId:invoiceId, billingAccountId:billingAccountId,
+                        overrideGlAccountId:overrideGlAccountId, amountApplied:amountApplied,
+                        appliedDate:ec.user.nowTimestamp]"/>
+
+            <!-- Payment Applied, now update Invoice status -->
+            <service-call name="mantle.account.InvoiceServices.get#InvoiceTotal" out-map="context"
+                    in-map="[invoiceId:invoiceId]"/>
+            <entity-find-one entity-name="mantle.account.invoice.Invoice" value-field="invoice"/>
+            <if condition="unpaidTotal == 0">
+                <if condition="invoice.statusId == 'InvoiceSent' || invoice.statusId == 'InvoiceFinalized'">
+                    <service-call name="update#mantle.account.invoice.Invoice" in-map="[invoiceId:invoiceId, statusId:'InvoicePmtRecvd']"/>
+                    <else><service-call name="update#mantle.account.invoice.Invoice" in-map="[invoiceId:invoiceId, statusId:'InvoicePmtSent']"/></else>
+                </if>
+            </if>
         </actions>
     </service>
     <service verb="apply" noun="PaymentToPayment">

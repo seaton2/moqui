@@ -14,7 +14,6 @@ runtime/elasticsearch/data/
 runtime/elasticsearch/log/
 runtime/elasticsearch/work/
 runtime/log/
-#runtime/mantle/
+runtime/mantle/
 runtime/tmp/
 execwartmp/
-/bin

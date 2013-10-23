@@ -32,6 +32,8 @@
         <cache name="resource.text.location" expire-time-idle="0" expire-time-live="0" max-elements="10000"/>
         <cache name="resource.reference.location" expire-time-idle="0" expire-time-live="0" max-elements="10000"/>
 
+        <cache name="l10n.message" expire-time-idle="0" expire-time-live="0" max-elements="50000"/>
+
         <!-- this is a count of all artifact hits, expire once idle for over 15 minutes -->
         <cache name="artifact.tarpit.hits" expire-time-idle="900" expire-time-live="0" max-elements="10000"/>
     </cache-list>
@@ -153,11 +155,8 @@
     <service-facade>
         <!-- NOTE: service jobs are managed using Quartz Scheduler, see quartz configuration for more details -->
 
-        <service-location name="main-rmi" location="rmi://localhost:1099/RMIDispatcher"/>
-        <service-location name="main-http" location="http://localhost:8080/webtools/control/httpService"/>
-
-        <service-location name="entity-sync-rmi" location="rmi://localhost:1099/RMIDispatcher"/>
-        <service-location name="entity-sync-http" location="http://localhost:8080/webtools/control/httpService"/>
+        <service-location name="main-xml" location="http://localhost:8080/rpc/xml"/>
+        <service-location name="main-json" location="http://localhost:8080/rpc/json"/>
 
         <!-- runner-class needs to implement the org.moqui.impl.service.ServiceRunner interface -->
         <service-type name="inline" runner-class="org.moqui.impl.service.runner.InlineServiceRunner"/>
@@ -188,38 +187,38 @@
         http://www.atomikos.com/Documentation/NonXaDataSource#Caveats
 
         For details about properties for different databases see:
-         http://www.atomikos.com/Documentation/ConfiguringTransactionsEssentials
+        http://www.atomikos.com/Documentation/ConfiguringTransactionsEssentials
 
         To use the non-XA variety just specify the normal JDBC parameters (like jdbc-uri, etc) and leave out the
         xa-properties element. If the xa-properties element is present the normal JDBC parameters will be ignored.
         -->
-        <!--<datasource group-name="transactional" database-conf-name="derby" schema-name="MOQUI">-->
-            <!--<inline-jdbc pool-minsize="5" pool-maxsize="50">-->
-                <!--<xa-properties databaseName="${moqui.runtime}/db/derby/MoquiTransactional" createDatabase="create"/>-->
-            <!--</inline-jdbc>-->
+        <!-- <datasource group-name="transactional" database-conf-name="derby" schema-name="MOQUI">
+            <inline-jdbc pool-minsize="5" pool-maxsize="50">
+                <xa-properties databaseName="${moqui.runtime}/db/derby/MoquiTransactional" createDatabase="create"/>
+            </inline-jdbc> -->
             <!-- <inline-jdbc jdbc-uri="jdbc:derby:MoquiTransactional;create=true"
                          jdbc-username="moqui" jdbc-password="moqui"
                          pool-minsize="5" pool-maxsize="50"/> -->
             <!-- <jndi-jdbc jndi-name="java:/MoquiTransactionalDataSource"/> -->
-        <!--</datasource>-->
-        <!--<datasource group-name="analytical" database-conf-name="derby" schema-name="MOQUI">-->
-            <!--<inline-jdbc pool-minsize="2" pool-maxsize="10">-->
-                <!--<xa-properties databaseName="${moqui.runtime}/db/derby/MoquiAnalytical" createDatabase="create"/>-->
-            <!--</inline-jdbc>-->
+        <!-- </datasource>
+        <datasource group-name="analytical" database-conf-name="derby" schema-name="MOQUI">
+            <inline-jdbc pool-minsize="2" pool-maxsize="10">
+                <xa-properties databaseName="${moqui.runtime}/db/derby/MoquiAnalytical" createDatabase="create"/>
+            </inline-jdbc> -->
             <!-- <inline-jdbc jdbc-uri="jdbc:derby:MoquiAnalytical;create=true"
                          jdbc-username="moqui" jdbc-password="moqui"
                          pool-minsize="2" pool-maxsize="10"/> -->
             <!-- <jndi-jdbc jndi-name="java:/MoquiAnalyticalDataSource"/> -->
-        <!--</datasource>-->
-        <!--<datasource group-name="tenantcommon" database-conf-name="derby" schema-name="MOQUI">-->
-            <!--<inline-jdbc pool-minsize="2" pool-maxsize="10">-->
-                <!--<xa-properties databaseName="${moqui.runtime}/db/derby/MoquiTenant" createDatabase="create"/>-->
-            <!--</inline-jdbc>-->
+        <!-- </datasource>
+        <datasource group-name="tenantcommon" database-conf-name="derby" schema-name="MOQUI">
+            <inline-jdbc pool-minsize="2" pool-maxsize="10">
+                <xa-properties databaseName="${moqui.runtime}/db/derby/MoquiTenant" createDatabase="create"/>
+            </inline-jdbc> -->
             <!-- <inline-jdbc jdbc-uri="jdbc:derby:MoquiTenant;create=true"
                          jdbc-username="moqui" jdbc-password="moqui"
                          pool-minsize="2" pool-maxsize="10"/> -->
             <!-- <jndi-jdbc jndi-name="java:/MoquiTenantDataSource"/> -->
-        <!--</datasource>-->
+        <!-- </datasource> -->
 
         <!-- some examples of how other databases would be configured -->
         <!-- PostgreSQL

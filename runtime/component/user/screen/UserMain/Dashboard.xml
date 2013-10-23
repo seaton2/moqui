@@ -137,18 +137,28 @@
             </form-single>
         </container-dialog>
         <form-list name="ListTimeclockData" list="Timeclock_list">
+
             <field name="autoInc">
                 <default-field>
-                    <dynamic-dialog id="Edit" button-text="Edit ${autoInc}" transition="EditTimeClock"/>
-                    <link text="Delete Record" url="deleteTimeclock"/>
-
+                    <display/>
                 </default-field>
+
+                <conditional-field condition="status != 'TC_new' &amp;&amp; status != 'TC_in'">
+
+
+                        <dynamic-dialog id="Edit" button-text="Edit ${autoInc}" transition="EditTimeClock"/>
+                        <link text="Delete Record" url="deleteTimeclock" confirmation="Are you sure ?"/>
+
+
+                </conditional-field>
+
             </field>
             <field name="userId">
                 <default-field>
                     <display/>
                 </default-field>
             </field>
+
             <field name="timeIn">
                 <default-field>
                     <display/>

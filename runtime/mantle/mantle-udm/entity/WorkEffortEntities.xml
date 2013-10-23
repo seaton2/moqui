@@ -31,6 +31,7 @@ and those parts may be licensed under the Apache License 2.0.
         <field name="partyId" type="id"/>
         <field name="rateTypeEnumId" type="id"/>
         <field name="rateAmountId" type="id"/>
+        <field name="vendorRateAmountId" type="id"/>
         <field name="fromDate" type="date-time"/>
         <field name="thruDate" type="date-time"/>
         <field name="hours" type="number-decimal"/>
@@ -39,6 +40,8 @@ and those parts may be licensed under the Apache License 2.0.
         <field name="workEffortId" type="id"/>
         <field name="invoiceId" type="id"/>
         <field name="invoiceItemSeqId" type="id"/>
+        <field name="vendorInvoiceId" type="id"/>
+        <field name="vendorInvoiceItemSeqId" type="id"/>
         <relationship type="one" related-entity-name="mantle.work.time.Timesheet"/>
         <relationship type="one" related-entity-name="mantle.party.Party"/>
         <relationship type="one-nofk" related-entity-name="mantle.party.Person"/>
@@ -46,10 +49,17 @@ and those parts may be licensed under the Apache License 2.0.
             <key-map field-name="rateTypeEnumId"/>
         </relationship>
         <relationship type="one" related-entity-name="mantle.humanres.rate.RateAmount"/>
+        <relationship type="one" title="Vendor" related-entity-name="mantle.humanres.rate.RateAmount">
+            <key-map field-name="vendorRateAmountId"/>
+        </relationship>
         <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
-        <relationship type="one" related-entity-name="InvoiceItem">
+        <relationship type="one" related-entity-name="mantle.account.invoice.InvoiceItem">
             <key-map field-name="invoiceId"/>
             <key-map field-name="invoiceItemSeqId"/>
+        </relationship>
+        <relationship type="one" title="Vendor" related-entity-name="mantle.account.invoice.InvoiceItem">
+            <key-map field-name="vendorInvoiceId" related-field-name="invoiceId"/>
+            <key-map field-name="vendorInvoiceItemSeqId" related-field-name="invoiceItemSeqId"/>
         </relationship>
     </entity>
     <entity entity-name="Timesheet" package-name="mantle.work.time">
@@ -121,6 +131,7 @@ and those parts may be licensed under the Apache License 2.0.
         <field name="workEffortTypeEnumId" type="id"/>
         <field name="purposeEnumId" type="id"/>
         <field name="visibilityEnumId" type="id"/>
+        <field name="resolutionEnumId" type="id"/>
 
         <field name="statusId" type="id" enable-audit-log="true"/>
         <field name="statusFlowId" type="id-long"/>
@@ -167,6 +178,9 @@ and those parts may be licensed under the Apache License 2.0.
         <relationship type="one" title="WorkEffortVisibility" related-entity-name="moqui.basic.Enumeration">
             <key-map field-name="visibilityEnumId"/>
         </relationship>
+        <relationship type="one" title="WorkEffortResolution" related-entity-name="moqui.basic.Enumeration">
+            <key-map field-name="resolutionEnumId"/>
+        </relationship>
         <relationship type="one" title="WorkEffort" related-entity-name="moqui.basic.StatusItem"/>
         <relationship type="one" related-entity-name="Facility"/>
         <relationship type="one" title="Time" related-entity-name="moqui.basic.Uom">
@@ -187,7 +201,7 @@ and those parts may be licensed under the Apache License 2.0.
             <moqui.basic.EnumerationType description="Work Effort Purpose" enumTypeId="WorkEffortPurpose"/>
 
             <moqui.basic.Enumeration description="Task" enumId="WepTask" parentEnumId="WetTask" enumTypeId="WorkEffortPurpose"/>
-            <moqui.basic.Enumeration description="Defect Fix" enumId="WepFix" parentEnumId="WetTask" enumTypeId="WorkEffortPurpose"/>
+            <moqui.basic.Enumeration description="Bug Fix" enumId="WepFix" parentEnumId="WetTask" enumTypeId="WorkEffortPurpose"/>
             <moqui.basic.Enumeration description="New Feature" enumId="WepNewFeature" parentEnumId="WetTask" enumTypeId="WorkEffortPurpose"/>
             <moqui.basic.Enumeration description="Feature Enhancement" enumId="WepFeatureEnhance" parentEnumId="WetTask" enumTypeId="WorkEffortPurpose"/>
             <moqui.basic.Enumeration description="Feature Test" enumId="WepFeatureTest" parentEnumId="WetTask" enumTypeId="WorkEffortPurpose"/>
@@ -215,6 +229,16 @@ and those parts may be licensed under the Apache License 2.0.
             <moqui.basic.Enumeration description="Phone Call" enumId="WEP_PHONE_CALL" enumTypeId="WorkEffortPurpose"/>
             <moqui.basic.Enumeration description="Email" enumId="WEP_EMAIL" enumTypeId="WorkEffortPurpose"/>
 
+            <!-- Work Effort Resolution -->
+            <moqui.basic.EnumerationType description="Work Effort Resolution" enumTypeId="WorkEffortResolution"/>
+            <moqui.basic.Enumeration description="Unresolved" enumId="WerUnresolved" enumTypeId="WorkEffortResolution"/>
+            <moqui.basic.Enumeration description="Completed" enumId="WerCompleted" enumTypeId="WorkEffortResolution"/>
+            <moqui.basic.Enumeration description="Incomplete" enumId="WerIncomplete" enumTypeId="WorkEffortResolution"/>
+            <moqui.basic.Enumeration description="Won't Complete" enumId="WerWontComplete" enumTypeId="WorkEffortResolution"/>
+            <moqui.basic.Enumeration description="Duplicate" enumId="WerDuplicate" enumTypeId="WorkEffortResolution"/>
+            <moqui.basic.Enumeration description="Cannot Reproduce" enumId="WerCannotReproduce" enumTypeId="WorkEffortResolution"/>
+            <moqui.basic.Enumeration description="Insufficient Information" enumId="WerInsufficient" enumTypeId="WorkEffortResolution"/>
+
             <!-- Work Effort Status -->
             <moqui.basic.StatusType description="Work Effort Status" statusTypeId="WorkEffort"/>
             <moqui.basic.StatusItem description="In Planning" sequenceNum="1" statusId="WeInPlanning" statusTypeId="WorkEffort"/>
@@ -226,14 +250,15 @@ and those parts may be licensed under the Apache License 2.0.
             <moqui.basic.StatusItem description="Cancelled" sequenceNum="99" statusId="WeCancelled" statusTypeId="WorkEffort"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInPlanning" toStatusId="WeApproved" transitionName="Schedule/Approve"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInPlanning" toStatusId="WeInProgress" transitionName="Begin"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInPlanning" toStatusId="WeCancelled" transitionName="Cancel"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeApproved" toStatusId="WeInProgress" transitionName="Begin"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeApproved" toStatusId="WeComplete" transitionName="Complete"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeApproved" toStatusId="WeCancelled" transitionName="Cancel"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInProgress" toStatusId="WeOnHold" transitionName="Hold"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInProgress" toStatusId="WeComplete" transitionName="Complete"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInProgress" toStatusId="WeCancelled" transitionName="Cancel"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeComplete" toStatusId="WeClosed" transitionName="Close"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeOnHold" toStatusId="WeInProgress" transitionName="Resume"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInPlanning" toStatusId="WeCancelled" transitionName="Cancel"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeApproved" toStatusId="WeCancelled" transitionName="Cancel"/>
-            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeInProgress" toStatusId="WeCancelled" transitionName="Cancel"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="WeOnHold" toStatusId="WeCancelled" transitionName="Cancel"/>
 
             <!-- Work Effort Visibility -->
@@ -308,10 +333,15 @@ and those parts may be licensed under the Apache License 2.0.
         <seed-data>
             <!-- Work Effort Association Type -->
             <moqui.basic.EnumerationType description="Work Effort Association Type" enumTypeId="WorkEffortAssocType"/>
-            <moqui.basic.Enumeration description="Dependent" enumId="WeatDependent" enumTypeId="WorkEffortAssocType"/>
-            <moqui.basic.Enumeration description="Concurrent" enumId="WeatConcurrent" enumTypeId="WorkEffortAssocType"/>
-            <moqui.basic.Enumeration description="Precedent" enumId="WeatPrecedent" enumTypeId="WorkEffortAssocType"/>
-            <moqui.basic.Enumeration description="Clone" enumId="WeatClone" enumTypeId="WorkEffortAssocType"/>
+
+            <moqui.basic.Enumeration description="Relates To" enumId="WeatRelatesTo" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Depends On (Blocked By)" enumId="WeatDependsOn" parentEnumId="WeatRelatesTo" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Duplicates" enumId="WeatDuplicates" parentEnumId="WeatRelatesTo" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Based On" enumId="WeatBasedOn" parentEnumId="WeatRelatesTo" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Clones" enumId="WeatClone" parentEnumId="WeatRelatesTo" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Caused By" enumId="WeatCausedBy" parentEnumId="WeatRelatesTo" enumTypeId="WorkEffortAssocType"/>
+            <moqui.basic.Enumeration description="Independent Of (Concurrent)" enumId="WeatIndependentOf" parentEnumId="WeatRelatesTo" enumTypeId="WorkEffortAssocType"/>
+
             <moqui.basic.Enumeration description="Routing Component" enumId="WeatRoutingComp" enumTypeId="WorkEffortAssocType"/>
             <moqui.basic.Enumeration description="Milestone" enumId="WeatMilestone" enumTypeId="WorkEffortAssocType"/>
         </seed-data>
@@ -328,7 +358,8 @@ and those parts may be licensed under the Apache License 2.0.
         </member-entity>
         <alias-all entity-alias="WEFF_ROOT" prefix="root"><exclude field="workEffortId"/></alias-all>
         <alias-all entity-alias="WEFF"/>
-        <alias-all entity-alias="WEP"><exclude field="workEffortId"/></alias-all>
+        <alias-all entity-alias="WEP"><exclude field="statusId"/></alias-all>
+        <alias entity-alias="WEP" name="wepStatusId" field="statusId"/>
     </view-entity>
     <view-entity entity-name="WorkEffortAssocAndTo" package-name="mantle.work.effort">
         <description>A view-entity to get WorkEffort records associated with another WorkEffort (the from WorkEffort).
@@ -337,7 +368,18 @@ and those parts may be licensed under the Apache License 2.0.
         <member-entity entity-alias="WEFF" entity-name="WorkEffort" join-from-alias="WEFF_ASSOC">
             <key-map field-name="toWorkEffortId" related-field-name="workEffortId"/>
         </member-entity>
-        <alias-all entity-alias="WEFF_ASSOC"><exclude field="workEffortId"/><exclude field="toWorkEffortId"/></alias-all>
+        <alias-all entity-alias="WEFF_ASSOC"/>
+        <alias-all entity-alias="WEFF"/>
+        <alias name="fromWorkEffortId" entity-alias="WEFF_ASSOC" field="workEffortId"/>
+    </view-entity>
+    <view-entity entity-name="WorkEffortAssocAndFrom" package-name="mantle.work.effort">
+        <description>A view-entity to get WorkEffort records associated with another WorkEffort (the to WorkEffort).
+            For this query by toWorkEffortId, etc.</description>
+        <member-entity entity-alias="WEFF_ASSOC" entity-name="WorkEffortAssoc"/>
+        <member-entity entity-alias="WEFF" entity-name="WorkEffort" join-from-alias="WEFF_ASSOC">
+            <key-map field-name="workEffortId"/>
+        </member-entity>
+        <alias-all entity-alias="WEFF_ASSOC"/>
         <alias-all entity-alias="WEFF"/>
         <alias name="fromWorkEffortId" entity-alias="WEFF_ASSOC" field="workEffortId"/>
     </view-entity>
@@ -353,6 +395,7 @@ and those parts may be licensed under the Apache License 2.0.
             <key-map field-name="invoiceItemSeqId"/>
         </relationship>
     </entity>
+
     <entity entity-name="WorkEffortCommEvent" package-name="mantle.work.effort">
         <field name="workEffortId" type="id" is-pk="true"/>
         <field name="communicationEventId" type="id" is-pk="true"/>
@@ -361,6 +404,15 @@ and those parts may be licensed under the Apache License 2.0.
         <relationship type="one" related-entity-name="mantle.work.effort.WorkEffort"/>
         <relationship type="one" related-entity-name="mantle.party.communication.CommunicationEvent"/>
     </entity>
+    <view-entity entity-name="WorkEffortCommEventDetail" package-name="mantle.work.effort">
+        <member-entity entity-alias="WECE" entity-name="mantle.work.effort.WorkEffortCommEvent"/>
+        <member-entity entity-alias="CEV" entity-name="mantle.party.communication.CommunicationEvent" join-from-alias="WECE">
+            <key-map field-name="communicationEventId"/>
+        </member-entity>
+        <alias-all entity-alias="WECE"/>
+        <alias-all entity-alias="CEV"/>
+    </view-entity>
+
     <entity entity-name="WorkEffortContactMech" package-name="mantle.work.effort">
         <field name="workEffortId" type="id" is-pk="true"/>
         <field name="contactMechId" type="id" is-pk="true"/>
@@ -465,6 +517,8 @@ and those parts may be licensed under the Apache License 2.0.
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PRTYASGN_OFFERED" toStatusId="PRTYASGN_ASSIGNED" transitionName="Accept Assignment"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PRTYASGN_OFFERED" toStatusId="PRTYASGN_DECLINED" transitionName="Decline Assignment"/>
             <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PRTYASGN_ASSIGNED" toStatusId="PRTYASGN_UNASSIGNED" transitionName="Unassign"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PRTYASGN_UNASSIGNED" toStatusId="PRTYASGN_ASSIGNED" transitionName="Assign"/>
+            <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="PRTYASGN_UNASSIGNED" toStatusId="PRTYASGN_OFFERED" transitionName="Offer"/>
 
             <!-- Work Effort Party Availability -->
             <moqui.basic.EnumerationType description="Work Effort Party Availability" enumTypeId="WorkEffortPartyAvailability"/>
@@ -508,7 +562,7 @@ and those parts may be licensed under the Apache License 2.0.
         <alias name="username" entity-alias="USRACT"/>
     </view-entity>
     <view-entity entity-name="WorkEffortAndPartyDetail" package-name="mantle.work.effort">
-        <member-entity entity-alias="WEP" entity-name="WorkEffortParty"/>
+        <member-entity entity-alias="WEP" entity-name="mantle.work.effort.WorkEffortParty"/>
         <member-entity entity-alias="PTY" entity-name="mantle.party.Party" join-from-alias="WEP">
             <key-map field-name="partyId"/>
         </member-entity>
@@ -522,7 +576,7 @@ and those parts may be licensed under the Apache License 2.0.
             <key-map field-name="partyId"/>
         </member-entity>
         <alias-all entity-alias="WEP"/>
-        <alias-all entity-alias="PTY"/>
+        <alias-all entity-alias="PTY"><exclude field="comments"/></alias-all>
         <alias-all entity-alias="PER"/>
         <alias-all entity-alias="ORG"/>
         <alias name="username" entity-alias="USRACT"/>

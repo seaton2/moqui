@@ -1,8 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
-	include-child-content="true" require-authentication="false">
+	include-child-content="true" require-authentication="true" default-menu-title="Product" default-menu-index="1">
 
+
+    <transition name="editProduct">
+        <default-response url="EditProduct"/>
+    </transition>
+    <transition name="createProduct">
+        <default-response url="EditProduct"/>
+    </transition>
+    <actions>
+        <entity-find entity-name="warehouse.SdProduct" list="productList"/>
+    </actions>
+    <widgets>
+        <dynamic-dialog id="Create" button-text="New Product" transition="createProduct"/>
+        <form-list name="productList" list="productList" >
+            <auto-fields-entity entity-name="warehouse.SdProduct" field-type="display" />
+            <field name="productId">
+                <default-field>
+                    <dynamic-dialog id="Edit" transition="editProduct" button-text="Edit ${productId}"/>
+                </default-field>
+            </field>
+        </form-list>
+    </widgets>
 
 
 </screen>

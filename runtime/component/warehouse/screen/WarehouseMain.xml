@@ -3,5 +3,9 @@
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
         require-authentication="true" screen-theme-type-enum-id="STT_INTERNAL">
     <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
-
+    <subscreens default-item="Product"/>
+    <widgets>
+        <subscreens-menu id="Warehouse Tools" type="tab"/>
+        <subscreens-active/>
+    </widgets>
 </screen>

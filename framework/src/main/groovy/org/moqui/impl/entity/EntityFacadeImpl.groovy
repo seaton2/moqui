@@ -172,7 +172,7 @@ class EntityFacadeImpl implements EntityFacade {
         return entityRrList
     }
 
-    protected synchronized void loadAllEntityLocations() {
+    synchronized void loadAllEntityLocations() {
         // load all entity files based on ResourceReference
         for (ResourceReference entityRr in getAllEntityFileLocations()) this.loadEntityFileLocations(entityRr)
 
@@ -268,7 +268,7 @@ class EntityFacadeImpl implements EntityFacade {
             if (!entityLocationList) {
                 entityLocationCache.put(entityName, [])
                 EntityException ee = new EntityException("No definition found for entity-name [${entityName}]")
-                if (logger.warnEnabled) logger.warn("No definition found for entity-name [${entityName}]", ee)
+                if (logger.infoEnabled) logger.info("No definition found for entity-name [${entityName}]")
                 throw ee
             }
         }
@@ -407,10 +407,12 @@ class EntityFacadeImpl implements EntityFacade {
                 }
                 List<String> reversePkSet = reverseEd.getPkFieldNames()
                 String relType = reversePkSet.equals(pkSet) ? "one-nofk" : "many"
+                String title = relNode."@title"
 
                 // does a many relationship coming back already exist?
                 Node reverseRelNode = (Node) reverseEd.entityNode."relationship".find(
-                        { (it."@related-entity-name" == ed.entityName || it."@related-entity-name" == ed.fullEntityName) && it."@type" == relType })
+                        { (it."@related-entity-name" == ed.entityName || it."@related-entity-name" == ed.fullEntityName) &&
+                                it."@type" == relType && ((!title && !it."@title") || it."@title" == title) })
                 if (reverseRelNode != null) {
                     // make sure has is-one-reverse="true"
                     reverseRelNode.attributes().put("is-one-reverse", "true")
@@ -425,7 +427,7 @@ class EntityFacadeImpl implements EntityFacade {
 
                 Node newRelNode = reverseEd.entityNode.appendNode("relationship",
                         ["related-entity-name":ed.fullEntityName, "type":relType, "is-one-reverse":"true"])
-                if (relNode."@title") newRelNode.attributes().title = relNode."@title"
+                if (relNode."@title") newRelNode.attributes().title = title
                 for (Map.Entry keyEntry in keyMap) {
                     // add a key-map with the reverse fields
                     newRelNode.appendNode("key-map", ["field-name":keyEntry.value, "related-field-name":keyEntry.key])
@@ -491,6 +493,17 @@ class EntityFacadeImpl implements EntityFacade {
         for (EntityEcaRule eer in lst) {
             eer.runIfMatches(entityName, fieldValues, operation, before, ecfi.executionContext)
         }
+
+        if (entityName == "moqui.entity.ServiceTrigger" && operation == "create" && !before) runServiceTrigger(fieldValues)
+    }
+
+    void runServiceTrigger(Map fieldValues) {
+        ecfi.getServiceFacade().sync().name((String) fieldValues.serviceName)
+                .parameters((Map) ecfi.resourceFacade.evaluateContextField((String) fieldValues.mapString, ""))
+                .call()
+        makeValue("moqui.entity.ServiceTrigger").set("serviceTriggerId", fieldValues.serviceTriggerId)
+                .set("statusId", ecfi.getExecutionContext().getMessage().hasError() ? "SrtrRunError" : "SrtrRunSuccess")
+                .update()
     }
 
     void destroy() {
@@ -511,12 +524,15 @@ class EntityFacadeImpl implements EntityFacade {
         }
     }
 
-    /** This uses the data from the loadAllEntityLocations() method, so that must be called first (it is called in the
-     * constructor, and the cache must not have been cleared since. */
     Set<String> getAllEntityNames() {
+        entityLocationCache.clearExpired()
+        if (entityLocationCache.size() == 0) loadAllEntityLocations()
+
         TreeSet<String> allNames = new TreeSet()
         // only add full entity names (with package-name in it, will always have at least one dot)
-        for (String en in entityLocationCache.keySet()) if (en.contains(".")) allNames.add(en)
+        // only include entities that have a non-empty List of locations in the cache (otherwise are invalid entities)
+        for (String en in entityLocationCache.keySet())
+            if (en.contains(".") && entityLocationCache.get(en)) allNames.add(en)
         return allNames
     }
 
@@ -535,7 +551,7 @@ class EntityFacadeImpl implements EntityFacade {
         }
     }
 
-    List<Map<String, Object>> getAllEntitiesInfo(String orderByField, boolean masterEntitiesOnly) {
+    List<Map<String, Object>> getAllEntitiesInfo(String orderByField, boolean masterEntitiesOnly, boolean excludeViewEntities) {
         if (masterEntitiesOnly) createAllAutoReverseManyRelationships()
 
         tempEntityFileNodeMap = new HashMap()
@@ -545,6 +561,7 @@ class EntityFacadeImpl implements EntityFacade {
             EntityDefinition ed = null
             try { ed = getEntityDefinition(en) } catch (EntityException e) { logger.warn("Problem finding entity definition", e) }
             if (ed == null) continue
+            if (excludeViewEntities && ed.isViewEntity()) continue
 
             if (masterEntitiesOnly) {
                 if (!(ed.entityNode."@has-dependents" == "true") || en.endsWith("Type") ||

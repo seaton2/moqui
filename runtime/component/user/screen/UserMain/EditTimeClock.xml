@@ -17,7 +17,8 @@
     </entity-find-one>
 </actions>
 <widgets>
-    <form-single name="editTimeclockEntry" transition="updateTimeclock" >
+    <form-single name="editTimeclockEntry" transition="updateTimeclock" map="singleTimeclock">
+        <!--<auto-fields-entity entity-name="moqui.basic.Timeclock" field-type="edit"/>-->
         <field name="autoInc">
             <default-field>
                 <display/>
@@ -25,9 +26,10 @@
         </field>
         <field name="userId">
             <default-field>
-                <display text="${singleTimeclock.userId}"/>
+                <display/>
             </default-field>
         </field>
+
         <field name="timeIn">
             <default-field>
                 <date-time default-value="${singleTimeclock.timeIn}"/>

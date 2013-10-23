@@ -37,6 +37,7 @@ class ScreenDefinition {
     protected Map<String, ParameterItem> parameterByName = new HashMap()
     protected Map<String, TransitionItem> transitionByName = new HashMap()
     protected Map<String, SubscreensItem> subscreensByName = new HashMap()
+    protected List<SubscreensItem> subscreensItemsSorted = null
 
     protected XmlAction alwaysActions = null
     protected XmlAction preActions = null
@@ -183,11 +184,12 @@ class ScreenDefinition {
     SubscreensItem getSubscreensItem(String name) { return (SubscreensItem) subscreensByName.get(name) }
 
     List<SubscreensItem> getSubscreensItemsSorted() {
+        if (subscreensItemsSorted != null) return subscreensItemsSorted
         List<SubscreensItem> newList = new ArrayList(subscreensByName.size())
         if (subscreensByName.size() == 0) return newList
         newList.addAll(subscreensByName.values())
         Collections.sort(newList, new SubscreensItemComparator())
-        return newList
+        return subscreensItemsSorted = newList
     }
 
     ScreenSection getRootSection() { return rootSection }
@@ -325,6 +327,7 @@ class ScreenDefinition {
         String getMethod() { return method }
         String getSingleServiceName() { return singleServiceName }
         List<String> getPathParameterList() { return pathParameterList }
+        boolean hasActionsOrSingleService() { return actions || singleServiceName }
 
         boolean checkCondition(ExecutionContext ec) { return condition ? condition.checkCondition(ec) : true }
 
