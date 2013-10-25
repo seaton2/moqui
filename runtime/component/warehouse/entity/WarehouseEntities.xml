@@ -16,7 +16,7 @@
         <field name="thruDate" type="date" />
          <relationship type="one" title="productCatalogId"
          related-entity-name="warehouse.SdCatalog">
-         <key-map field-name="catalogId" />
+         <key-map field-name="catalogId"/>
          </relationship>
          <relationship type="one" title="enumId"
          related-entity-name="moqui.basic.Enumeration" >
@@ -42,7 +42,7 @@
             <!--Using existing ProductCategoryType-->
             <!--<moqui.basic.EnumerationType description="Category Type"-->
                                          <!--enumTypeId="CategoryType" />-->
-            <warehouse.SdProduct productId="001"  catalogSectionId="001" categoryId="BALLET_SHOES" statusId="Current" />
+            <warehouse.SdProduct productId="001"  />
             <moqui.basic.Enumeration description="Shoes"
                                      enumId="SHOES" enumTypeId="ProductCategoryType" />
             <moqui.basic.Enumeration description="Dancewear"
@@ -71,8 +71,40 @@
                                      enumId="POINTE_SHOES" parentEnumId="SHOES" enumTypeId="ProductCategoryType" />
         </seed-data>
     </entity>
+    <view-entity entity-name="SdInventoryOverview" package-name="warehouse">
+        <member-entity entity-alias="Product" entity-name="warehouse.SdProduct" />
+        <member-entity entity-alias="Item" entity-name="warehouse.SdItem" join-from-alias="Product">
+            <key-map field-name="productId"/>
+        </member-entity>
+        <member-entity entity-alias="Inventory" entity-name="warehouse.SdInventory" join-from-alias="Item">
+            <key-map field-name="sku"/>
+        </member-entity>
+        <alias name="productId" entity-alias="Product"/>
+        <alias name="thruDate" entity-alias="Product"/>
+        <alias name="catalogId" entity-alias="Product"/>
+        <alias name="statusId" entity-alias="Product"/>
+        <alias name="sku" entity-alias="Item" />
+        <alias name="QOO" entity-alias="Inventory"/>
+        <alias name="QOH" entity-alias="Inventory"/>
+
+    </view-entity>
 
 
+    <view-entity entity-name="UserGroupMemberCheck" package-name="moqui.security">
+        <member-entity entity-alias="UGM" entity-name="moqui.security.UserGroupMember" >
+
+        </member-entity>
+        <member-entity entity-alias="UA" entity-name="moqui.security.UserAccount" join-from-alias="UGM">
+            <key-map field-name="userId"/>
+
+        </member-entity>
+
+        <alias name="userGroupId" entity-alias="UGM"/>
+        <alias name="userId" entity-alias="UA"/>
+        <alias name="username" entity-alias="UA"/>
+        <alias name="userFullName" entity-alias="UA"/>
+
+    </view-entity>
 
     <entity entity-name="SdItem" package-name="warehouse">
         <field name="sku" type="id" is-pk="true" />
@@ -212,6 +244,25 @@
         <field name="lastCost" type="currency-amount" />
         <field name="averageCost" type="currency-amount" />
         <field name="standardCost" type="currency-amount" />
+    </entity>
+
+    <entity entity-name="SdInventory" package-name="warehouse">
+        <field name="location" type="id"/>
+        <field name="sku" type="id" is-pk="true"/>
+        <field name="productId" type="id"/>
+        <field name="QOH" type="number-integer"/>
+        <field name="QOO" type="number-integer"/>
+        <field name="quantityCommited" type="number-integer"/>
+        <field name="quantityPromice" type="number-integer"/>
+        <relationship type="one" related-entity-name="warehouse.SdItem" fk-name="sku">
+            <key-map field-name="sku"/>
+        </relationship>
+        <relationship type="one" related-entity-name="SdProduct">
+            <key-map field-name="productId"/>
+        </relationship>
+        <seed-data>
+            <warehouse.SdInventory location="Sodanca" sku="SKU0001" QOH="10" QOO="0" quantityCommited="0" quantityPromice="0"/>
+        </seed-data>
     </entity>
 
 </entities>

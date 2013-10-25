@@ -12,8 +12,9 @@
 
 
     </transition>
-    <transition name="create">
-        <service-call name="create#SdItem"/>
+    <transition name="create" >
+        <service-call name="WarehouseServices.create#SdItem"  />
+
         <default-response url="../../../Warehouse/Items"/>
     </transition>
 
