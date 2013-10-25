@@ -25,6 +25,7 @@ This Work includes contributions authored by David E. Jones, not as a
             <parameter name="statusId"/>
             <parameter name="catalogId"/>
 
+
         </in-parameters>
         <out-parameters>
             <auto-parameters include="pk" required="true"/>
@@ -33,7 +34,7 @@ This Work includes contributions authored by David E. Jones, not as a
             <entity-make-value entity-name="SdItem" value-field="ItemParams"/>
             <entity-set value-field="ItemParams" include="all" />
             <entity-create value-field="ItemParams"/>
-            <service-call name="WarehouseServices.create#SdInventory" in-map="[sku:sku,QOH:0, QOO:0]"/>
+            <service-call name="WarehouseServices.create#SdInventory" in-map="[sku:sku]"/>
 
         </actions>
     </service>
