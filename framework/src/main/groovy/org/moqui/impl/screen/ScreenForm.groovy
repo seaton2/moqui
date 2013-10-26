@@ -43,6 +43,8 @@ class ScreenForm {
     protected ScreenDefinition sd
     protected Node internalFormNode
     protected String location
+    protected String formName
+    protected String fullFormName
     protected Boolean isUploadForm = null
     protected Boolean isFormHeaderFormVal = null
     protected boolean hasDbExtensions = false
@@ -57,6 +59,8 @@ class ScreenForm {
         this.ecfi = ecfi
         this.sd = sd
         this.location = location
+        this.formName = baseFormNode."@name"
+        this.fullFormName = sd.getLocation() + "#" + formName
 
         // is this a dynamic form?
         isDynamic = (baseFormNode."@dynamic" == "true")
@@ -64,7 +68,6 @@ class ScreenForm {
         // does this form have DbForm extensions?
         boolean alreadyDisabled = ecfi.getExecutionContext().getArtifactExecution().disableAuthz()
         try {
-            String fullFormName = sd.getLocation() + "#" + baseFormNode."@name"
             EntityList dbFormLookupList = this.ecfi.getEntityFacade().makeFind("DbFormLookup")
                     .condition("modifyXmlScreenForm", fullFormName).useCache(true).list()
             if (dbFormLookupList) hasDbExtensions = true
@@ -171,6 +174,7 @@ class ScreenForm {
         }
 
         if (logger.traceEnabled) logger.trace("Form [${location}] resulted in expanded def: " + FtlNodeWrapper.wrapNode(newFormNode).toString())
+        // if (location.contains("FOO")) logger.warn("======== Form [${location}] resulted in expanded def: " + FtlNodeWrapper.wrapNode(newFormNode).toString())
 
         // prep row-actions
         if (newFormNode."row-actions") {
@@ -315,9 +319,13 @@ class ScreenForm {
         return dbFormNode
     }
 
+    /** This is the main method for using an XML Form, the rendering is done based on the Node returned. */
     Node getFormNode() {
         // NOTE: this is cached in the ScreenRenderImpl as it may be called multiple times for a single form render
         List<Node> dbFormNodeList = getDbFormNodeList()
+        ExecutionContext ec = ecfi.getExecutionContext()
+        boolean isDisplayOnly = ec.getContext().get("formDisplayOnly") == "true" || ec.getContext().get("formDisplayOnly_${formName}") == "true"
+
         if (isDynamic) {
             Node newFormNode = new Node(null, internalFormNode.name())
             initForm(internalFormNode, newFormNode)
@@ -325,18 +333,51 @@ class ScreenForm {
                 for (Node dbFormNode in dbFormNodeList) mergeFormNodes(newFormNode, dbFormNode, false, true)
             }
             return newFormNode
-        } else {
-            if (dbFormNodeList) {
-                Node newFormNode = new Node(null, internalFormNode.name(), [:])
-                // deep copy true to avoid bleed over of new fields and such
-                mergeFormNodes(newFormNode, internalFormNode, true, true)
-                // logger.warn("TOREMOVE: merging in dbFormNodeList: ${dbFormNodeList}", new BaseException("getFormNode call location"))
-                for (Node dbFormNode in dbFormNodeList) mergeFormNodes(newFormNode, dbFormNode, false, true)
-                return newFormNode
-            } else {
-                return internalFormNode
+        } else if (dbFormNodeList || isDisplayOnly) {
+            Node newFormNode = new Node(null, internalFormNode.name(), [:])
+            // deep copy true to avoid bleed over of new fields and such
+            mergeFormNodes(newFormNode, internalFormNode, true, true)
+            // logger.warn("========== merging in dbFormNodeList: ${dbFormNodeList}", new BaseException("getFormNode call location"))
+            for (Node dbFormNode in dbFormNodeList) mergeFormNodes(newFormNode, dbFormNode, false, true)
+
+            if (isDisplayOnly) {
+                // change all non-display fields to simple display elements
+                for (Node fieldNode in newFormNode."field") {
+                    // don't replace header form, should be just for searching: if (fieldNode."header-field") fieldSubNodeToDisplay(newFormNode, fieldNode, (Node) fieldNode."header-field"[0])
+                    for (Node conditionalFieldNode in fieldNode."conditional-field") fieldSubNodeToDisplay(newFormNode, fieldNode, conditionalFieldNode)
+                    if (fieldNode."default-field") fieldSubNodeToDisplay(newFormNode, fieldNode, (Node) fieldNode."default-field"[0])
+                }
             }
+
+            return newFormNode
+        } else {
+            return internalFormNode
         }
+    }
+
+    static Set displayOnlyIgnoreNodeNames = ["hidden", "ignored", "label", "image"] as Set
+    protected void fieldSubNodeToDisplay(Node baseFormNode, Node fieldNode, Node fieldSubNode) {
+        Node widgetNode = fieldSubNode.children() ? (Node) fieldSubNode.children().first() : null
+        if (widgetNode == null) return
+        if (widgetNode.name().toString().contains("display") || displayOnlyIgnoreNodeNames.contains(widgetNode.name())) return
+
+        if (widgetNode.name() == "reset" || widgetNode.name() == "submit") {
+            fieldSubNode.remove(widgetNode)
+            return
+        }
+
+        if (widgetNode.name() == "link") {
+            // if it goes to a transition with service-call or actions then remove it, otherwise leave it
+            if ((!widgetNode."@url-type" || widgetNode."@url-type" == "transition") &&
+                    sd.getTransitionItem((String) widgetNode."@url", null).hasActionsOrSingleService()) {
+                fieldSubNode.remove(widgetNode)
+            }
+            return
+        }
+
+        // otherwise change it to a display Node
+        widgetNode.replaceNode { node -> new Node(fieldSubNode, "display") }
+        // not as good, puts it after other child Nodes: fieldSubNode.remove(widgetNode); fieldSubNode.appendNode("display")
     }
 
     FtlNodeWrapper getFtlFormNode() { return FtlNodeWrapper.wrapNode(getFormNode()) }
@@ -395,7 +436,7 @@ class ScreenForm {
         if (fieldNode == null) throw new IllegalArgumentException("Tried to get in-parameter node for field [${fieldName}] that doesn't exist in form [${location}]")
         if (fieldNode."@validate-service") {
             ServiceDefinition sd = ecfi.serviceFacade.getServiceDefinition((String) fieldNode."@validate-service")
-            if (sd == null) throw new IllegalArgumentException("Bad validate-service name [${fieldNode."@validate-service"}] in field [${fieldName}] of form [${location}]")
+            if (sd == null) throw new IllegalArgumentException("Invalid validate-service name [${fieldNode."@validate-service"}] in field [${fieldName}] of form [${location}]")
             Node parameterNode = sd.getInParameter(fieldNode."@validate-parameter" ?: fieldName)
             return parameterNode
         }
@@ -509,6 +550,9 @@ class ScreenForm {
 
     void addEntityFields(EntityDefinition ed, String include, String fieldType, String serviceVerb, Node baseFormNode) {
         for (String fieldName in ed.getFieldNames(include == "all" || include == "pk", include == "all" || include == "nonpk", include == "all" || include == "nonpk")) {
+            String efType = ed.getFieldNode(fieldName)."@type" ?: "text-long"
+            if (baseFormNode.name() == "form-list" && efType in ['text-long', 'text-very-long', 'binary-very-long']) continue
+
             Node newFieldNode = new Node(null, "field", [name:fieldName])
             Node subFieldNode = newFieldNode.appendNode("default-field")
 
@@ -595,7 +639,7 @@ class ScreenForm {
                         }
 
                         if (relDefaultDescriptionField) {
-                            entityOptionsNode.attributes().put("text", "\${" + relDefaultDescriptionField + "} [\${" + relKeyField + "}]")
+                            entityOptionsNode.attributes().put("text", "\${" + relDefaultDescriptionField + " ?: ''} [\${" + relKeyField + "}]")
                             entityFindNode.appendNode("order-by", ["field-name":relDefaultDescriptionField])
                         }
                     } else {
@@ -618,8 +662,11 @@ class ScreenForm {
         case "display":
             if (baseFormNode.name() == "form-list" && !newFieldNode."header-field")
                 newFieldNode.appendNode("header-field", ["show-order-by":"case-insensitive"])
+            String textStr
+            if (relDefaultDescriptionField) textStr = "\${" + relDefaultDescriptionField + " ?: ''} [\${" + relKeyField + "}]"
+            else textStr = "[\${" + relKeyField + "}]"
             if (oneRelNode != null) subFieldNode.appendNode("display-entity",
-                    ["entity-name":oneRelNode."@related-entity-name", "text":"\${" + relDefaultDescriptionField + "} [\${" + relKeyField + "}]"])
+                    ["entity-name":oneRelNode."@related-entity-name", "text":textStr])
             else subFieldNode.appendNode("display")
             break
         case "find-display":
@@ -635,8 +682,10 @@ class ScreenForm {
                 headerFieldNode.appendNode("text-find")
             }
             if (oneRelNode != null) {
-                subFieldNode.appendNode("display-entity", ["entity-name":oneRelNode."@related-entity-name",
-                        "text":"\${" + relDefaultDescriptionField + "} [\${" + relKeyField + "}]"])
+                String textStr
+                if (relDefaultDescriptionField) textStr = "\${" + relDefaultDescriptionField + " ?: ''} [\${" + relKeyField + "}]"
+                else textStr = "[\${" + relKeyField + "}]"
+                subFieldNode.appendNode("display-entity", ["entity-name":oneRelNode."@related-entity-name", "text":textStr])
             } else {
                 subFieldNode.appendNode("display")
             }
@@ -673,7 +722,7 @@ class ScreenForm {
             fieldSubNode.remove(widgetNode)
             addAutoWidgetEntityNode(baseFormNode, fieldNode, fieldSubNode, widgetNode)
         } else if (widgetNode.name() == "widget-template-include") {
-            fieldSubNode.remove(widgetNode)
+            List setNodeList = widgetNode."set"
 
             String templateLocation = widgetNode."@location"
             if (!templateLocation) throw new IllegalArgumentException("widget-template-include.@location cannot be empty")
@@ -682,11 +731,19 @@ class ScreenForm {
             String widgetTemplateName = templateLocation.substring(templateLocation.indexOf("#") + 1)
 
             Node widgetTemplatesNode = ecfi.getScreenFacade().getWidgetTemplatesNodeByLocation(fileLocation)
-            Node widgetTemplateNode = (Node) widgetTemplatesNode.find({ it."@name" == widgetTemplateName })
+            Node widgetTemplateNode = (Node) widgetTemplatesNode?.find({ it."@name" == widgetTemplateName })
+            if (widgetTemplateNode == null) throw new IllegalArgumentException("Could not find widget-template [${widgetTemplateName}] in [${fileLocation}]")
+            boolean isFirst = true
             for (Node widgetChildNode in (Collection<Node>) widgetTemplateNode.children()) {
-                fieldSubNode.append(StupidUtilities.deepCopyNode(widgetChildNode))
+                if (isFirst) {
+                    widgetNode.replaceNode { node -> StupidUtilities.deepCopyNode(widgetChildNode, fieldSubNode) }
+                    isFirst = false
+                } else {
+                    fieldSubNode.append(StupidUtilities.deepCopyNode(widgetChildNode))
+                }
             }
 
+            for (Node setNode in setNodeList) fieldSubNode.append(StupidUtilities.deepCopyNode(setNode))
         }
     }
 

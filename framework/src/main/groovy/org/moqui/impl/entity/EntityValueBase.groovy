@@ -95,9 +95,13 @@ abstract class EntityValueBase implements EntityValue {
     @Override
     Object get(String name) {
         EntityDefinition ed = getEntityDefinition()
+
+        // if this is a simple field (is field, no l10n, not user field) just get the value right away (vast majority of use)
+        if (ed.isSimpleField(name)) return valueMap.get(name)
+
         Node fieldNode = ed.getFieldNode(name)
 
-        if (!fieldNode) {
+        if (fieldNode == null) {
             // if this is not a valid field name but is a valid relationship name, do a getRelated or getRelatedOne to return an EntityList or an EntityValue
             Node relationship = ed.getRelationshipNode(name)
             if (relationship != null) {
@@ -208,7 +212,7 @@ abstract class EntityValueBase implements EntityValue {
     @Override
     String getString(String name) {
         Object valueObj = this.get(name)
-        return valueObj ? valueObj.toString() : null
+        return entityDefinition.getFieldString(name, valueObj)
     }
 
     @Override
@@ -280,7 +284,7 @@ abstract class EntityValueBase implements EntityValue {
         // temporarily disable authz for this, just doing lookup to get next value and to allow for a
         //     authorize-skip="create" with authorize-skip of view too this is necessary
         List<EntityValue> allValues = null
-        this.getEntityFacadeImpl().ecfi.getExecutionContext().getArtifactExecution().disableAuthz()
+        boolean alreadyDisabled = this.getEntityFacadeImpl().ecfi.getExecutionContext().getArtifactExecution().disableAuthz()
         try {
             // NOTE: DEJ 2012-10-11 Added the call to getPrimaryKeys() even though the setFields() call above is only
             //     supposed to move over PK fields; somehow a bunch of other fields were getting set to null, causing
@@ -293,7 +297,7 @@ abstract class EntityValueBase implements EntityValue {
             // logger.warn("TOREMOVE in setSequencedIdSecondary ef WHERE=${ef.getWhereEntityCondition()}")
             allValues = ef.list()
         } finally {
-            this.getEntityFacadeImpl().ecfi.getExecutionContext().getArtifactExecution().enableAuthz()
+            if (!alreadyDisabled) this.getEntityFacadeImpl().ecfi.getExecutionContext().getArtifactExecution().enableAuthz()
         }
 
         Integer highestSeqVal = null
@@ -512,14 +516,15 @@ abstract class EntityValueBase implements EntityValue {
                 Object checkFieldValue = this.get(nonpkFieldName)
                 Object dbFieldValue = dbValue.get(nonpkFieldName)
 
-                if (checkFieldValue != null && !checkFieldValue.equals(dbFieldValue)) {
+                // use compareTo if available, generally more lenient (for BigDecimal ignores scale, etc)
+                if (checkFieldValue != null && (checkFieldValue instanceof Comparable ? checkFieldValue.compareTo(dbFieldValue) != 0 : checkFieldValue != dbFieldValue)) {
                     messages.add("Field [${getEntityName()}.${nonpkFieldName}] did not match; check (file) value [${checkFieldValue}], db value [${dbFieldValue}] for primary key [${getPrimaryKeys()}]")
                 }
             }
         } catch (EntityException e) {
             throw e
         } catch (Throwable t) {
-            String errMsg = "Error checking entity [${getEntityName()}] with pk [${getPrimaryKeys()}]"
+            String errMsg = "Error checking entity [${getEntityName()}] with pk [${getPrimaryKeys()}]: ${t.toString()}"
             messages.add(errMsg)
             logger.error(errMsg, t)
         }
@@ -578,7 +583,7 @@ abstract class EntityValueBase implements EntityValue {
                 continue
             }
 
-            String valueStr = getString(fieldName)
+            String valueStr = getEntityDefinition().getFieldStringForFile(fieldName, get(fieldName))
             if (!valueStr) continue
             if (valueStr.contains('\n') || valueStr.contains('\r')) {
                 cdataMap.put(fieldName, valueStr)
@@ -637,7 +642,7 @@ abstract class EntityValueBase implements EntityValue {
             valuesWritten += writeXmlWithDependentsInternalLoop(pw, prefix, entityPksVisited, edp, deferredEntityNames, finishedRelationshipNames, true)
             if (deferredSize == deferredEntityNames.size()) {
                 // uh-oh, made no progress... just do it without defer and we get what we get
-                logger.warn("In EntityValue.writeXmlWithDependents() for entity [${this.getEntityName()}] could not make progress with deferred entities, so writing in raw order instead of dependent-sensitive order. Current deferredEntityNames: ${deferredEntityNames}, finishedRelationshipNames: ${finishedRelationshipNames}, edp.dependentEntities: ${edp.dependentEntities.keySet()}")
+                logger.info("In EntityValue.writeXmlWithDependents() for entity [${this.getEntityName()}] could not make progress with deferred entities, so writing in raw order instead of dependent-sensitive order.\n========== Current deferredEntityNames: ${deferredEntityNames}\n========== finishedRelationshipNames: ${finishedRelationshipNames}\n========== edp.dependentEntities: ${edp.dependentEntities.keySet()}")
                 valuesWritten += writeXmlWithDependentsInternalLoop(pw, prefix, entityPksVisited, edp, deferredEntityNames, finishedRelationshipNames, false)
                 break
             }
@@ -659,7 +664,7 @@ abstract class EntityValueBase implements EntityValue {
                     if (finishedRelationshipNames.contains((relInfo.title ? relInfo.title + "#" : "") + relInfo.relatedEntityName)) continue
                     if (checkEn == relInfo.relatedEntityName) continue
                     EntityDefinition.EntityDependents checkEdp = edp.dependentEntities.get(relInfo.relatedEntityName)
-                    if (checkEdp && checkEdp.allDescendants.contains(checkEn)) { deferredEntityNames.add(checkEn); break }
+                    if (checkEdp != null && checkEdp.allDescendants.contains(checkEn)) { deferredEntityNames.add(checkEn); break }
                 }
             }
         }
@@ -667,7 +672,7 @@ abstract class EntityValueBase implements EntityValue {
         // get only dependent entity relationships
         for (Map relInfo in edp.relationshipInfos.values()) {
             if (deferredEntityNames.contains(relInfo.relatedEntityName)) continue
-            if (finishedRelationshipNames.contains(relInfo.title+relInfo.relatedEntityName)) continue
+            if (finishedRelationshipNames.contains((relInfo.title ? relInfo.title + "#" : "") + relInfo.relatedEntityName)) continue
 
             EntityDefinition.EntityDependents relEdp = edp.dependentEntities.get(relInfo.relatedEntityName)
             if (relEdp == null) continue
@@ -680,7 +685,7 @@ abstract class EntityValueBase implements EntityValue {
                 if (ev != null) valuesWritten += ev.writeXmlWithDependentsInternal(pw, prefix, entityPksVisited, relEdp)
             }
 
-            finishedRelationshipNames.add((String) relInfo.title + (String) relInfo.relatedEntityName)
+            finishedRelationshipNames.add((relInfo.title ? relInfo.title + "#" : "") + relInfo.relatedEntityName)
         }
 
         return valuesWritten
@@ -899,6 +904,7 @@ abstract class EntityValueBase implements EntityValue {
                 nonPkFieldList.add(fieldName)
             }
         }
+        // logger.warn("================ evb.update() ${getEntityName()} nonPkFieldList=${nonPkFieldList};\nvalueMap=${valueMap};\ndbValueMap=${dbValueMap}")
         if (!nonPkFieldList) {
             if (logger.isTraceEnabled()) logger.trace("Not doing update on entity with no populated non-PK fields; entity=" + this.toString())
             return
@@ -935,7 +941,7 @@ abstract class EntityValueBase implements EntityValue {
                 for (String userFieldName in userFieldNameList) {
                     // if the field hasn't been updated, skip it
                     if (!(valueMap.containsKey(userFieldName) &&
-                            (!dbValueMapFromDb || valueMap.get(userFieldName) != dbValueMap.get(userFieldName)))) {
+                            (!dbValueMapFromDb || valueMap.get(userFieldName) != dbValueMap?.get(userFieldName)))) {
                         continue
                     }
 

@@ -10,7 +10,7 @@ This Work includes contributions authored by David E. Jones, not as a
 "work for hire", who hereby disclaims any copyright to the same.
 -->
 
-<#macro attributeValue textValue>${Static["org.moqui.impl.StupidUtilities"].encodeForXmlAttribute(textValue)}</#macro>
+<#macro attributeValue textValue>${Static["org.moqui.impl.StupidUtilities"].encodeForXmlAttribute(textValue, true)}</#macro>
 
 <#macro @element><fo:block>=== Doing nothing for element ${.node?node_name}, not yet implemented. ===</fo:block></#macro>
 
@@ -152,6 +152,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 <#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formNode = sri.getFtlFormNode(.node["@name"])>
+    ${sri.setSingleFormMapInContext(formNode)}
         <#if formNode["field-layout"]?has_content>
             <#assign fieldLayout = formNode["field-layout"][0]>
             <fo:block>
@@ -303,7 +304,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
                 <#list listObject as listEntry>
                     <#assign listEntryIndex = listEntry_index>
                     <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-                    ${sri.startFormListRow(formNode["@name"], listEntry)}
+                    ${sri.startFormListRow(formNode["@name"], listEntry, listEntry_index, listEntry_has_next)}
                     <fo:table-row>
                         <#list formNode["form-list-column"] as fieldListColumn>
                             <fo:table-cell>
@@ -342,7 +343,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
                 <#list listObject as listEntry>
                     <#assign listEntryIndex = listEntry_index>
                     <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-                    ${sri.startFormListRow(formNode["@name"], listEntry)}
+                    ${sri.startFormListRow(formNode["@name"], listEntry, listEntry_index, listEntry_has_next)}
                     <fo:table-row>
                         <#list formNode["field"] as fieldNode><@formListSubField fieldNode/></#list>
                     </fo:table-row>
@@ -388,7 +389,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     <#if fieldSubNode["ignored"]?has_content><#return/></#if>
     <#if fieldSubNode["hidden"]?has_content><#recurse fieldSubNode/><#return/></#if>
     <#if fieldSubNode?parent["@hide"]?if_exists == "true"><#return></#if>
-    <fo:table-cell><fo:block>
+    <fo:table-cell wrap-option="wrap"><fo:block>
         <#t><#if isMulti && !isMultiFinalRow && fieldSubNode["submit"]?has_content><#return/></#if>
         <#t><#if isMulti && isMultiFinalRow && !fieldSubNode["submit"]?has_content><#return/></#if>
         <#list fieldSubNode?children as widgetNode>
@@ -411,13 +412,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 <#macro fieldId widgetNode><#assign fieldNode=widgetNode?parent?parent/>${fieldNode?parent["@name"]}_${fieldNode["@name"]}<#if listEntryIndex?exists>_${listEntryIndex}</#if></#macro>
 <#macro fieldTitle fieldSubNode><#assign titleValue><#if fieldSubNode["@title"]?has_content>${fieldSubNode["@title"]}<#else/><#list fieldSubNode?parent["@name"]?split("(?=[A-Z])", "r") as nameWord>${nameWord?cap_first?replace("Id", "ID")}<#if nameWord_has_next> </#if></#list></#if></#assign>${ec.l10n.getLocalizedMessage(titleValue)}</#macro>
 
-<#macro "field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
+<#macro field><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 <#macro "conditional-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 <#macro "default-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 
 <#-- ================== Form Field Widgets ==================== -->
 
-<#macro "check">
+<#macro check>
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValue(.node?parent?parent, "")>
     <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
@@ -432,7 +433,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     <#t><@attributeValue fieldValue/>
 </#macro>
 
-<#macro "display">
+<#macro display>
     <#assign fieldValue = ""/>
     <#if .node["@text"]?has_content>
         <#assign fieldValue = ec.resource.evaluateStringExpand(.node["@text"], "")>
@@ -458,12 +459,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
 </#macro>
 
-<#macro "file"></#macro>
-<#macro "hidden"></#macro>
-<#macro "ignored"><#-- shouldn't ever be called as it is checked in the form-* macros --></#macro>
-<#macro "password"></#macro>
+<#macro file></#macro>
+<#macro hidden></#macro>
+<#macro ignored><#-- shouldn't ever be called as it is checked in the form-* macros --></#macro>
+<#macro password></#macro>
 
-<#macro "radio">
+<#macro radio>
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValue(.node?parent?parent, "")>
     <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
@@ -471,9 +472,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 </#macro>
 
 <#macro "range-find"></#macro>
-<#macro "reset"></#macro>
+<#macro reset></#macro>
 
-<#macro "submit">
+<#macro submit>
     <#assign fieldValue><@fieldTitle .node?parent/></#assign>
     <#t><@attributeValue fieldValue/>
 </#macro>

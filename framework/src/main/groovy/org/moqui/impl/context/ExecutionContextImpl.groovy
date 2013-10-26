@@ -64,19 +64,28 @@ class ExecutionContextImpl implements ExecutionContext {
 
     @Override
     String getTenantId() { tenantId ?: "DEFAULT" }
+    @Override
+    EntityValue getTenant() {
+        boolean alreadyDisabled = getArtifactExecution().disableAuthz()
+        try {
+            return getEntity().makeFind("moqui.tenant.Tenant").condition("tenantId", getTenantId()).useCache(true).one()
+        } finally {
+            if (!alreadyDisabled) getArtifactExecution().enableAuthz()
+        }
+    }
 
     @Override
     WebFacade getWeb() { webFacade }
 
     @Override
-    UserFacade getUser() { if (userFacade) return userFacade else return (userFacade = new UserFacadeImpl(this)) }
+    UserFacade getUser() { if (userFacade != null) return userFacade else return (userFacade = new UserFacadeImpl(this)) }
 
     @Override
-    MessageFacade getMessage() { if (messageFacade) return messageFacade else return (messageFacade = new MessageFacadeImpl()) }
+    MessageFacade getMessage() { if (messageFacade != null) return messageFacade else return (messageFacade = new MessageFacadeImpl()) }
 
     @Override
     ArtifactExecutionFacade getArtifactExecution() {
-        if (artifactExecutionFacade) return artifactExecutionFacade
+        if (artifactExecutionFacade != null) return artifactExecutionFacade
         else return (artifactExecutionFacade = new ArtifactExecutionFacadeImpl(this))
     }
 

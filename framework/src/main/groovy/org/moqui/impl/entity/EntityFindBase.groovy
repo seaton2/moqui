@@ -176,7 +176,7 @@ abstract class EntityFindBase implements EntityFind {
             // this will handle text-find
             if (inf.containsKey(fn) || inf.containsKey(fn + "_op")) {
                 Object value = inf.get(fn)
-                String op = inf.get(fn + "_op") ?: "contains"
+                String op = inf.get(fn + "_op") ?: "equals"
                 boolean not = (inf.get(fn + "_not") == "Y")
                 boolean ic = (inf.get(fn + "_ic") == "Y")
 
@@ -273,7 +273,7 @@ abstract class EntityFindBase implements EntityFind {
             this.condition((EntityCondition) ec.resource.evaluateContextField((String) eco["@field"], null))
 
         if (node["search-form-inputs"]) {
-            Node sfiNode = (Node) node["search-form-inputs"].getAt(0)
+            Node sfiNode = (Node) node["search-form-inputs"].first
             searchFormInputs((String) sfiNode["@input-fields-map"], (String) sfiNode["@default-order-by"], (sfiNode["@paginate"] ?: "true") as boolean)
         }
         if (node["having-econditions"]) {
@@ -573,7 +573,7 @@ abstract class EntityFindBase implements EntityFind {
         List<String> orderByExpanded = new ArrayList()
         // add the manually specified ones, then the ones in the view entity's entity-condition
         if (this.getOrderBy()) orderByExpanded.addAll(this.getOrderBy())
-        def ecObList = ed.getEntityNode()."entity-condition"?.getAt(0)?."order-by"
+        def ecObList = ed.getEntityNode()."entity-condition"?.first?."order-by"
         if (ecObList) for (Node orderBy in ecObList) orderByExpanded.add(orderBy."@field-name")
 
         // call the abstract method
@@ -647,7 +647,7 @@ abstract class EntityFindBase implements EntityFind {
         List<String> orderByExpanded = new ArrayList()
         // add the manually specified ones, then the ones in the view entity's entity-condition
         if (this.getOrderBy()) orderByExpanded.addAll(this.getOrderBy())
-        def ecObList = ed.getEntityNode()."entity-condition"?.getAt(0)?."order-by"
+        def ecObList = ed.getEntityNode()."entity-condition"?.first?."order-by"
         if (ecObList) for (Node orderBy in ecObList) orderByExpanded.add(orderBy."@field-name")
 
         // call the abstract method
@@ -774,7 +774,9 @@ abstract class EntityFindBase implements EntityFind {
         long totalDeleted = 0
         try {
             eli = iterator()
-            while (eli.next() != null) {
+            EntityValue ev
+            while ((ev = eli.next()) != null) {
+                getEfi().getEntityCache().clearCacheForValue((EntityValueBase) ev, false)
                 eli.remove()
                 totalDeleted++
             }

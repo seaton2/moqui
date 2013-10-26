@@ -6,223 +6,195 @@
 		<field name="productId" type="id" is-pk="true">
 			<description>Primary ID descriptive of item e.g. BA01</description>
 		</field>
-		<field name="catalogSectionId" type="id" />
+		<field name="catalogId" type="id" />
 		<field name="categoryId" type="id" />
 		<field name="gridId" type="id" />
 		<field name="statusId" type="id" />
 		<field name="defaultVendorId" type="id" />
 		<field name="fromDate" type="date" />
 		<field name="thruDate" type="date" />
-		<!-- <relationship type="one" title="productCatalogId" -->
-		<!-- related-entity-name="SdCatalog"> -->
-		<!-- <key-map field-name="catalogId" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="enumId" -->
-		<!-- related-entity-name="moqui.basic.Enumeration"> -->
-		<!-- <key-map field-name="categoryId" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="statusId" -->
-		<!-- related-entity-name="moqui.basic.StatusItem"> -->
-		<!-- <key-map field-name="statusId" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="partyId" -->
-		<!-- related-entity-name="mantle.party.Party"> -->
-		<!-- <key-map field-name="defaultVendorId" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="gridId" -->
-		<!-- related-entity-name="SdGridDefinition"> -->
-		<!-- <key-map field-name="gridId" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="catalogSectionId" -->
-		<!-- related-entity-name="sdCatalogSection"> -->
-		<!-- <key-map field-name="sectionId" /> -->
-		<!-- </relationship> -->
+		<relationship type="one" title="productCatalogId"
+			related-entity-name="warehouse.SdCatalog">
+			<key-map field-name="catalogId" />
+		</relationship>
+		<relationship type="one" title="enumId"
+			related-entity-name="moqui.basic.Enumeration">
+			<key-map field-name="categoryId" />
+		</relationship>
+		<relationship type="one" title="statusId"
+			related-entity-name="moqui.basic.StatusItem">
+			<key-map field-name="statusId" />
+		</relationship>
+		<relationship type="one" title="gridId"
+			related-entity-name="SdGridDefinition">
+			<key-map field-name="gridId" />
+		</relationship>
+		<relationship type="one" title="catalogSectionId"
+			related-entity-name="warehouse.SdCatalogSection">
+			<key-map field-name="catalogSectionId" />
+		</relationship>
 		<seed-data>
-			<moqui.basic.EnumerationType description="Category Type"
-				enumTypeId="CategoryType" />
+			<!--Using existing ProductCategoryType -->
+			<!--<moqui.basic.EnumerationType description="Category Type" -->
+			<!--enumTypeId="CategoryType" /> -->
+			<!-- <warehouse.SdProduct productId="001" catalogSectionId="001" categoryId="BALLET_SHOES" 
+				statusId="Current" /> -->
 			<moqui.basic.Enumeration description="Shoes"
-				enumId="SHOES" enumTypeId="CategoryType" />
+				enumId="SHOES" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Dancewear"
-				enumId="DANCEWEAR" enumTypeId="CategoryType" />
+				enumId="DANCEWEAR" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="T-shirts"
-				enumId="TSHIRT" enumTypeId="CategoryType" />
+				enumId="TSHIRT" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Tights"
-				enumId="TIGHTS" enumTypeId="CategoryType" />
+				enumId="TIGHTS" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Warm-up Gear"
-				enumId="WARMUP" enumTypeId="CategoryType" />
+				enumId="WARMUP" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Bags"
-				enumId="BAGS" enumTypeId="CategoryType" />
+				enumId="BAGS" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Accessories"
-				enumId="ACC" enumTypeId="CategoryType" />
+				enumId="ACC" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Fashion Shoes"
-				enumId="FSHOES" enumTypeId="CategoryType" />
+				enumId="FSHOES" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Private Label"
-				enumId="PRIV" enumTypeId="CategoryType" />
+				enumId="PRIV" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Ballet Shoes"
-				enumId="BALLET_SHOES" parentEnumId="SHOES" enumTypeId="CategoryType" />
+				enumId="BALLET_SHOES" parentEnumId="SHOES" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Jazz Shoes"
-				enumId="JAZZ_SHOES" parentEnumId="SHOES" enumTypeId="CategoryType" />
+				enumId="JAZZ_SHOES" parentEnumId="SHOES" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Tap Shoes"
-				enumId="TAP_SHOES" parentEnumId="SHOES" enumTypeId="CategoryType" />
+				enumId="TAP_SHOES" parentEnumId="SHOES" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Pointe Shoes"
-				enumId="POINTE_SHOES" parentEnumId="SHOES" enumTypeId="CategoryType" />
+				enumId="POINTE_SHOES" parentEnumId="SHOES" enumTypeId="ProductCategoryType" />
+
+
+
+
 		</seed-data>
+
 	</entity>
 
 	<entity entity-name="SdItem" package-name="warehouse">
 		<field name="sku" type="id" is-pk="true" />
-		<field name="productId" type="id" />
-		<field name="colorId" type="id" />
-		<field name="sizeId" type="id" />
-		<field name="printId" type="id" />
-		<field name="gridId" type="id" />
-		<field name="gridSeq" type="number-integer" />
-		<field name="columnPosition" type="number-integer" />
-		<field name="rowPosition" type="number-integer" />
+		<field name="productId" type="id" is-pk="true" />
 		<field name="grossWeight" type="number-float" />
-		<field name="availability" type="text-short" />
+		<field name="netWeight" type="number-float" />
+		<field name="availabilityId" type="id" />
 		<field name="statusId" type="id" />
-		<field name="catalogId" type="id" />
-		<!-- <relationship type="one" title="productId" -->
-		<!-- related-entity-name="SdProduct"> -->
-		<!-- <key-map field-name="productId" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="colorId" -->
-		<!-- related-entity-name="SdColor"> -->
-		<!-- <key-map field-name="colorId" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="sizeId" -->
-		<!-- related-entity-name="SdSize"> -->
-		<!-- <key-map field-name="sizeId" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="catalogId" -->
-		<!-- related-entity-name="SdCatalog"> -->
-		<!-- <key-map field-name="catalogId" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="statusId" -->
-		<!-- related-entity-name="moqui.basic.statusItem"> -->
-		<!-- <key-map field-name="statusId" /> -->
-		<!-- </relationship> -->
+
+		<relationship type="one" title="productId"
+			related-entity-name="warehouse.SdProduct" fk-name="productId">
+			<key-map field-name="productId" />
+		</relationship>
+		<relationship type="one" title="colorId"
+			related-entity-name="warehouse.SdColor" fk-name="colorId">
+			<key-map field-name="colorId" />
+		</relationship>
+		<relationship type="one" title="sizeId"
+			related-entity-name="warehouse.SdSize" fk-name="sizeId">
+			<key-map field-name="sizeId" />
+		</relationship>
+		<relationship type="one" title="catalogId"
+			related-entity-name="warehouse.SdCatalog" fk-name="catalogId">
+			<key-map field-name="catalogId" />
+		</relationship>
+		<relationship type="one" title="statusId"
+			related-entity-name="moqui.basic.StatusItem" fk-name="statusId">
+			<key-map field-name="statusId" />
+		</relationship>
 		<seed-data>
-			<moqui.basic.statusType description="Item Status"
+			<moqui.basic.StatusType description="Item Status"
 				statusTypeId="ItemStatus" />
-			<moqui.basic.statusItem description="Discontinued"
-				statusTypeId="DISCONTINUED" />
-			<moqui.basic.statusItem description="Current"
-				statusTypeId="CURRENT" />
+			<moqui.basic.StatusItem statusId="Discontinued"
+				description="Discontinued Item" statusTypeId="ItemStatus" />
+			<moqui.basic.StatusItem statusId="Current"
+				description="Current Item" statusTypeId="ItemStatus" />
+			<!-- <warehouse.SdItem sku="SKU0001" productId="001" colorId="001" sizeId="001" 
+				statusId="Current" catalogId="001"/> -->
 		</seed-data>
 	</entity>
 
-	<entity entity-name="inventory" package-name="warehouse">
-		<field name="sku" type="id" is-pk="true" />
-		<field name="location" type="id">
-			<description>Location for stock</description>
-		</field>
-		<field name="qoh" type="number-integer">
-			<description>Quantity on hand</description>
-		</field>
-		<field name="qoo" type="number-integer">
-			<description>Quantity on order</description>
-		</field>
-		<field name="qct" type="number-integer">
-			<description>Quantity committed</description>
-		</field>
-		<field name="qap" type="number-integer">
-			<description>Quantity available to promise</description>
-		</field>
-		<!-- <relationship type="one" related-entity-name="sdItem" /> -->
+	<entity entity-name="SdItemAttribute" package-name="warehouse">
+		<field name="itemId" type="id" is-pk="true" />
+		<field name="sku" type="id" />
+		<field name="attributeTypeId" type="id" />
+		<field name="attributeId" type="id" />
+		<field name="attributeCode" type="id" />
+		<field name="attributeDescription" type="text-short" />
+
+
 	</entity>
 
-	<entity entity-name="SdColor" package-name="warehouse">
-		<field name="colorId" type="id" is-pk="true" />
-		<field name="colorCode" type="id" />
-		<field name="colorName" type="text-short" />
-		<field name="colorCombination" type="text-indicator" />
-		<description>ColorCode and Name can be NULL if colorCombination is TRUE, GUI should show combination of CODE/NAME if it is a combination</description>
+	<entity entity-name="SdAttribute" package-name="warehouse">
+		<field name="attributeId" type="id" is-pk="true" />
+		<field name="attributeTypeId" type="id" />
+		<field name="attributeCode" type="id" />
+		<field name="attributeDescription" type="text-short" />
+		<field name="isCombo" type="text-indicator" />
 	</entity>
 
-	<entity entity-name="SdColorCombination" package-name="warehouse">
-		<description>This defines colors that are a combination of up to 4 colors. From the SdColor entity it will point to this table based on the colorCombination indicator field</description>
-		<field name="colorId" type="id" is-pk="true" />
-		<field name="color1Id" type="id" />
-		<field name="color2Id" type="id" />
-		<field name="color3Id" type="id" />
-		<field name="color4Id" type="id" />
-		<!-- <relationship type="one" title="colorId" -->
-		<!-- related-entity-name="SdColor" /> -->
-		<!-- <relationship type="one" title="color1Id" -->
-		<!-- related-entity-name="SdColor"> -->
-		<!-- <key-map field-name="color1Id" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="color2Id" -->
-		<!-- related-entity-name="SdColor"> -->
-		<!-- <key-map field-name="color2Id" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="color3Id" -->
-		<!-- related-entity-name="SdColor"> -->
-		<!-- <key-map field-name="color3Id" /> -->
-		<!-- </relationship> -->
-		<!-- <relationship type="one" title="color4Id" -->
-		<!-- related-entity-name="SdColor"> -->
-		<!-- <key-map field-name="color4Id" /> -->
-		<!-- </relationship> -->
-	</entity>
-
-	<entity entity-name="SdSize" package-name="warehouse">
-		<field name="sizeId" type="id" is-pk="true" />
-		<field name="sizeCode" type="id" />
-		<field name="sizeDescription" type="text-short" />
-	</entity>
-
-	<entity entity-name="SdWidth" package-name="warehouse">
-		<field name="widthId" type="id" is-pk="true" />
-		<field name="widthCode" type="id" />
-		<field name="widthDescription" type="text-short" />
-	</entity>
-
-	<entity entity-name="SdShankLength" package-name="warehouse">
-		<field name="shLengthId" type="id" is-pk="true" />
-		<field name="shLengthCode" type="id" />
-		<field name="shLenDescription" type="text-short" />
-	</entity>
-
-	<entity entity-name="SdShankHardness" package-name="warehouse">
-		<field name="shHardnessId" type="id" is-pk="true" />
-		<field name="shHardnessCode" type="id" />
-		<field name="shHardDescription" type="text-short" />
+	<entity entity-name="SdAttributeCombination" package-name="warehouse">
+		<field name="attributeId" type="id" is-pk="true" />
+		<field name="attribute1Id" type="id" />
+		<field name="attribute2Id" type="id" />
+		<field name="attribute3Id" type="id" />
+		<field name="attribute4Id" type="id" />
 	</entity>
 
 	<entity entity-name="SdGridDefinition" package-name="warehouse">
 		<field name="gridId" type="id" is-pk="true" />
-		<field name="noColumns" type="number-integer" />
-		<field name="noRows" type="number-integer" />
-		<field name="noGroups" type="number-integer" />
+		<field name="productId" type="id" />
+		<field name="attributeId" type="id" />
+		<field name="xPosition" type="number-integer" />
+		<field name="yPosition" type="number-integer" />
+		<field name="zPosition" type="number-integer" />
 	</entity>
 
-	<entity entity-name="SdCatalog" package-name="warehouse">
+	<entity entity-name="SdGridItem" package-name="warehouse">
+		<field name="gridId" type="id" />
+		<field name="productId" type="id" />
+		<field name="itemId" type="id" is-pk="true" />
+		<field name="sku" type="id" />
+		<field name="xPosition" type="number-integer" />
+		<field name="yPosition" type="number-integer" />
+		<field name="zPosition" type="number-integer" />
+	</entity>
+
+	<entity entity-name="SdCatalog" package-name="warehouse"> <!-- Use parentId for self reference for subsections instead of having subsection 
+			tables -->
 		<field name="catalogId" type="id" is-pk="true" />
 		<field name="catalogName" type="text-short" />
 		<field name="catalogDescription" type="text-short" />
 		<field name="coverImageFile" type="text-long" />
 		<field name="fromDate" type="date" />
 		<field name="thruDate" type="date" />
+		<field name="parentId" type="id" />
+
+		<seed-data>
+			<!-- <warehouse.SdCatalog catalogId="001" catalogName="test" catalogDescription="test" 
+				/> -->
+		</seed-data>
 	</entity>
 
-	<entity entity-name="SdCatalogSection" package-name="warehouse">
-		<field name="sectionId" type="id" is-pk="true" />
+	<entity entity-name="catalogProducts" package-name="warehouse">
+		<field name="productId" type="id" is-pk="true" />
 		<field name="catalogId" type="id" />
-		<field name="sectionName" type="text-short" />
-		<!-- <relationship type="one" related-entity-name="SdCatalog"> -->
-		<!-- <key-map field-name="catalogId" /> -->
-		<!-- </relationship> -->
+
 	</entity>
 
 	<entity entity-name="SdProductDescription" package-name="warehouse">
-		<field name="productId" type="id" is-pk="true" />
+		<field name="descriptionId" type="id" is-pk="true" />
+		<field name="productId" type="id" is-pk="false" />
 		<field name="descriptionText" type="text-long" />
 		<field name="descriptionType" type="id" />
 		<field name="seqNumber" type="number-integer" />
 		<field name="descriptionLanguage" type="text-short" />
+		<!--<relationship type="one" related-entity-name="warehouse.SdProduct" fk-name="productId"> -->
+		<!--<key-map field-name="productId"/> -->
+		<!--</relationship> -->
+		<seed-data>
+			<!-- <warehouse.SdProductDescription productId="001" descriptionText="test 
+				description" /> -->
+		</seed-data>
 	</entity>
 
 	<entity entity-name="SdProductImage" package-name="warehouse">
@@ -242,4 +214,5 @@
 		<field name="averageCost" type="currency-amount" />
 		<field name="standardCost" type="currency-amount" />
 	</entity>
+
 </entities>

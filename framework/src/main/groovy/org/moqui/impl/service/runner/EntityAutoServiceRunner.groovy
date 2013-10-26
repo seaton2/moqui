@@ -146,8 +146,16 @@ public class EntityAutoServiceRunner implements ServiceRunner {
 
         // populate the oldStatusId out if there is a service parameter for it, and before we do the set non-pk fields
         Node statusIdField = ed.getFieldNode("statusId")
-        if ((outParamNames == null || outParamNames.contains("oldStatusId")) && statusIdField) {
+        if (statusIdField != null) {
+            // do the actual query so we'll have the current statusId
+            lookedUpValue = sfi.getEcfi().getEntityFacade().makeFind(ed.getFullEntityName()).condition(parameters).useCache(false).forUpdate(true).one()
+        }
+        if (statusIdField != null && (outParamNames == null || outParamNames.contains("oldStatusId"))) {
             result.put("oldStatusId", lookedUpValue.get("statusId"))
+        }
+        if (statusIdField != null && (outParamNames == null || outParamNames.contains("statusChanged"))) {
+            result.put("statusChanged", !(lookedUpValue.get("statusId") == parameters.get("statusId")))
+            // logger.warn("========= oldStatusId=${result.oldStatusId}, statusChanged=${result.statusChanged}, lookedUpValue.statusId=${lookedUpValue.statusId}, parameters.statusId=${parameters.statusId}, lookedUpValue=${lookedUpValue}")
         }
 
         // do the StatusValidChange check
@@ -167,7 +175,7 @@ public class EntityAutoServiceRunner implements ServiceRunner {
             }
         }
 
-        // NOTE: nothing here to maintain the status history, that should be done with a custom service called by SECA rule
+        // NOTE: nothing here to maintain the status history, that should be done with a custom service called by SECA rule or with audit log on field
 
         lookedUpValue.setFields(parameters, true, null, false)
         // logger.info("In auto updateEntity lookedUpValue final [${lookedUpValue}] for parameters [${parameters}]")

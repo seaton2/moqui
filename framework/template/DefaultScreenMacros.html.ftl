@@ -25,6 +25,7 @@ This Work includes contributions authored by David E. Jones, not as a
 
 <#-- ================ Subscreens ================ -->
 <#macro "subscreens-menu">
+    <#assign displayMenu = sri.activeInCurrentMenu?if_exists>
     <#assign menuId = .node["@id"]!"subscreensMenu">
     <#if .node["@type"]?if_exists == "popup">
         <#assign menuTitle = .node["@title"]!sri.getActiveScreenDef().getDefaultMenuName()!"Menu">
@@ -53,6 +54,7 @@ This Work includes contributions authored by David E. Jones, not as a
     <#elseif .node["@type"]?if_exists == "popup-tree">
     <#else>
         <#-- default to type=tab -->
+        <#if displayMenu?if_exists>
         <div class="ui-tabs ui-tabs-collapsible">
             <ul<#if .node["@id"]?has_content> id="${.node["@id"]}"</#if> class="ui-tabs-nav ui-helper-clearfix ui-widget-header ui-corner-all">
                 <#list sri.getActiveScreenDef().getSubscreensItemsSorted() as subscreensItem><#if subscreensItem.menuInclude>
@@ -63,6 +65,7 @@ This Work includes contributions authored by David E. Jones, not as a
                 </#if></#list>
             </ul>
         </div>
+        </#if>
     </#if>
 </#macro>
 
@@ -172,9 +175,10 @@ This Work includes contributions authored by David E. Jones, not as a
 </#macro>
 
 <#macro "container-panel">
+    <#assign panelId = ec.resource.evaluateStringExpand(.node["@id"], "")>
     <#if .node["@dynamic"]?if_exists == "true">
         <#assign afterScreenScript>
-        $("#${.node["@id"]}").layout({
+        $("#${panelId}").layout({
         defaults: { closable: true, resizable: true, slidable: false, livePaneResizing: true, spacing_open: 5 },
         <#if .node["panel-header"]?has_content><#assign panelNode = .node["panel-header"][0]>north: { showOverflowOnHover: true, closable: ${panelNode["@closable"]!"true"}, resizable: ${panelNode["@resizable"]!"false"}, spacing_open: ${panelNode["@spacing"]!"5"}, size: "${panelNode["@size"]!"auto"}"<#if panelNode["@size-min"]?has_content>, minSize: ${panelNode["@size-min"]}</#if><#if panelNode["@size-min"]?has_content>, maxSize: ${panelNode["@size-max"]}</#if> },</#if>
         <#if .node["panel-footer"]?has_content><#assign panelNode = .node["panel-footer"][0]>south: { showOverflowOnHover: true, closable: ${panelNode["@closable"]!"true"}, resizable: ${panelNode["@resizable"]!"false"}, spacing_open: ${panelNode["@spacing"]!"5"}, size: "${panelNode["@size"]!"auto"}"<#if panelNode["@size-min"]?has_content>, minSize: ${panelNode["@size-min"]}</#if><#if panelNode["@size-min"]?has_content>, maxSize: ${panelNode["@size-max"]}</#if> },</#if>
@@ -184,45 +188,47 @@ This Work includes contributions authored by David E. Jones, not as a
         });
         </#assign>
         <#t>${sri.appendToScriptWriter(afterScreenScript)}
-        <div<#if .node["@id"]?has_content> id="${.node["@id"]}"</#if>>
+        <div<#if panelId?has_content> id="${panelId}"</#if>>
             <#if .node["panel-header"]?has_content>
-                <div<#if .node["@id"]?has_content> id="${.node["@id"]}-header"</#if> class="ui-layout-north ui-helper-clearfix"><#recurse .node["panel-header"][0]>
+                <div<#if panelId?has_content> id="${panelId}-header"</#if> class="ui-layout-north ui-helper-clearfix"><#recurse .node["panel-header"][0]>
                 </div></#if>
             <#if .node["panel-left"]?has_content>
-                <div<#if .node["@id"]?has_content> id="${.node["@id"]}-left"</#if> class="ui-layout-west"><#recurse .node["panel-left"][0]>
+                <div<#if panelId?has_content> id="${panelId}-left"</#if> class="ui-layout-west"><#recurse .node["panel-left"][0]>
                 </div>
             </#if>
-            <div<#if .node["@id"]?has_content> id="${.node["@id"]}-center"</#if> class="ui-layout-center"><#recurse .node["panel-center"][0]>
+            <div<#if panelId?has_content> id="${panelId}-center"</#if> class="ui-layout-center"><#recurse .node["panel-center"][0]>
             </div>
             <#if .node["panel-right"]?has_content>
-                <div<#if .node["@id"]?has_content> id="${.node["@id"]}-right"</#if> class="ui-layout-east"><#recurse .node["panel-right"][0]>
+                <div<#if panelId?has_content> id="${panelId}-right"</#if> class="ui-layout-east"><#recurse .node["panel-right"][0]>
                 </div>
             </#if>
             <#if .node["panel-footer"]?has_content>
-                <div<#if .node["@id"]?has_content> id="${.node["@id"]}-footer"</#if> class="ui-layout-south"><#recurse .node["panel-footer"][0]>
+                <div<#if panelId?has_content> id="${panelId}-footer"</#if> class="ui-layout-south"><#recurse .node["panel-footer"][0]>
                 </div></#if>
         </div>
     <#else>
-        <div<#if .node["@id"]?has_content> id="${.node["@id"]}"</#if> class="panel-outer">
+        <div<#if panelId?has_content> id="${panelId}"</#if> class="panel-outer">
             <#if .node["panel-header"]?has_content>
-                <div<#if .node["@id"]?has_content> id="${.node["@id"]}-header"</#if> class="panel-header"><#recurse .node["panel-header"][0]>
-                </div></#if>
+                <div<#if panelId?has_content> id="${panelId}-header"</#if> class="panel-header"><#recurse .node["panel-header"][0]>
+                </div>
+            </#if>
             <div class="panel-middle">
                 <#if .node["panel-left"]?has_content>
-                    <div<#if .node["@id"]?has_content> id="${.node["@id"]}-left"</#if> class="panel-left" style="width: ${.node["panel-left"][0]["@size"]!"180"}px;"><#recurse .node["panel-left"][0]>
+                    <div<#if panelId?has_content> id="${panelId}-left"</#if> class="panel-left" style="width: ${.node["panel-left"][0]["@size"]!"180"}px;"><#recurse .node["panel-left"][0]>
                     </div>
                 </#if>
                 <#assign centerClass><#if .node["panel-left"]?has_content><#if .node["panel-right"]?has_content>panel-center-both<#else>panel-center-left</#if><#else><#if .node["panel-right"]?has_content>panel-center-right<#else>panel-center-only</#if></#if></#assign>
-                <div<#if .node["@id"]?has_content> id="${.node["@id"]}-center"</#if> class="${centerClass}"><#recurse .node["panel-center"][0]>
+                <div<#if panelId?has_content> id="${panelId}-center"</#if> class="${centerClass}"><#recurse .node["panel-center"][0]>
             </div>
             <#if .node["panel-right"]?has_content>
-                <div<#if .node["@id"]?has_content> id="${.node["@id"]}-right"</#if> class="panel-right" style="width: ${.node["panel-right"][0]["@size"]!"180"}px;"><#recurse .node["panel-right"][0]>
+                <div<#if panelId?has_content> id="${panelId}-right"</#if> class="panel-right" style="width: ${.node["panel-right"][0]["@size"]!"180"}px;"><#recurse .node["panel-right"][0]>
                 </div>
             </#if>
             </div>
             <#if .node["panel-footer"]?has_content>
-                <div<#if .node["@id"]?has_content> id="${.node["@id"]}-footer"</#if> class="panel-footer"><#recurse .node["panel-footer"][0]>
-                </div></#if>
+                <div<#if panelId?has_content> id="${panelId}-footer"</#if> class="panel-footer"><#recurse .node["panel-footer"][0]>
+                </div>
+            </#if>
         </div>
     </#if>
 </#macro>
@@ -243,11 +249,11 @@ This Work includes contributions authored by David E. Jones, not as a
 </#macro>
 
 <#macro "dynamic-container">
-    <#assign urlInfo = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
     <#assign divId>${.node["@id"]}<#if listEntryIndex?has_content>_${listEntryIndex}</#if></#assign>
+    <#assign urlInfo = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", divId)>
     <div id="${divId}"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
     <#assign afterScreenScript>
-        function load${divId}() { $("#${divId}").load("${urlInfo.urlWithParams}", function() { activateAllButtons() }) }
+        function load${divId}() { $("#${divId}").load("${urlInfo.passThroughSpecialParameters().urlWithParams}", function() { activateAllButtons() }) }
         load${divId}();
     </#assign>
     <#t>${sri.appendToScriptWriter(afterScreenScript)}
@@ -256,7 +262,7 @@ This Work includes contributions authored by David E. Jones, not as a
 <#macro "dynamic-dialog">
     <#assign buttonText = ec.resource.evaluateStringExpand(.node["@button-text"], "")>
     <#assign urlInfo = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
-    <#assign divId>${.node["@id"]}<#if listEntryIndex?has_content>_${listEntryIndex}</#if></#assign>
+    <#assign divId>${ec.resource.evaluateStringExpand(.node["@id"], "")}<#if listEntryIndex?has_content>_${listEntryIndex}</#if></#assign>
     <button id="${divId}Button" iconcls="ui-icon-newwin">${buttonText}</button>
     <div id="${divId}" title="${buttonText}"></div>
     <#assign afterScreenScript>
@@ -358,7 +364,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
              ((linkNode["@url-type"]?has_content && linkNode["@url-type"] != "transition") || (!urlInfo.hasActions)))>
             <#-- do nothing -->
         <#else>
-            <form method="post" action="${urlInfo.url}" name="${linkFormId!""}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if> onsubmit="javascript:submitFormDisableSubmit(this)">
+            <form method="post" action="${urlInfo.url}" name="${linkFormId!""}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>>
                 <#assign targetParameters = urlInfo.getParameterMap()>
                 <#-- NOTE: using .keySet() here instead of ?keys because ?keys was returning all method names with the other keys, not sure why -->
                 <#if targetParameters?has_content><#list targetParameters.keySet() as pKey>
@@ -420,6 +426,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 <#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formNode = sri.getFtlFormNode(.node["@name"])>
+    ${sri.setSingleFormMapInContext(formNode)}
     <#assign skipStart = (formNode["@skip-start"]?if_exists == "true")>
     <#assign skipEnd = (formNode["@skip-end"]?if_exists == "true")>
     <#assign urlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
@@ -593,6 +600,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     <div class="single-form-field">
         <#assign curFieldTitle><@fieldTitle fieldSubNode/></#assign>
         <#if !fieldSubNode["submit"]?has_content && !(inFieldRow?if_exists && !curFieldTitle?has_content)><label class="form-title" for="${formNode["@name"]}_${fieldSubNode?parent["@name"]}">${curFieldTitle}</label></#if>
+        ${sri.pushContext()}
+        <#list fieldSubNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
         <#list fieldSubNode?children as widgetNode>
             <#if widgetNode?node_name == "link">
                 <#assign linkNode = widgetNode>
@@ -601,10 +610,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
                 <#assign afterFormText><@linkFormForm linkNode linkFormId linkUrlInfo/></#assign>
                 <#t>${sri.appendToAfterScreenWriter(afterFormText)}
                 <#t><@linkFormLink linkNode linkFormId linkUrlInfo/>
-            <#else>
-                <#t><#visit widgetNode>
+            <#elseif widgetNode?node_name == "set"><#-- do nothing, handled above -->
+            <#else><#t><#visit widgetNode>
             </#if>
         </#list>
+        ${sri.popContext()}
     </div>
 </#macro>
 
@@ -654,7 +664,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
                 <#assign needHeaderForm = sri.isFormHeaderForm(formNode["@name"])>
                 <#if needHeaderForm && !skipForm>
                     <#assign curUrlInfo = sri.getCurrentScreenUrl()>
-                <form name="${formNode["@name"]}-header" id="${formNode["@name"]}-header" class="form-header-row" method="post" action="${curUrlInfo.url}">
+                    <#assign headerFormId>${formNode["@name"]}-header</#assign>
+                <form name="${headerFormId}" id="${headerFormId}" class="form-header-row" method="post" action="${curUrlInfo.url}">
                     <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
                     <#assign nonReferencedFieldList = sri.getFtlFormListColumnNonReferencedHiddenFieldList(.node["@name"])>
                     <#list nonReferencedFieldList as nonReferencedField><#if nonReferencedField["header-field"]?has_content><#recurse nonReferencedField["header-field"][0]/></#if></#list>
@@ -681,6 +692,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
                     </#list>
                 <#if needHeaderForm && !skipForm>
                 </form>
+                    <#if _dynamic_container_id?has_content>
+                        <#-- if we have an _dynamic_container_id this was loaded in a dynamic-container so init ajaxForm; for examples see http://www.malsup.com/jquery/form/#ajaxForm -->
+                        <#assign afterFormScript>
+                            $("#${headerFormId}").ajaxForm({ target: '#${_dynamic_container_id}', success: activateAllButtons, resetForm: false });
+                        </#assign>
+                        <#t>${sri.appendToScriptWriter(afterFormScript)}
+                    </#if>
                 <#else>
                 </div>
                 </#if>
@@ -859,7 +877,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     </div>
     <#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
     <div class="form-header-field">
-        <#recurse fieldNode["header-field"][0]/>
+        <@formListWidget fieldNode["header-field"][0] true/>
+        <#-- <#recurse fieldNode["header-field"][0]/> -->
     </div>
     </#if>
 </#macro>
@@ -871,18 +890,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
         </#if>
     </#list>
     <#if fieldNode["default-field"]?has_content>
+        <#assign isHeaderField=false>
         <@formListWidget fieldNode["default-field"][0]/>
         <#return>
     </#if>
 </#macro>
-<#macro formListWidget fieldSubNode>
+<#macro formListWidget fieldSubNode isHeaderField=false>
     <#if fieldSubNode["ignored"]?has_content><#return/></#if>
     <#if fieldSubNode?parent["@hide"]?if_exists == "true"><#return></#if>
     <#-- don't do a column for submit fields, they'll go in their own row at the bottom -->
-    <#t><#if isMulti && !isMultiFinalRow && fieldSubNode["submit"]?has_content><#return/></#if>
-    <#t><#if isMulti && isMultiFinalRow && !fieldSubNode["submit"]?has_content><#return/></#if>
+    <#t><#if !isHeaderField && isMulti && !isMultiFinalRow && fieldSubNode["submit"]?has_content><#return/></#if>
+    <#t><#if !isHeaderField && isMulti && isMultiFinalRow && !fieldSubNode["submit"]?has_content><#return/></#if>
     <#if fieldSubNode["hidden"]?has_content><#recurse fieldSubNode/><#return/></#if>
     <#if !isMultiFinalRow><div<#if !formListSkipClass?if_exists> class="form-cell"</#if>></#if>
+        ${sri.pushContext()}
+        <#list fieldSubNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
         <#list fieldSubNode?children as widgetNode>
             <#if widgetNode?node_name == "link">
                 <#assign linkNode = widgetNode>
@@ -891,10 +913,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
                 <#assign afterFormText><@linkFormForm linkNode linkFormId linkUrlInfo/></#assign>
                 <#t>${sri.appendToAfterScreenWriter(afterFormText)}
                 <#t><@linkFormLink linkNode linkFormId linkUrlInfo/>
-            <#else>
-                <#t><#visit widgetNode>
-            </#if>
+            <#elseif widgetNode?node_name == "set"><#-- do nothing, handled above -->
+            <#else><#t><#visit widgetNode></#if>
         </#list>
+        ${sri.popContext()}
     <#if !isMultiFinalRow></div></#if>
 </#macro>
 <#macro "row-actions"><#-- do nothing, these are run by the SRI --></#macro>
@@ -906,6 +928,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 <#macro "field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 <#macro "conditional-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 <#macro "default-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
+<#macro "set"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 
 <#-- ================== Form Field Widgets ==================== -->
 
@@ -997,7 +1020,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
         <option selected="selected" value="${currentValue}"><#if currentDescription?has_content>${currentDescription}<#else>${currentValue}</#if></option><#rt/>
         <option value="${currentValue}">---</option><#rt/>
     </#if>
-    <#if (.node["@allow-empty"]?if_exists == "true") || !(options?has_content)>
+    <#assign allowEmpty = ec.resource.evaluateStringExpand(.node["@allow-empty"]?if_exists, "")/>
+    <#if (allowEmpty?if_exists == "true") || !(options?has_content)>
         <option value="">&nbsp;</option>
     </#if>
 
@@ -1127,6 +1151,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
                     if (ui.item) { this.value = ui.item.value; if (ui.item.label) { $("#${id}_value").html(ui.item.label); } }
                 }
             });
+        </#assign>
+        <#t>${sri.appendToScriptWriter(afterFormScript)}
+    </#if>
+    <#assign regexpInfo = sri.getFormFieldValidationRegexpInfo(.node?parent?parent?parent["@name"], .node?parent?parent["@name"])?if_exists>
+    <#if regexpInfo?has_content>
+        <#assign afterFormScript>
+        $("#${formNode["@name"]}").validate();
+        $.validator.addMethod("${id}_v", function (value, element) { return this.optional(element) || /${regexpInfo.regexp}/.test(value); }, "${regexpInfo.message!"Input invalid"}");
+        $("#${id}").rules("add", { ${id}_v:true })
         </#assign>
         <#t>${sri.appendToScriptWriter(afterFormScript)}
     </#if>

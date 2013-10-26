@@ -11,6 +11,7 @@
  */
 package org.moqui.impl.entity
 
+import org.apache.commons.codec.binary.Base64
 import org.moqui.impl.StupidUtilities
 
 import javax.sql.rowset.serial.SerialBlob
@@ -40,11 +41,13 @@ public class EntityDefinition {
     protected String internalEntityName
     protected String fullEntityName
     protected Node internalEntityNode
-    protected Map<String, Node> fieldNodeMap = new HashMap()
-    protected Map<String, Node> relationshipNodeMap = new HashMap()
-    protected Map<String, String> columnNameMap = new HashMap()
+    protected final Map<String, Boolean> fieldSimpleMap = new HashMap<String, Boolean>()
+    protected final Map<String, Node> fieldNodeMap = new HashMap<String, Node>()
+    protected final Map<String, Node> relationshipNodeMap = new HashMap<String, Node>()
+    protected final Map<String, String> columnNameMap = new HashMap<String, String>()
     protected List<String> pkFieldNameList = null
     protected List<String> allFieldNameList = null
+    protected Boolean hasUserFields = null
     protected Map<String, Map> mePkFieldToAliasNameMapMap = null
 
     protected Boolean isView = null
@@ -113,8 +116,9 @@ public class EntityDefinition {
         // no name? try literal description
         if (isField("description")) return "description"
 
-        // no description? just use the first non-pk field
-        return nonPkFields.get(0)
+        // no description? just use the first non-pk field: nonPkFields.get(0)
+        // not any more, can be confusing... just return empty String
+        return ""
     }
 
     boolean needsAuditLog() {
@@ -217,7 +221,7 @@ public class EntityDefinition {
             // see if there is an entity matching the relationship name that has a relationship coming this way
             EntityDefinition ed = null
             try {
-                ed = efi.getEntityDefinition(relationshipName)
+                ed = efi.getEntityDefinition(entityName)
             } catch (EntityException e) {
                 // probably means not a valid entity name, which may happen a lot since we're checking here to see, so just ignore
                 if (logger.isTraceEnabled()) logger.trace("Ignoring entity not found exception: ${e.toString()}")
@@ -226,12 +230,13 @@ public class EntityDefinition {
                 // don't call ed.getRelationshipNode(), may result in infinite recursion
                 Node reverseRelNode = (Node) ed.internalEntityNode."relationship".find(
                         { ((it."@related-entity-name" == this.internalEntityName || it."@related-entity-name" == this.fullEntityName)
-                            && (it."@type" == "one" || it."@type" == "one-nofk")) })
+                            && (it."@type" == "one" || it."@type" == "one-nofk") && ((!title && !it."@title") || it."@title" == title)) })
                 if (reverseRelNode != null) {
                     Map keyMap = ed.getRelationshipExpandedKeyMap(reverseRelNode)
                     String relType = (this.getPkFieldNames() == ed.getPkFieldNames()) ? "one-nofk" : "many"
                     Node newRelNode = this.internalEntityNode.appendNode("relationship",
-                            ["related-entity-name":relationshipName, "type":relType])
+                            ["related-entity-name":entityName, "type":relType])
+                    if (title) newRelNode.attributes().put("title", title)
                     for (Map.Entry keyEntry in keyMap) {
                         // add a key-map with the reverse fields
                         newRelNode.appendNode("key-map", ["field-name":keyEntry.value, "related-field-name":keyEntry.key])
@@ -453,6 +458,15 @@ public class EntityDefinition {
     }
 
     boolean isField(String fieldName) { return getFieldNode(fieldName) != null }
+    boolean isSimpleField(String fieldName) {
+        Boolean isSimpleVal = fieldSimpleMap.get(fieldName)
+        if (isSimpleVal != null) return isSimpleVal
+
+        Node fieldNode = getFieldNode(fieldName)
+        boolean isSimple = fieldNode != null && !(fieldNode."@enable-localization" == "true") && !(fieldNode."@is-user-field" == "true")
+        fieldSimpleMap.put(fieldName, isSimple)
+        return isSimple
+    }
 
     boolean containsPrimaryKey(Map fields) {
         if (!fields) return false
@@ -501,16 +515,20 @@ public class EntityDefinition {
     }
     List<String> getAllFieldNames() {
         if (allFieldNameList == null) {
-            allFieldNameList = new ArrayList(getFieldNames(true, true, false).asList())
+            allFieldNameList = Collections.unmodifiableList(new ArrayList(getFieldNames(true, true, false).asList()))
         }
 
-        List<String> returnList = allFieldNameList
+        if (hasUserFields != null && !hasUserFields) return allFieldNameList
+
+        List<String> returnList = null
 
         // add UserFields to it if needed
         boolean alreadyDisabled = efi.getEcfi().getExecutionContext().getArtifactExecution().disableAuthz()
         try {
             EntityList userFieldList = efi.makeFind("moqui.entity.UserField").condition("entityName", getFullEntityName()).useCache(true).list()
             if (userFieldList) {
+                hasUserFields = true
+
                 Set<String> userGroupIdSet = efi.getEcfi().getExecutionContext().getUser().getUserGroupIdSet()
                 Set<String> userFieldNames = new HashSet<String>()
                 for (EntityValue userField in userFieldList) {
@@ -520,12 +538,14 @@ public class EntityDefinition {
                     returnList = new ArrayList<String>(allFieldNameList)
                     returnList.addAll(userFieldNames)
                 }
+            } else {
+                hasUserFields = false
             }
         } finally {
             if (!alreadyDisabled) efi.getEcfi().getExecutionContext().getArtifactExecution().enableAuthz()
         }
 
-        return Collections.unmodifiableList(returnList)
+        return returnList ? Collections.unmodifiableList(returnList) : allFieldNameList
     }
 
     List<Node> getFieldNodes(boolean includePk, boolean includeNonPk, boolean includeUserFields) {
@@ -678,7 +698,7 @@ public class EntityDefinition {
             return
         }
         Node fieldNode = this.getFieldNode(name)
-        if (!fieldNode) dest.put(name, value) // cause an error on purpose
+        if (fieldNode == null) dest.put(name, value) // cause an error on purpose
         dest.put(name, convertFieldString(name, value))
     }
 
@@ -712,7 +732,7 @@ public class EntityDefinition {
                     if (bdVal == null) {
                         throw new BaseException("The value [${value}] is not valid for type [${javaType}]")
                     } else {
-                        outValue = StupidUtilities.basicConvert(bdVal, javaType)
+                        outValue = StupidUtilities.basicConvert(bdVal.stripTrailingZeros(), javaType)
                     }
                     break
                 case 10: outValue = Boolean.valueOf(value); break
@@ -726,6 +746,63 @@ public class EntityDefinition {
             }
         } catch (IllegalArgumentException e) {
             throw new BaseException("The value [${value}] is not valid for type [${javaType}]", e)
+        }
+
+        return outValue
+    }
+
+    String getFieldString(String name, Object value) {
+        if (value == null) return null
+
+        String outValue
+        Node fieldNode = this.getFieldNode(name)
+        String javaType = this.efi.getFieldJavaType((String) fieldNode."@type", this)
+        try {
+            switch (EntityFacadeImpl.getJavaTypeInt(javaType)) {
+                case 1: outValue = value; break
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                    if (value instanceof BigDecimal) value = ((BigDecimal) value).stripTrailingZeros()
+                    outValue = efi.getEcfi().getL10nFacade().formatValue(value, null)
+                    break
+                case 10: outValue = value.toString(); break
+                case 11: outValue = value; break
+                case 12:
+                    if (value instanceof byte[]) {
+                        outValue = new String(Base64.encodeBase64((byte[]) value));
+                    } else {
+                        logger.info("Field [${name}] on entity [${entityName}] is not of type 'byte[]', is [${value}] so using plain toString()")
+                        outValue = value.toString()
+                    }
+                    break
+                case 13: outValue = value; break
+                case 14: outValue = value.toString(); break
+            // better way for Collection (15)? maybe parse comma separated, but probably doesn't make sense in the first place
+                case 15: outValue = value; break
+                default: outValue = value; break
+            }
+        } catch (IllegalArgumentException e) {
+            throw new BaseException("The value [${value}] is not valid for type [${javaType}]", e)
+        }
+
+        return outValue
+    }
+
+    String getFieldStringForFile(String name, Object value) {
+        if (value == null) return null
+
+        String outValue
+        if (value instanceof Timestamp) {
+            // use a Long number, no TZ issues
+            outValue = ((Timestamp) value).getTime().toString()
+        } else {
+            outValue = getFieldString(name, value)
         }
 
         return outValue

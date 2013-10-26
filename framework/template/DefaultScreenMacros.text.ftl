@@ -92,9 +92,9 @@ This Work includes contributions authored by David E. Jones, not as a
 <#-- ====================================================== -->
 <#-- ======================= Form ========================= -->
 <#macro "form-single">
-
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formNode = sri.getFtlFormNode(.node["@name"])>
+    ${sri.setSingleFormMapInContext(formNode)}
     <#if formNode["field-layout"]?has_content>
         <#assign fieldLayout = formNode["field-layout"][0]>
         <#list formNode["field-layout"][0]?children as layoutNode>
@@ -159,7 +159,6 @@ This Work includes contributions authored by David E. Jones, not as a
 <@fieldTitle fieldSubNode/>: <#recurse fieldSubNode/> </#macro>
 
 <#macro "form-list">
-
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formNode = sri.getFtlFormNode(.node["@name"])>
     <#assign listName = formNode["@list"]>
@@ -182,7 +181,7 @@ This Work includes contributions authored by David E. Jones, not as a
         <#list listObject as listEntry>
             <#assign listEntryIndex = listEntry_index>
             <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-            <#t>${sri.startFormListRow(formNode["@name"], listEntry)}
+            <#t>${sri.startFormListRow(formNode["@name"], listEntry, listEntry_index, listEntry_has_next)}
             <#list formNode["form-list-column"] as fieldListColumn>
                 <#list fieldListColumn["field-ref"] as fieldRef>
                     <#assign fieldRef = fieldRef["@name"]>
@@ -207,7 +206,7 @@ This Work includes contributions authored by David E. Jones, not as a
         <#list listObject as listEntry>
             <#assign listEntryIndex = listEntry_index>
             <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-            <#t>${sri.startFormListRow(formNode["@name"], listEntry)}
+            <#t>${sri.startFormListRow(formNode["@name"], listEntry, listEntry_index, listEntry_has_next)}
             <#list formNode["field"] as fieldNode>
                 <#t><@formListSubField fieldNode/>${"\t"}
             </#list>

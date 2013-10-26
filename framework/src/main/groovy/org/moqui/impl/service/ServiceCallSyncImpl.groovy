@@ -126,10 +126,17 @@ class ServiceCallSyncImpl extends ServiceCallImpl implements ServiceCallSync {
     }
 
     Map<String, Object> callSingle(Map<String, Object> currentParameters, ServiceDefinition sd, ExecutionContextImpl eci) {
+        // NOTE: checking this here because service won't generally run after input validation, etc anyway
         if (eci.getMessage().hasError()) {
             logger.warn("Found error(s) before service [${getServiceName()}], so not running service. Errors: ${eci.getMessage().getErrorsString()}")
             return null
         }
+        if (eci.getTransaction().getStatus() == 1) {
+            logger.warn("Transaction marked for rollback, not running service [${getServiceName()}]. Errors: ${eci.getMessage().getErrorsString()}")
+            return null
+        }
+
+        if (logger.traceEnabled) logger.trace("Calling service [${getServiceName()}] initial input: ${currentParameters}")
 
         long callStartTime = System.currentTimeMillis()
 
@@ -236,6 +243,8 @@ class ServiceCallSyncImpl extends ServiceCallImpl implements ServiceCallSync {
                 sfi.runSecaRules(getServiceName(), currentParameters, null, "pre-service")
                 sfi.registerTxSecaRules(getServiceName(), currentParameters)
 
+                if (logger.traceEnabled) logger.trace("Calling service [${getServiceName()}] pre-call input: ${currentParameters}")
+
                 // run the service through the ServiceRunner
                 result = sr.runService(sd, currentParameters)
 
@@ -244,6 +253,8 @@ class ServiceCallSyncImpl extends ServiceCallImpl implements ServiceCallSync {
                 if (eci.getMessage().hasError()) {
                     tf.rollback(beganTransaction, "Error running service [${getServiceName()}] (message): " + eci.getMessage().getErrorsString(), null)
                 }
+
+                if (logger.traceEnabled) logger.trace("Calling service [${getServiceName()}] result: ${result}")
             } catch (ArtifactAuthorizationException e) {
                 // this is a local call, pass certain exceptions through
                 throw e
