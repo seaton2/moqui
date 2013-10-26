@@ -1,3 +1,6 @@
+ATTENTION : Warehouse entities are somewhat done, but the rest of the code was updated with the latest jonesde release of moqui.
+
+
 Welcome to Moqui Framework
 
 For instructions on running Moqui see:
@@ -5,3 +8,4 @@ http://www.moqui.org/framework/docs/RunDeploy.html
 
 For information about the current and near future status of Moqui
 see: ReleaseNotes.txt
+
