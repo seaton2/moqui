@@ -34,11 +34,6 @@
 			<key-map field-name="catalogSectionId" />
 		</relationship>
 		<seed-data>
-			<!--Using existing ProductCategoryType -->
-			<!--<moqui.basic.EnumerationType description="Category Type" -->
-			<!--enumTypeId="CategoryType" /> -->
-			<!-- <warehouse.SdProduct productId="001" catalogSectionId="001" categoryId="BALLET_SHOES" 
-				statusId="Current" /> -->
 			<moqui.basic.Enumeration description="Shoes"
 				enumId="SHOES" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Dancewear"
@@ -65,10 +60,6 @@
 				enumId="TAP_SHOES" parentEnumId="SHOES" enumTypeId="ProductCategoryType" />
 			<moqui.basic.Enumeration description="Pointe Shoes"
 				enumId="POINTE_SHOES" parentEnumId="SHOES" enumTypeId="ProductCategoryType" />
-
-
-
-
 		</seed-data>
 
 	</entity>
@@ -108,8 +99,6 @@
 				description="Discontinued Item" statusTypeId="ItemStatus" />
 			<moqui.basic.StatusItem statusId="Current"
 				description="Current Item" statusTypeId="ItemStatus" />
-			<!-- <warehouse.SdItem sku="SKU0001" productId="001" colorId="001" sizeId="001" 
-				statusId="Current" catalogId="001"/> -->
 		</seed-data>
 	</entity>
 
@@ -122,6 +111,7 @@
 		<field name="attributeDescription" type="text-short" />
 
 
+
 	</entity>
 
 	<entity entity-name="SdAttribute" package-name="warehouse">
@@ -130,6 +120,23 @@
 		<field name="attributeCode" type="id" />
 		<field name="attributeDescription" type="text-short" />
 		<field name="isCombo" type="text-indicator" />
+
+		<seed-data>
+			<moqui.basic.EnumerationType enumTypeId="ProdutAttributes"
+				description="Product Attributes" />
+			<moqui.basic.Enumeration enumId="WIDTH"
+				enumTypeId="ProdutAttributes" description="Width" />
+			<moqui.basic.Enumeration enumId="SIZE"
+				enumTypeId="ProdutAttributes" description="Size" />
+			<moqui.basic.Enumeration enumId="COLOR"
+				enumTypeId="ProdutAttributes" description="Color" />
+			<moqui.basic.Enumeration enumId="PRINT"
+				enumTypeId="ProdutAttributes" description="Print" />
+			<moqui.basic.Enumeration enumId="SHANK"
+				enumTypeId="ProdutAttributes" description="Shank" />
+
+		</seed-data>
+
 	</entity>
 
 	<entity entity-name="SdAttributeCombination" package-name="warehouse">
@@ -170,8 +177,7 @@
 		<field name="parentId" type="id" />
 
 		<seed-data>
-			<!-- <warehouse.SdCatalog catalogId="001" catalogName="test" catalogDescription="test" 
-				/> -->
+			<warehouse.SdCatalog catalogId="00001" catalogName="Classic2013" catalogDescription="Classic 2013"/> 
 		</seed-data>
 	</entity>
 
@@ -188,7 +194,8 @@
 		<field name="descriptionType" type="id" />
 		<field name="seqNumber" type="number-integer" />
 		<field name="descriptionLanguage" type="text-short" />
-		<!--<relationship type="one" related-entity-name="warehouse.SdProduct" fk-name="productId"> -->
+		<!--<relationship type="one" related-entity-name="warehouse.SdProduct" 
+			fk-name="productId"> -->
 		<!--<key-map field-name="productId"/> -->
 		<!--</relationship> -->
 		<seed-data>
