@@ -34,32 +34,33 @@
 			<key-map field-name="catalogSectionId" />
 		</relationship>
 		<seed-data>
-			<moqui.basic.Enumeration description="Shoes"
-				enumId="SHOES" enumTypeId="ProductCategoryType" />
+			<moqui.basic.EnumerationType enumTypeId="ItemCategory" description="Item Category"/>
+            <moqui.basic.Enumeration description="Shoes"
+				enumId="SHOES" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Dancewear"
-				enumId="DANCEWEAR" enumTypeId="ProductCategoryType" />
+				enumId="DANCEWEAR" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="T-shirts"
-				enumId="TSHIRT" enumTypeId="ProductCategoryType" />
+				enumId="TSHIRT" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Tights"
-				enumId="TIGHTS" enumTypeId="ProductCategoryType" />
+				enumId="TIGHTS" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Warm-up Gear"
-				enumId="WARMUP" enumTypeId="ProductCategoryType" />
+				enumId="WARMUP" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Bags"
-				enumId="BAGS" enumTypeId="ProductCategoryType" />
+				enumId="BAGS" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Accessories"
-				enumId="ACC" enumTypeId="ProductCategoryType" />
+				enumId="ACC" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Fashion Shoes"
-				enumId="FSHOES" enumTypeId="ProductCategoryType" />
+				enumId="FSHOES" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Private Label"
-				enumId="PRIV" enumTypeId="ProductCategoryType" />
+				enumId="PRIV" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Ballet Shoes"
-				enumId="BALLET_SHOES" parentEnumId="SHOES" enumTypeId="ProductCategoryType" />
+				enumId="SHBALLET" parentEnumId="SHOES" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Jazz Shoes"
-				enumId="JAZZ_SHOES" parentEnumId="SHOES" enumTypeId="ProductCategoryType" />
+				enumId="SHJAZZ" parentEnumId="SHOES" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Tap Shoes"
-				enumId="TAP_SHOES" parentEnumId="SHOES" enumTypeId="ProductCategoryType" />
+				enumId="SHTAP" parentEnumId="SHOES" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Pointe Shoes"
-				enumId="POINTE_SHOES" parentEnumId="SHOES" enumTypeId="ProductCategoryType" />
+				enumId="SHPOINTE" parentEnumId="SHOES" enumTypeId="ItemCategory" />
 		</seed-data>
 
 	</entity>
@@ -122,19 +123,45 @@
 		<field name="isCombo" type="text-indicator" />
 
 		<seed-data>
-			<moqui.basic.EnumerationType enumTypeId="ProdutAttributes"
-				description="Product Attributes" />
+			<moqui.basic.EnumerationType enumTypeId="ItemAttributes" 
+				description="Item Attributes" />
 			<moqui.basic.Enumeration enumId="WIDTH"
-				enumTypeId="ProdutAttributes" description="Width" />
+				enumTypeId="ItemAttributes" description="Width" />
 			<moqui.basic.Enumeration enumId="SIZE"
-				enumTypeId="ProdutAttributes" description="Size" />
+				enumTypeId="ItemAttributes" description="Size" />
 			<moqui.basic.Enumeration enumId="COLOR"
-				enumTypeId="ProdutAttributes" description="Color" />
+				enumTypeId="ItemAttributes" description="Color" />
 			<moqui.basic.Enumeration enumId="PRINT"
-				enumTypeId="ProdutAttributes" description="Print" />
+				enumTypeId="ItemAttributes" description="Print" />
 			<moqui.basic.Enumeration enumId="SHANK"
-				enumTypeId="ProdutAttributes" description="Shank" />
+				enumTypeId="ItemAttributes" description="Shank" />
 
+			<warehouse.SdAttribute attributeId="cblack" attributeTypeId="COLOR" attributeCode="01" attributeDescription="Black" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="cwhite" attributeTypeId="COLOR" attributeCode="02" attributeDescription="White" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="cltpink" attributeTypeId="COLOR" attributeCode="03" attributeDescription="Light Pink" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="cnavy" attributeTypeId="COLOR" attributeCode="16" attributeDescription="Navy Blue" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="cred" attributeTypeId="COLOR" attributeCode="07" attributeDescription="Red" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="cskyblue" attributeTypeId="COLOR" attributeCode="02" attributeDescription="Sky Blue" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="cpurple" attributeTypeId="COLOR" attributeCode="18" attributeDescription="Purple" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s60s" attributeTypeId="SIZE" attributeCode="6s" attributeDescription="6.0s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s65s" attributeTypeId="SIZE" attributeCode="65s" attributeDescription="6.5s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s70s" attributeTypeId="SIZE" attributeCode="7s" attributeDescription="7.0s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s75s" attributeTypeId="SIZE" attributeCode="75s" attributeDescription="7.5s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s80s" attributeTypeId="SIZE" attributeCode="8s" attributeDescription="8.0s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s85s" attributeTypeId="SIZE" attributeCode="85s" attributeDescription="8.5s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s90s" attributeTypeId="SIZE" attributeCode="9s" attributeDescription="9.0s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s95s" attributeTypeId="SIZE" attributeCode="95s" attributeDescription="9.5s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s100s" attributeTypeId="SIZE" attributeCode="10s" attributeDescription="10.0s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s105s" attributeTypeId="SIZE" attributeCode="105s" attributeDescription="10.5s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s110s" attributeTypeId="SIZE" attributeCode="11s" attributeDescription="11.0s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s115s" attributeTypeId="SIZE" attributeCode="115s" attributeDescription="11.5s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s120s" attributeTypeId="SIZE" attributeCode="120s" attributeDescription="12.0s" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s" attributeTypeId="SIZE" attributeCode="S" attributeDescription="Small" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="m" attributeTypeId="SIZE" attributeCode="M" attributeDescription="Medium" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="l" attributeTypeId="SIZE" attributeCode="L" attributeDescription="Large" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="Med" attributeTypeId="WIDTH" attributeCode="MED" attributeDescription="Medium" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="Wid" attributeTypeId="WIDTH" attributeCode="WIDE" attributeDescription="Wide" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="Nar" attributeTypeId="WIDTH" attributeCode="NAR" attributeDescription="Narrow" isCombo="F"/>
 		</seed-data>
 
 	</entity>
@@ -194,10 +221,10 @@
 		<field name="descriptionType" type="id" />
 		<field name="seqNumber" type="number-integer" />
 		<field name="descriptionLanguage" type="text-short" />
-		<!--<relationship type="one" related-entity-name="warehouse.SdProduct" 
-			fk-name="productId"> -->
-		<!--<key-map field-name="productId"/> -->
-		<!--</relationship> -->
+		<relationship type="one" related-entity-name="warehouse.SdProduct" 
+			fk-name="productId">
+		<key-map field-name="productId"/>
+		</relationship>
 		<seed-data>
 			<!-- <warehouse.SdProductDescription productId="001" descriptionText="test 
 				description" /> -->
