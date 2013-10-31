@@ -34,8 +34,9 @@
 			<key-map field-name="catalogSectionId" />
 		</relationship>
 		<seed-data>
-			<moqui.basic.EnumerationType enumTypeId="ItemCategory" description="Item Category"/>
-            <moqui.basic.Enumeration description="Shoes"
+			<moqui.basic.EnumerationType enumTypeId="ItemCategory"
+				description="Item Category" />
+			<moqui.basic.Enumeration description="Shoes"
 				enumId="SHOES" enumTypeId="ItemCategory" />
 			<moqui.basic.Enumeration description="Dancewear"
 				enumId="DANCEWEAR" enumTypeId="ItemCategory" />
@@ -123,7 +124,7 @@
 		<field name="isCombo" type="text-indicator" />
 
 		<seed-data>
-			<moqui.basic.EnumerationType enumTypeId="ItemAttributes" 
+			<moqui.basic.EnumerationType enumTypeId="ItemAttributes"
 				description="Item Attributes" />
 			<moqui.basic.Enumeration enumId="WIDTH"
 				enumTypeId="ItemAttributes" description="Width" />
@@ -136,32 +137,298 @@
 			<moqui.basic.Enumeration enumId="SHANK"
 				enumTypeId="ItemAttributes" description="Shank" />
 
-			<warehouse.SdAttribute attributeId="cblack" attributeTypeId="COLOR" attributeCode="01" attributeDescription="Black" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="cwhite" attributeTypeId="COLOR" attributeCode="02" attributeDescription="White" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="cltpink" attributeTypeId="COLOR" attributeCode="03" attributeDescription="Light Pink" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="cnavy" attributeTypeId="COLOR" attributeCode="16" attributeDescription="Navy Blue" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="cred" attributeTypeId="COLOR" attributeCode="07" attributeDescription="Red" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="cskyblue" attributeTypeId="COLOR" attributeCode="02" attributeDescription="Sky Blue" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="cpurple" attributeTypeId="COLOR" attributeCode="18" attributeDescription="Purple" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s60s" attributeTypeId="SIZE" attributeCode="6s" attributeDescription="6.0s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s65s" attributeTypeId="SIZE" attributeCode="65s" attributeDescription="6.5s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s70s" attributeTypeId="SIZE" attributeCode="7s" attributeDescription="7.0s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s75s" attributeTypeId="SIZE" attributeCode="75s" attributeDescription="7.5s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s80s" attributeTypeId="SIZE" attributeCode="8s" attributeDescription="8.0s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s85s" attributeTypeId="SIZE" attributeCode="85s" attributeDescription="8.5s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s90s" attributeTypeId="SIZE" attributeCode="9s" attributeDescription="9.0s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s95s" attributeTypeId="SIZE" attributeCode="95s" attributeDescription="9.5s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s100s" attributeTypeId="SIZE" attributeCode="10s" attributeDescription="10.0s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s105s" attributeTypeId="SIZE" attributeCode="105s" attributeDescription="10.5s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s110s" attributeTypeId="SIZE" attributeCode="11s" attributeDescription="11.0s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s115s" attributeTypeId="SIZE" attributeCode="115s" attributeDescription="11.5s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s120s" attributeTypeId="SIZE" attributeCode="120s" attributeDescription="12.0s" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="s" attributeTypeId="SIZE" attributeCode="S" attributeDescription="Small" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="m" attributeTypeId="SIZE" attributeCode="M" attributeDescription="Medium" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="l" attributeTypeId="SIZE" attributeCode="L" attributeDescription="Large" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="Med" attributeTypeId="WIDTH" attributeCode="MED" attributeDescription="Medium" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="Wid" attributeTypeId="WIDTH" attributeCode="WIDE" attributeDescription="Wide" isCombo="F"/>
-			<warehouse.SdAttribute attributeId="Nar" attributeTypeId="WIDTH" attributeCode="NAR" attributeDescription="Narrow" isCombo="F"/>
+			<warehouse.SdAttribute attributeId="s10s"
+				attributeTypeId="SIZE" attributeCode="10s" attributeDescription="1.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s15s"
+				attributeTypeId="SIZE" attributeCode="15s" attributeDescription="1.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s20s"
+				attributeTypeId="SIZE" attributeCode="20s" attributeDescription="2.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s25s"
+				attributeTypeId="SIZE" attributeCode="25s" attributeDescription="2.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s30s"
+				attributeTypeId="SIZE" attributeCode="30s" attributeDescription="3.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s35s"
+				attributeTypeId="SIZE" attributeCode="35s" attributeDescription="3.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s40s"
+				attributeTypeId="SIZE" attributeCode="40s" attributeDescription="4.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s45s"
+				attributeTypeId="SIZE" attributeCode="45s" attributeDescription="4.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s50s"
+				attributeTypeId="SIZE" attributeCode="50s" attributeDescription="5.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s55s"
+				attributeTypeId="SIZE" attributeCode="55s" attributeDescription="5.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s60s"
+				attributeTypeId="SIZE" attributeCode="60s" attributeDescription="6.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s65s"
+				attributeTypeId="SIZE" attributeCode="65s" attributeDescription="6.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s70s"
+				attributeTypeId="SIZE" attributeCode="70s" attributeDescription="7.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s75s"
+				attributeTypeId="SIZE" attributeCode="75s" attributeDescription="7.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s80s"
+				attributeTypeId="SIZE" attributeCode="80s" attributeDescription="8.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s85s"
+				attributeTypeId="SIZE" attributeCode="85s" attributeDescription="8.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s90s"
+				attributeTypeId="SIZE" attributeCode="90s" attributeDescription="9.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s95s"
+				attributeTypeId="SIZE" attributeCode="95s" attributeDescription="9.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s100s"
+				attributeTypeId="SIZE" attributeCode="100s" attributeDescription="10.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s105s"
+				attributeTypeId="SIZE" attributeCode="105s" attributeDescription="10.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s110s"
+				attributeTypeId="SIZE" attributeCode="110s" attributeDescription="11.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s115s"
+				attributeTypeId="SIZE" attributeCode="115s" attributeDescription="11.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s120s"
+				attributeTypeId="SIZE" attributeCode="120s" attributeDescription="12.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s125s"
+				attributeTypeId="SIZE" attributeCode="125s" attributeDescription="12.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s130s"
+				attributeTypeId="SIZE" attributeCode="130s" attributeDescription="13.0s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s135s"
+				attributeTypeId="SIZE" attributeCode="135s" attributeDescription="13.5s"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s10L"
+				attributeTypeId="SIZE" attributeCode="10L" attributeDescription="1.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s15L"
+				attributeTypeId="SIZE" attributeCode="15L" attributeDescription="1.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s20L"
+				attributeTypeId="SIZE" attributeCode="20L" attributeDescription="2.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s25L"
+				attributeTypeId="SIZE" attributeCode="25L" attributeDescription="2.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s30L"
+				attributeTypeId="SIZE" attributeCode="30L" attributeDescription="3.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s35L"
+				attributeTypeId="SIZE" attributeCode="35L" attributeDescription="3.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s40L"
+				attributeTypeId="SIZE" attributeCode="40L" attributeDescription="4.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s45L"
+				attributeTypeId="SIZE" attributeCode="45L" attributeDescription="4.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s50L"
+				attributeTypeId="SIZE" attributeCode="50L" attributeDescription="5.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s55L"
+				attributeTypeId="SIZE" attributeCode="55L" attributeDescription="5.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s60L"
+				attributeTypeId="SIZE" attributeCode="60L" attributeDescription="6.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s65L"
+				attributeTypeId="SIZE" attributeCode="65L" attributeDescription="6.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s70L"
+				attributeTypeId="SIZE" attributeCode="70L" attributeDescription="7.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s75L"
+				attributeTypeId="SIZE" attributeCode="75L" attributeDescription="7.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s80L"
+				attributeTypeId="SIZE" attributeCode="80L" attributeDescription="8.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s85L"
+				attributeTypeId="SIZE" attributeCode="85L" attributeDescription="8.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s90L"
+				attributeTypeId="SIZE" attributeCode="90L" attributeDescription="9.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s95L"
+				attributeTypeId="SIZE" attributeCode="95L" attributeDescription="9.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s100L"
+				attributeTypeId="SIZE" attributeCode="100L" attributeDescription="10.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s105L"
+				attributeTypeId="SIZE" attributeCode="105L" attributeDescription="10.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s110L"
+				attributeTypeId="SIZE" attributeCode="110L" attributeDescription="11.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s115L"
+				attributeTypeId="SIZE" attributeCode="115L" attributeDescription="11.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s120L"
+				attributeTypeId="SIZE" attributeCode="120L" attributeDescription="12.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s125L"
+				attributeTypeId="SIZE" attributeCode="125L" attributeDescription="12.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s130L"
+				attributeTypeId="SIZE" attributeCode="130L" attributeDescription="13.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s135L"
+				attributeTypeId="SIZE" attributeCode="135L" attributeDescription="13.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s140L"
+				attributeTypeId="SIZE" attributeCode="140L" attributeDescription="14.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s145L"
+				attributeTypeId="SIZE" attributeCode="145L" attributeDescription="14.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s150L"
+				attributeTypeId="SIZE" attributeCode="150L" attributeDescription="15.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s155L"
+				attributeTypeId="SIZE" attributeCode="155L" attributeDescription="15.5L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s160L"
+				attributeTypeId="SIZE" attributeCode="160L" attributeDescription="16.0L"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="sp"
+				attributeTypeId="SIZE" attributeCode="P" attributeDescription="Petite"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="ss"
+				attributeTypeId="SIZE" attributeCode="S" attributeDescription="Small"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="sm"
+				attributeTypeId="SIZE" attributeCode="M" attributeDescription="Medium"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="sl"
+				attributeTypeId="SIZE" attributeCode="L" attributeDescription="Large"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="sxl"
+				attributeTypeId="SIZE" attributeCode="XL" attributeDescription="Extra Large"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s2xl"
+				attributeTypeId="SIZE" attributeCode="XXL" attributeDescription="2X Large"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s3xl"
+				attributeTypeId="SIZE" attributeCode="3XL" attributeDescription="3X Large"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s24"
+				attributeTypeId="SIZE" attributeCode="24" attributeDescription="2-4"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s46"
+				attributeTypeId="SIZE" attributeCode="46" attributeDescription="4-6"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s6x7"
+				attributeTypeId="SIZE" attributeCode="6x7" attributeDescription="6x-7"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s810"
+				attributeTypeId="SIZE" attributeCode="810" attributeDescription="8-10"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s1214"
+				attributeTypeId="SIZE" attributeCode="1214" attributeDescription="12-14"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="syjr"
+				attributeTypeId="SIZE" attributeCode="YJR" attributeDescription="Y.Jr"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s1"
+				attributeTypeId="SIZE" attributeCode="1" attributeDescription="1"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s2"
+				attributeTypeId="SIZE" attributeCode="2" attributeDescription="2"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s3"
+				attributeTypeId="SIZE" attributeCode="3" attributeDescription="3"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s4"
+				attributeTypeId="SIZE" attributeCode="4" attributeDescription="4"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s5"
+				attributeTypeId="SIZE" attributeCode="5" attributeDescription="5"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="s6"
+				attributeTypeId="SIZE" attributeCode="6" attributeDescription="6"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="waa"
+				attributeTypeId="WIDTH" attributeCode="AA" attributeDescription="AA"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="wa"
+				attributeTypeId="WIDTH" attributeCode="A" attributeDescription="A"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="wb"
+				attributeTypeId="WIDTH" attributeCode="B" attributeDescription="B"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="wc"
+				attributeTypeId="WIDTH" attributeCode="C" attributeDescription="C"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="wd"
+				attributeTypeId="WIDTH" attributeCode="D" attributeDescription="D"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="we"
+				attributeTypeId="WIDTH" attributeCode="E" attributeDescription="E"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="wee"
+				attributeTypeId="WIDTH" attributeCode="EE" attributeDescription="EE"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="wmed"
+				attributeTypeId="WIDTH" attributeCode="MED" attributeDescription="Medium"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="wnar"
+				attributeTypeId="WIDTH" attributeCode="NAR" attributeDescription="Narrow"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="wwid"
+				attributeTypeId="WIDTH" attributeCode="WIDE" attributeDescription="Wide"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="wxwid"
+				attributeTypeId="WIDTH" attributeCode="XWID" attributeDescription="Extra Wide"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="sh34n"
+				attributeTypeId="SHANK" attributeCode="34N" attributeDescription="3/4 Normal"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="sh34s"
+				attributeTypeId="SHANK" attributeCode="34S" attributeDescription="3/4 Soft"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="sh34r"
+				attributeTypeId="SHANK" attributeCode="34R" attributeDescription="3/4 Reinforced"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="sh34xr"
+				attributeTypeId="SHANK" attributeCode="34XR" attributeDescription="3/4 Extra Reinforced"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="shfn"
+				attributeTypeId="SHANK" attributeCode="FN" attributeDescription="Full Normal"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="shfs"
+				attributeTypeId="SHANK" attributeCode="FS" attributeDescription="Full Soft"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="shfre"
+				attributeTypeId="SHANK" attributeCode="FRE" attributeDescription="Full Reinforced"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="shfxr"
+				attributeTypeId="SHANK" attributeCode="FXR" attributeDescription="Full Extra Reinforced"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="sh12n"
+				attributeTypeId="SHANK" attributeCode="12N" attributeDescription="Half Normal"
+				isCombo="F" />
+			<warehouse.SdAttribute attributeId="sh12r"
+				attributeTypeId="SHANK" attributeCode="12R" attributeDescription="Half Reinforced"
+				isCombo="F" />
+
 		</seed-data>
 
 	</entity>
@@ -204,7 +471,8 @@
 		<field name="parentId" type="id" />
 
 		<seed-data>
-			<warehouse.SdCatalog catalogId="00001" catalogName="Classic2013" catalogDescription="Classic 2013"/> 
+			<warehouse.SdCatalog catalogId="00001"
+				catalogName="Classic2013" catalogDescription="Classic 2013" />
 		</seed-data>
 	</entity>
 
@@ -221,9 +489,9 @@
 		<field name="descriptionType" type="id" />
 		<field name="seqNumber" type="number-integer" />
 		<field name="descriptionLanguage" type="text-short" />
-		<relationship type="one" related-entity-name="warehouse.SdProduct" 
+		<relationship type="one" related-entity-name="warehouse.SdProduct"
 			fk-name="productId">
-		<key-map field-name="productId"/>
+			<key-map field-name="productId" />
 		</relationship>
 		<seed-data>
 			<!-- <warehouse.SdProductDescription productId="001" descriptionText="test 
