@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        default-menu-title="Examples" default-menu-index="2">
+    
+    <parameter name="exampleFeatureId"/>
+
+    <transition name="editExample"><default-response url="../../Example/EditExample"/></transition>
+    <transition name="createExampleFeatureAppl">
+        <service-call name="org.moqui.example.ExampleServices.create#ExampleFeatureAppl"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="updateExampleFeatureAppl">
+        <service-call name="update#ExampleFeatureAppl"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="deleteExampleFeatureAppl">
+        <service-call name="delete#ExampleFeatureAppl"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="getExampleList">
+        <actions>
+            <entity-find entity-name="Example" list="exampleList" limit="20">
+                <econditions combine="or">
+                    <econdition field-name="exampleId" operator="like" value="%${term}%"/>
+                    <econdition field-name="exampleName" operator="like" value="%${term}%" ignore-case="true"/>
+                </econditions>
+                <order-by field-name="^exampleName"/>
+            </entity-find>
+            <script>
+                def outList = []
+                for (def example in exampleList)
+                    outList.add([value:example.exampleId, label:"${example.exampleName} [${example.exampleId}]".toString()])
+                ec.web.sendJsonResponse(outList)
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
+    <actions>
+        <entity-find entity-name="ExampleFeatureAppl" list="exampleFeatureApplList">
+            <econdition field-name="exampleFeatureId" from="exampleFeatureId"/>
+            <order-by field-name="sequenceNum"/>
+        </entity-find>
+
+        <entity-find entity-name="moqui.basic.Enumeration" list="exampleFeatureApplEnumList">
+            <econdition field-name="enumTypeId" value="ExampleFeatureAppl"/>
+            <order-by field-name="description"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <form-list name="ListExampleFeatureAppls" transition="updateExampleFeatureAppl" list="exampleFeatureApplList">
+            <auto-fields-service service-name="update#ExampleFeatureAppl"/>
+            <field name="exampleId">
+                <default-field title="Example">
+                    <display-entity entity-name="Example" text="${exampleName}"/>
+                    <link url="editExample" text="${exampleId}"/>
+                </default-field>
+            </field>
+            <field name="exampleFeatureId"><default-field><hidden/></default-field></field>
+            <field name="fromDate"><default-field><display/></default-field></field>
+            <field name="exampleFeatureApplEnumId">
+                <default-field title="Type">
+                    <drop-down allow-empty="false">
+                        <list-options list="exampleFeatureApplEnumList" text="${description}"/>
+                    </drop-down>
+                </default-field>
+            </field>
+            <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+            <field name="deleteLink">
+                <default-field title=" ">
+                    <!-- no need to specify parameters for this link since the local env names match the parameter
+                    names and will be auto-mapped (exampleId, exampleFeatureId, fromDate) -->
+                    <link url="deleteExampleFeatureAppl" text="Delete"/>
+                </default-field>
+            </field>
+        </form-list>
+
+        <form-single name="AddExampleFeatureAppl" transition="createExampleFeatureAppl">
+            <auto-fields-service service-name="create#ExampleFeatureAppl"/>
+            <field name="exampleId">
+                <default-field title="Example">
+                    <text-line size="15" ac-transition="getExampleList"/>
+                </default-field>
+            </field>
+            <field name="exampleFeatureId"><default-field><hidden/></default-field></field>
+
+            <field name="exampleFeatureApplEnumId">
+                <default-field title="Type">
+                    <drop-down allow-empty="false">
+                        <list-options list="exampleFeatureApplEnumList" text="${description}"/>
+                    </drop-down>
+                </default-field>
+            </field>
+            <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+        </form-single>
+    </widgets>
+</screen>

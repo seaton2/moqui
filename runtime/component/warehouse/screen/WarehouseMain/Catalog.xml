@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+	include-child-content="true" require-authentication="true" default-menu-title="Catalog" default-menu-index="2">
+
+
+    <transition name="editCatalog">
+        <default-response url="EditCatalog"/>
+    </transition>
+    <transition name="createCatalog">
+        <default-response url="EditCatalog"/>
+    </transition>
+	
+    <actions>
+        <entity-find entity-name="warehouse.SdCatalog" list="catalogList"/>
+    </actions>
+	
+    <widgets>
+        <dynamic-dialog id="Create" button-text="New Catalog" transition="createCatalog"/>
+        <form-list name="catalogList" list="catalogList" >
+            <auto-fields-entity entity-name="warehouse.SdCatalog" field-type="display" />
+            <field name="catalogId">
+                <default-field>
+                    <dynamic-dialog id="Edit" transition="editCatalog" button-text="Edit ${catalogId}"/>
+                </default-field>
+            </field>
+        </form-list>
+		
+    </widgets>
+
+
+</screen>

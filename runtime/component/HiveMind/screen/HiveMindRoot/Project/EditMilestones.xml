@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        default-menu-title="Milestones" default-menu-index="2">
+
+    <parameter name="rootWorkEffortId"/>
+
+    <transition name="createMilestone">
+        <service-call name="mantle.work.ProjectServices.create#Milestone" in-map="context" out-map="bogus"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="updateMilestone">
+        <service-call name="mantle.work.ProjectServices.update#Milestone" in-map="context" out-map="bogus"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="milestoneSummary"><default-response url="../MilestoneSummary"/></transition>
+
+    <actions>
+        <entity-find entity-name="WorkEffort" list="milestoneList">
+            <econdition field-name="rootWorkEffortId"/>
+            <econdition field-name="workEffortTypeEnumId" value="WetMilestone"/>
+            <order-by field-name="estimatedStartDate"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <container-dialog id="CreateMilestoneDialog" button-text="Create Milestone">
+            <form-single name="CreateMilestoneForm" transition="createMilestone">
+                <field name="rootWorkEffortId"><default-field><hidden/></default-field></field>
+                <field name="workEffortId"><default-field title="Milestone ID"><text-line size="10" default-value="${rootWorkEffortId}-"/></default-field></field>
+                <field name="workEffortName"><default-field title="Milestone Name"><text-line size="25"/></default-field></field>
+                <field name="estimatedStartDate">
+                    <default-field title="Start Date"><date-time type="date" format="yyyy-MM-dd"/></default-field>
+                </field>
+                <field name="estimatedCompletionDate">
+                    <default-field title="End Date"><date-time type="date" format="yyyy-MM-dd"/></default-field>
+                </field>
+                <field name="statusId"><default-field title="Status">
+                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusDropDown">
+                        <set field="statusTypeId" value="WorkEffort"/></widget-template-include>
+                </default-field></field>
+                <field name="submitButton"><default-field title="Create Milestone"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
+
+        <form-list name="MilestoneList" list="milestoneList" transition="updateMilestone">
+            <row-actions>
+                <entity-find-one entity-name="moqui.basic.StatusItem" value-field="currentStatus"/>
+            </row-actions>
+            <field name="rootWorkEffortId"><default-field><hidden/></default-field></field>
+            <field name="workEffortId"><default-field title="Milestone">
+                <display/>
+                <link url="milestoneSummary" text="Summary">
+                    <parameter name="milestoneWorkEffortId" from="workEffortId"/></link>
+            </default-field></field>
+            <field name="workEffortName"><default-field title="Name"><text-line size="25"/></default-field></field>
+            <field name="estimatedStartDate">
+                <default-field title="Start Date"><date-time type="date" format="yyyy-MM-dd"/></default-field>
+            </field>
+            <field name="estimatedCompletionDate">
+                <default-field title="End Date"><date-time type="date" format="yyyy-MM-dd"/></default-field>
+            </field>
+            <field name="statusId"><default-field title="Status">
+                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusTransitionDropDown">
+                    <set field="currentDescription" from="currentStatus?.description"/></widget-template-include>
+            </default-field></field>
+            <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+        </form-list>
+    </widgets>
+</screen>

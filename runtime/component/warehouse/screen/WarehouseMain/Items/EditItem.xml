@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        require-authentication="true" screen-theme-type-enum-id="STT_INTERNAL" standalone="true">
+    <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
+    <parameter name="sku"/>
+
+    <transition name="update">
+
+        <service-call name="update#SdItem" />
+        <default-response url="../../../Warehouse/Items"/>
+
+
+    </transition>
+    <transition name="create" >
+        <service-call name="WarehouseServices.create#SdItem"  />
+
+        <default-response url="../../../Warehouse/Items"/>
+    </transition>
+
+    <actions>
+        <entity-find-one entity-name="warehouse.SdItem" value-field="singleItem" >
+            <field-map field-name="sku" from="sku"   />
+        </entity-find-one>
+
+        <entity-find entity-name="moqui.basic.StatusItem" list="itemStatus">
+            <econdition field-name="statusTypeId" operator="equals" value="ItemStatus"/>
+
+            <order-by field-name="description"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <section name="create">
+            <condition><compare field="singleItem" operator="empty"/></condition>
+            <widgets>
+                <form-single name="createSdItem" transition="create" >
+                <auto-fields-entity entity-name="warehouse.SdItem" field-type="edit"/>
+                <!--<field name="productId">-->
+                    <!--<default-field>-->
+                        <!--<display/>-->
+                    <!--</default-field>-->
+                <!--</field>-->
+                <!--<field name="categoryId">-->
+                    <!--<default-field>-->
+                        <!--<drop-down>-->
+                            <!--<list-options list="productCategory" key="${enumId}" text="${description}"/>-->
+                        <!--</drop-down>-->
+                    <!--</default-field>-->
+                <!--</field>-->
+                <field name="statusId">
+                    <default-field>
+                        <drop-down>
+                            <list-options list="itemStatus" text="${description}" key="${statusId}"/>
+                        </drop-down>
+                    </default-field>
+                </field>
+                <!--<field name="fromDate">-->
+                    <!--<default-field>-->
+                        <!--<date-time type="date" default-value="${fromDate}"/>-->
+                    <!--</default-field>-->
+                <!--</field>-->
+                <!--<field name="thruDate">-->
+                    <!--<default-field>-->
+                        <!--<date-time type="date" default-value="${thruDate}"/>-->
+                    <!--</default-field>-->
+                <!--</field>-->
+                <field name="Create">
+                    <default-field >
+                        <submit />
+                    </default-field>
+                </field>
+            </form-single>
+            </widgets>
+        </section>
+        <section name="update">
+            <condition><compare field="singleItem" operator="not-empty"/></condition>
+            <widgets>
+                <form-single name="editSdItem" transition="update" map="singleItem">
+                <auto-fields-entity entity-name="warehouse.SdItem" field-type="edit"/>
+                <field name="sku">
+                    <default-field>
+                        <display/>
+                    </default-field>
+                </field>
+                <!--<field name="categoryId">-->
+                    <!--<default-field>-->
+                        <!--<drop-down>-->
+                            <!--<list-options list="productCategory" key="${enumId}" text="${description}"/>-->
+                        <!--</drop-down>-->
+                    <!--</default-field>-->
+                <!--</field>-->
+                <field name="statusId">
+                    <default-field>
+                        <drop-down>
+                            <list-options list="itemStatus" text="${description}" key="${statusId}"/>
+                        </drop-down>
+                    </default-field>
+                </field>
+                <!--<field name="fromDate">-->
+                    <!--<default-field>-->
+                        <!--<date-time type="date" default-value="${fromDate}"/>-->
+                    <!--</default-field>-->
+                <!--</field>-->
+                <!--<field name="thruDate">-->
+                    <!--<default-field>-->
+                        <!--<date-time type="date" default-value="${thruDate}"/>-->
+                    <!--</default-field>-->
+                <!--</field>-->
+                <field name="Update">
+                    <default-field>
+                        <submit/>
+                    </default-field>
+                </field>
+            </form-single>
+            </widgets>
+        </section>
+
+    </widgets>
+</screen>

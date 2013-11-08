@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        require-authentication="true" screen-theme-type-enum-id="STT_INTERNAL"  standalone="true">
+    <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
+<parameter name="autoInc"/>
+
+<transition name="updateTimeclock">
+    <service-call name="customUserServices.refresh#Timeclock"/>
+    <default-response url="../../User"/>
+
+
+</transition>
+<actions>
+    <entity-find-one entity-name="moqui.basic.Timeclock" value-field="singleTimeclock" >
+        <field-map field-name="autoInc" from="autoInc"   />
+    </entity-find-one>
+</actions>
+<widgets>
+    <form-single name="editTimeclockEntry" transition="updateTimeclock" map="singleTimeclock">
+        <!--<auto-fields-entity entity-name="moqui.basic.Timeclock" field-type="edit"/>-->
+        <field name="autoInc">
+            <default-field>
+                <display/>
+            </default-field>
+        </field>
+        <field name="userId">
+            <default-field>
+                <display/>
+            </default-field>
+        </field>
+
+        <field name="timeIn">
+            <default-field>
+                <date-time default-value="${singleTimeclock.timeIn}"/>
+            </default-field>
+        </field>
+        <field name="timeOut">
+            <default-field>
+                <date-time default-value="${singleTimeclock.timeOut}"/>
+            </default-field>
+        </field>
+        <field name="hoursWorked">
+            <default-field>
+
+                <display text="${singleTimeclock.hoursWorked}"/>
+            </default-field>
+        </field>
+        <field name="Submit">
+            <default-field>
+                <submit/>
+            </default-field>
+        </field>
+    </form-single>
+</widgets>
+</screen>

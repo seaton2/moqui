@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-1.3.xsd">
+
+    <service verb="index" noun="DataDocuments" authenticate="false">
+        <description>Indexes documents passed using ElasticSearch. The DataDocument must have an indexName.</description>
+        <implements service="org.moqui.EntityServices.receive#DataFeed"/>
+        <in-parameters>
+            <parameter name="dataFeedId" required="false"/>
+            <parameter name="feedStamp" type="Timestamp" required="false"/>
+            <parameter name="getOriginalDocuments" type="Boolean" default-value="false"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="documentVersionList" type="List" required="true"/>
+            <parameter name="originalDocumentList" type="List" required="false"/>
+        </out-parameters>
+        <actions>
+            <script>
+            import org.elasticsearch.action.index.IndexResponse
+            import org.slf4j.Logger
+            import org.slf4j.LoggerFactory
+            import org.moqui.context.ExecutionContext
+            ExecutionContext ec = context.ec
+            Logger logger = LoggerFactory.getLogger("index_DataDocuments")
+
+            documentVersionList = []
+            originalDocumentList = getOriginalDocuments ? [] : null
+            for (Map document in documentList) {
+                if (getOriginalDocuments) {
+                    // this may fail for a number of reasons, like index doesn't exist yet, so catch the exception
+                    try {
+                        Map originalDocument = ec.elasticSearchClient
+                                .prepareGet((String) document._index, (String) document._type, (String) document._id)
+                                .execute().actionGet().getSourceAsMap()
+                        originalDocumentList.add(originalDocument ?: [:])
+                    } catch (Exception e) {
+                        logger.info("Could not get original document for [${document._index}, ${document._type}, ${document._id}]: ${e.toString()}")
+                        originalDocumentList.add([:])
+                    }
+                }
+                IndexResponse response = ec.elasticSearchClient
+                        .prepareIndex((String) document._index, (String) document._type, (String) document._id)
+                        .setSource(document).execute().actionGet()
+                documentVersionList.add(response.getVersion())
+                // logger.warn("============ indexed [${document._index}, ${document._type}, ${document._id}] version [${response.getVersion()}]")
+            }
+            </script>
+        </actions>
+    </service>
+
+    <service verb="index" noun="DataFeedDocuments" authenticate="false">
+        <in-parameters>
+            <parameter name="dataFeedId" required="true"/>
+            <parameter name="fromUpdateStamp" type="Timestamp"/>
+            <parameter name="thruUpdateStamp" type="Timestamp"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="documentsIndexed" type="Integer"/>
+        </out-parameters>
+        <actions>
+            <set field="documentList" from="ec.entity.getEntityDataFeed().getFeedDocuments(dataFeedId, fromUpdateStamp, thruUpdatedStamp)"/>
+            <set field="feedStamp" from="thruUpdateStamp ?: ec.user.nowTimestamp"/>
+            <service-call name="org.moqui.impl.EntityServices.index#DataDocuments" in-map="context"/>
+            <set field="documentsIndexed" from="documentList.size()"/>
+            <message>Indexed ${documentsIndexed} documents</message>
+        </actions>
+    </service>
+    <service verb="get" noun="DataFeedDocuments">
+        <in-parameters>
+            <parameter name="dataFeedId" required="true"/>
+            <parameter name="fromUpdateStamp" type="Timestamp"/>
+            <parameter name="thruUpdateStamp" type="Timestamp"/>
+        </in-parameters>
+        <out-parameters><parameter name="documentList" type="List"/></out-parameters>
+        <actions>
+            <set field="documentList" from="ec.entity.getEntityDataFeed().getFeedDocuments(dataFeedId, fromUpdateStamp, thruUpdatedStamp)"/>
+        </actions>
+    </service>
+    <service verb="get" noun="DataFeedLatestDocuments">
+        <description>This service gets the latest documents for a DataFeed based on DataFeed.lastFeedStamp, and updates
+            lastFeedStamp to the current time.</description>
+        <in-parameters><parameter name="dataFeedId" required="true"/></in-parameters>
+        <out-parameters><parameter name="documentList" type="List"/></out-parameters>
+        <actions>
+            <set field="documentList" from="ec.entity.getEntityDataFeed().getFeedLatestDocuments(dataFeedId)"/>
+        </actions>
+    </service>
+
+    <service verb="search" noun="DataDocuments">
+        <description>
+            The queryString format is the ElasticSearch supported one, based on the Lucene query strings which are
+            partly documented here:
+
+            http://lucene.apache.org/core/4_2_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html
+        </description>
+        <in-parameters>
+            <parameter name="indexName" required="true"/>
+            <parameter name="documentType"><description>The ElasticSearch document type. For DataDocument based docs
+                this is the dataDocumentId.</description></parameter>
+            <parameter name="queryString" required="true"/>
+            <parameter name="pageIndex" type="Integer" default-value="0"/>
+            <parameter name="pageSize" type="Integer" default-value="20"/>
+            <parameter name="flattenDocument" type="Boolean" default-value="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="documentList" type="List"><description>List of documents, each document is a Map with
+                nested Maps and Lists of Maps.</description></parameter>
+            <parameter name="documentListCount" type="Integer"><description>The total count of hits, not just the
+                limited number returned.</description></parameter>
+            <parameter name="documentListPageIndex" type="Integer"/>
+            <parameter name="documentListPageSize" type="Integer"/>
+            <parameter name="documentListPageMaxIndex" type="Integer"/>
+            <parameter name="documentListPageRangeLow" type="Integer"/>
+            <parameter name="documentListPageRangeHigh" type="Integer"/>
+        </out-parameters>
+        <actions>
+            <set field="fromOffset" from="pageIndex * pageSize"/>
+            <set field="sizeLimit" from="pageSize"/>
+            <script>
+                /* useful docs for query API:
+                       http://www.elasticsearch.org/guide/reference/api/search/uri-request/
+                 */
+
+                import org.elasticsearch.action.get.MultiGetItemResponse
+                import org.elasticsearch.action.get.MultiGetRequestBuilder
+                import org.elasticsearch.index.query.QueryBuilders
+                import org.elasticsearch.search.SearchHit
+                import org.elasticsearch.search.SearchHits
+                import org.moqui.context.ExecutionContext
+                ExecutionContext ec = context.ec
+
+                documentList = []
+
+                // get the search hits
+                SearchHits hits = ec.elasticSearchClient.prepareSearch().setIndices(indexName).setTypes(documentType)
+                        .setQuery(QueryBuilders.queryString(queryString)).setFrom(fromOffset).setSize(sizeLimit).execute().actionGet().getHits()
+                if (hits.getTotalHits() > 0) {
+                    MultiGetRequestBuilder mgrb = ec.elasticSearchClient.prepareMultiGet()
+                    for (SearchHit hit in hits) mgrb.add(hit.getIndex(), hit.getType(), hit.getId())
+                    Iterator mgirIt = mgrb.execute().actionGet().iterator()
+                    while(mgirIt.hasNext()) {
+                        MultiGetItemResponse mgir = mgirIt.next()
+                        Map document = mgir.getResponse().getSourceAsMap()
+                        documentList.add(flattenDocument ? StupidUtilities.flattenNestedMap(document) : document)
+                    }
+                }
+
+                // get the total search count
+                documentListCount = ec.elasticSearchClient.prepareCount(indexName).setQuery(QueryBuilders.queryString(queryString)).execute().actionGet().getCount()
+
+                // calculate the pagination values
+                documentListPageIndex = pageIndex
+                documentListPageSize = pageSize
+                documentListPageMaxIndex = ((BigDecimal) documentListCount).divide(documentListPageSize, 0, BigDecimal.ROUND_DOWN) as int
+                documentListPageRangeLow = documentListPageIndex * documentListPageSize + 1
+                documentListPageRangeHigh = (documentListPageIndex * documentListPageSize) + documentListPageSize
+                if (documentListPageRangeHigh > documentListCount) documentListPageRangeHigh = documentListCount
+            </script>
+        </actions>
+    </service>
+</services>

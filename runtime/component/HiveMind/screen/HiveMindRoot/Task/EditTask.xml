@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        default-menu-title="Task" default-menu-index="1">
+
+    <parameter name="workEffortId"/>
+
+    <transition name="updateTask">
+        <service-call name="mantle.work.TaskServices.update#Task" in-map="context"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="editProject"><default-response url="../../Project/EditProject"/></transition>
+    <transition name="milestoneSummary"><default-response url="../../Project/MilestoneSummary"/></transition>
+    <transition name="getProjectMilestones">
+        <actions>
+            <service-call name="mantle.work.ProjectServices.get#ProjectMilestones" in-map="context" out-map="context"/>
+            <script>ec.web.sendJsonResponse(resultList)</script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+    <transition name="getProjectTasks">
+        <actions>
+            <service-call name="mantle.work.ProjectServices.get#ProjectTasks" in-map="context" out-map="context"/>
+            <script>ec.web.sendJsonResponse(resultList)</script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
+    <actions>
+        <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="task"/>
+        <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="project">
+            <field-map field-name="workEffortId" from="task.rootWorkEffortId"/>
+        </entity-find-one>
+
+        <entity-find entity-name="mantle.work.effort.WorkEffortAssoc" list="milestoneAssocList">
+            <date-filter/>
+            <econdition field-name="toWorkEffortId" from="task.workEffortId"/>
+            <econdition field-name="workEffortAssocTypeEnumId" value="WeatMilestone"/>
+        </entity-find>
+        <set field="milestoneAssoc" from="milestoneAssocList?.getAt(0)"/>
+        <set field="statusFlowId" from="(task.statusFlowId ?: project.statusFlowId) ?: 'Default'"/>
+    </actions>
+    <widgets>
+        <form-single name="EditTask" transition="updateTask" map="task">
+            <field name="workEffortId"><default-field title="Task ID"><display/></default-field></field>
+            <field name="rootWorkEffortId"><default-field title="Project">
+                <drop-down>
+                    <entity-options key="${workEffortId}" text="${workEffortId}: ${workEffortName}">
+                        <entity-find entity-name="WorkEffortAndParty">
+                            <date-filter/>
+                            <econdition field-name="partyId" from="ec.user.userAccount.partyId"/>
+                            <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
+                        </entity-find>
+                    </entity-options>
+                </drop-down>
+                <link text="Edit ${project.workEffortName} [${task.rootWorkEffortId}]" url="editProject">
+                    <parameter name="workEffortId" from="task.rootWorkEffortId"/>
+                </link>
+            </default-field></field>
+            <field name="milestoneWorkEffortId" entry-name="milestoneAssoc?.workEffortId"><default-field title="Milestone">
+                <drop-down combo-box="true">
+                    <dynamic-options transition="getProjectMilestones" value-field="workEffortId" label-field="milestoneLabel">
+                        <depends-on field="rootWorkEffortId"/>
+                    </dynamic-options>
+                </drop-down>
+                <link text="${milestoneAssoc ? 'Edit ' + milestoneAssoc.workEffortId : ''}" url="milestoneSummary">
+                    <parameter name="milestoneWorkEffortId" from="milestoneAssoc?.workEffortId"/>
+                </link>
+            </default-field></field>
+            <field name="parentWorkEffortId"><default-field title="Parent Task">
+                <drop-down combo-box="true">
+                    <dynamic-options transition="getProjectTasks" value-field="workEffortId" label-field="taskLabel">
+                        <depends-on field="rootWorkEffortId"/>
+                    </dynamic-options>
+                </drop-down>
+            </default-field></field>
+            <field name="workEffortName"><default-field title="Task Name"><text-line/></default-field></field>
+            <field name="priority"><default-field>
+                <widget-template-include location="component://HiveMind/template/screen/ProjectWidgetTemplates.xml#priority"/>
+            </default-field></field>
+            <field name="purposeEnumId"><default-field title="Purpose">
+                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumWithParentDropDown">
+                    <set field="enumTypeId" value="WorkEffortPurpose"/><set field="parentEnumId" value="WetTask"/></widget-template-include>
+            </default-field></field>
+            <field name="statusId"><default-field title="Status">
+                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusTransitionWithFlowDropDown">
+                    <set field="currentDescription" from="task?.'WorkEffort#moqui.basic.StatusItem'?.description"/>
+                    <set field="statusId" from="task.statusId"/></widget-template-include>
+            </default-field></field>
+            <field name="resolutionEnumId"><default-field title="Resolution">
+                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                    <set field="enumTypeId" value="WorkEffortResolution"/></widget-template-include>
+            </default-field></field>
+            <field name="estimatedCompletionDate">
+                <default-field title="Due Date"><date-time type="date" format="yyyy-MM-dd"/></default-field>
+            </field>
+            <field name="estimatedWorkTime"><default-field title="Estimated Hours">
+                <text-line size="5"/></default-field></field>
+            <field name="remainingWorkTime"><default-field title="Remaining Hours">
+                <text-line size="5"/></default-field></field>
+            <field name="actualWorkTime"><default-field title="Actual Hours">
+                <display format="#.00"/></default-field></field>
+            <field name="description"><default-field title="Description"><text-area rows="20" cols="100"/></default-field></field>
+            <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+            
+            <field-layout>
+                <fields-not-referenced/>
+                <field-row><field-ref name="purposeEnumId"/><field-ref name="priority"/></field-row>
+                <field-row><field-ref name="statusId"/><field-ref name="estimatedCompletionDate"/></field-row>
+                <field-row><field-ref name="estimatedWorkTime"/><field-ref name="remainingWorkTime"/></field-row>
+                <field-ref name="actualWorkTime"/>
+                <field-ref name="description"/>
+                <field-ref name="submitButton"/>
+            </field-layout>
+        </form-single>
+    </widgets>
+</screen>

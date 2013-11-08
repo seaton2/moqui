@@ -1,0 +1,1309 @@
+
+Moqui Framework Release Notes
+
+===========================================================================
+Release 1.3.2 - Date TBD
+===========================================================================
+
+Moqui Framework 1.3.1 is a minor new feature and bug fix release.
+
+New Features:
+
+
+Bug Fixes:
+
+
+===========================================================================
+Release 1.3.1 - 20 Oct 2013
+===========================================================================
+
+Moqui Framework 1.3.1 is a minor new feature, bug fix, and performance
+enhancement release.
+
+New Features:
+
+- Performance improvements based on profiling (tested screens run
+  around 1.3 to 2 times as fast)
+- form-list and section-iterate automatically add *_index and
+  *_has_next context fields following the pattern used in Freemarker
+- formDisplayOnly parameter (or context value) to make the form render as
+  display-only (read-only)
+- dynamic and static layouts
+  - static layout uses entire browser width and is CSS based
+  - dynamic layout uses jQuery Layout plugin and supports closing,
+    resizing, fixed header/footer, separate scrolling left/right, etc
+- popup menus are in the header to save space and for easier layout
+- set action inside form field sub-elements and widget-template-include for
+  parameterized widget-template definitions
+- XML Form pass through of matches (regexp) validation from service
+- Added ServiceTrigger entity to call a service when the record is created;
+  useful for triggering data setup services on data load and so on
+- The loadData execution uses anonymous user for authc and allows any authz
+  for services triggered on data load
+
+Bug Fixes:
+
+- Fixed extraneous close script tags in screen/form HTML output
+- Fixed right/east container-panel field name so size, etc settings apply
+- Fixed calls to startFormListRow that were missing new parameters added
+  to the method; resolves SourceForce Bug #39
+- Fixed issue with a form-list with header form in a dynamic-container; now
+  updates within the containing div using the results of the form submit
+- Fixed issue with service name comparison when running SECA rules
+- Auto reverse relationships better support titles
+- DataDocument no longer includes null fields, empty Maps and Lists
+- Fixed issue with null oldStatusId and setting new statusChanged automatic
+  fields in entity-auto service implementation
+- Fixed entity-find.search-form-inputs.@input-fields-map attribute, groovy
+  generated left out quotes
+- Fixed NPE in EntityUserField code
+- Changed searchFormInputs to default to equals instead of contains; more
+  efficient queries and works for numbers, dates, etc
+- Changed saved session messages and errors to be separate from
+  MessageFacade ones so they still display but don't stop other services
+  from running
+- Fixed EntityFacadeImpl.getAllEntityNames() to not return invalid entity
+  names, caused problems with AuthScreen, etc after an attempt to use an
+  entity with an invalid name
+- Fixed issue with Entity ECA rules where fields set to null were reset
+  back to the value from the DB
+- Fixed issues with export with dependents including making sure all
+  auto-reverse relationships are in place and properly handing
+  relationships with titles when deferring export for fk dependency
+- Fixed issue where secondary sequenced ID did not preserve disableAuthz
+- Fixed issue with DENY record not stopping sub-screens access
+
+===========================================================================
+Release 1.3.0 - 27 July 2013
+===========================================================================
+
+Moqui Framework 1.3.0 is a major new feature and bug fix release. The major
+new features include the EntityFacade Data Document, Data Feed, and Data
+Search (based on ElasticSearch) features, the User Notification Message
+feature, and various improvements to XML Screens and Forms. This release is
+backward compatible with Moqui Framework release 1.2.0 with the exception
+that the StatusValidChange entity is deprecated by the new
+StatusFlowTransition entity.
+
+When updating to Moqui 1.3.0 from 1.2.0 or earlier existing databases may
+need to be updated because the Entity Facade now uses full entity names
+(with the package included in the name) for everything. The
+SequenceValueItem.seqName may contain plain entity names (without package)
+that need to be changed to full entity names (with package). This can be
+done by adding records with the full entity name in the seqName field with
+the same value as the original record in seqNum.
+
+New Features:
+
+- Updated Gradle build files to work with Gradle 1.6 (may not work with
+  earlier versions)
+- Updated Apache Camel to 2.11.1, Apache Commons Validator to 1.4.0,
+  Apache Derby to 10.10.1.1, ehcache to 2.7.2, Freemarker to 2.3.20,
+  Groovy to 2.1.6, Quartz Scheduler to 2.1.7
+- Added ElasticSearch 0.90.2 and Lucene 4.3.1 ElasticSearch files are under
+  runtime/elasticsearch and it is initialized and destroyed with the rest
+  of the framework
+- With ElasticSearch, Lucene, and full ehcache instead of just core the
+  size of Moqui Framework has grown from ~24MB to ~42MB
+- Both ElasticSearch and Camel can be disabled to not init automatically
+- Introduced StatusFlow, StatusFlowItem and StatusFlowTransition entities
+  for improved status flow support. A StatusItem may be used in multiple
+  flows, each flow having its own set of status items and transitions.
+- Entity Facade
+  - Added EntityDynamicView.addRelationshipMember() method to easily add
+    member-entity based on relationship definition
+  - Added Entity Data Document feature configured by DataDocument* entities
+    which produce a sort of view entity (built on the fly with
+    EntityDynamicView); the actual data documents are nested Maps and Lists
+    produced by the EntityFacade.getDataDocuments() method
+  - Added Entity Data Feed feature configured by DataFeed* entities; a feed
+    is associated with one or more DataDocuments that are pushed to a
+    service or pulled through a method call; the first part implemented is
+    a real-time push triggered by entity changes for entities that are part
+    of associated DataDocuments and the document(s) produced and sent to
+    the feed receive service when a transaction is successfully committed
+  - Added index#DataFeedDocuments service to easily index all documents
+    associated with a DataFeed within a date range
+  - Added search#DataDocuments service which uses ElasticSearch; supports
+    pagination and so on
+  - Added Tool app screens for index, search, and export DataDocuments
+  - Improved date/time and number parsing for String values passed to an
+    entity, partly so that implicit entity-auto services are more usable
+  - Changed to use full entity name (with package) in more places including
+    the entity cache
+- XML Screen and Form
+  - Added XML Form fields-not-referenced element to specify where to render
+    the fields not explicitly referenced under the field-layout element
+  - Small adjustment to transition parameter so that if explicitly defined
+    as empty that will be used instead of defaulting to value from context
+    or web parameters
+  - Screen transition response plain URLs now assemble parameters using
+    response parameter sub-elements
+  - Improved form-list with form-list-column so that hidden fields are
+    always rendered along with the form element
+  - Added span with id for form-list cell display fields and classes on it
+    for currency and field value Java classes (BigDecimal, Timestamp, etc)
+    plus CSS to center numbers and right align currency amounts
+  - Added XML Form field widget element auto-widget-service and
+    auto-widget-entity to do the same thing as auto-fields-* except that
+    they are applied to a single field for more granular control without a
+    bunch of ignores
+  - Added dynamic-dialog element to XML Screens; like the container-dialog
+    element but loads the dialog contents from the server when opened
+  - Added form-list.@paginate-always-show attribute, defaults to true; set
+    to false to hide pagination control and row count when there is only
+    one page of rows to display; SourceForge feature request #8
+  - Added widget-templates file and widget-template-include element under
+    XML Form fields to include widget-templates for widget reuse
+  - Added form-list.@skip-form element for use with plain tables that will
+    have nothing to submit; in HTML leaves out form elements
+  - Added dynamic-container element to easily setup a section of the screen
+    that is loaded separately from the server for easy update
+  - Added background-* attributes to form-single to submit the form in the
+    background and optionally show a message on success and reload a
+    dynamic-container by id
+  - In HTML generation script tags spread throughout HTML are now
+    consolidated into a single script tag at the end of the screen output
+  - Added editable element like a label but when you click on it an edit
+    box appears to allow editing of the single field (this uses the
+    jeditable jquery plugin)
+- Added WebFacade.sendTextResponse() method to send plain text response
+- Added User NotificationMessage feature to send messages to users through
+  active listeners or persist them to track receipt and handle delivery
+  when the user is next available. The message is a JSON String
+  (representing a Map). Custom listeners can be added as implementations
+  of the NotificationMessageListener interface. Message pulling is also
+  supported for things like message screens. Listeners may be created
+  for delivery means such as WebSocket, email, etc.
+
+Bug Fixes:
+
+- Fixed URLs for Mantle UBPL links using active screen URL as the default
+  base URL instead of the full URL of the current screen
+- Fixed issue where form-list-column and field-layout nodes in an extended
+  screen modified the original node from the base screen
+- Fixed issue in entity-auto create where automatically set fromDate was
+  not returned in the service result
+- Fixed issue in screens with a form-list and then a form-single where
+  listEntryIndex bleeds over and results in a _?? to field IDs and such
+- Fixed issue with date/time parsing and formatting to more consistently
+  user user time zone, avoids time discrepancies between input and display
+  while leaving hidden fields as plain toString/etc
+- Fixed issue with date and time values going to and from the database when
+  the current user has a time zone different from the system by passing a
+  Calendar object with the user's time zone to the PreparedStatement and
+  ResultSet methods for Date, Time, and Timestamp
+- Fixed issue with automatic case insensitive order by on non-String
+  fields; now ignored automatically when not applicable
+- Fixed issue with hidden fields in form-list header-fields when rendered
+  in HTML with the default macros where the title appeared even if all
+  field types were hidden, and if @hide was set to true the hidden input
+  would not be rendered
+- Fixed issue in XML Form when a field-row is under a field-group element
+  where the field-row was ignored and the fields in the group were
+  displayed twice
+- Fixed issue when making a condition with an empty Map, List, etc returns
+  null instead of an invalid condition
+- Fixed issue with entity find one on a view-entity with no PK fields where
+  no matter the conditions it was considered a full set of PK field
+  constraints causing it to throw out the actual find constraints
+- Fixed issue with form-list formatting when the @multi=true attribute and
+  form-list-column elements are both used in the same form
+- Fixed issue where IN and NOT IN did not add parenthesis if the value was
+  not a Collection; also added splitting of String values used with IN and
+  NOT IN by comma for convenience in specifying these lists of ID values
+- Fixed issues where sequenced values with a non-entity seqName threw an
+  exception and increment by one didn't increment the bank, causing a
+  duplicate key error from the database on insert
+- Fixed issue in Auto Screens where automatic links had wrong parameter
+  name for the entity name (had entityName, now aen)
+- Fixed issue where if a standalone screen (or with lastStandalone set) has
+  pre-actions the screens before it were not pushed to get authz setup;
+  SourceForge Bug #30
+- Fixed issue with display.@currency-unit-field attribute with numbers
+  larger than 1000 because it used the BigDecimal String constructor to
+  parse a String formatted with a comma thousands separator; the
+  L10nFacade.formatCurrency() method now uses a proper locale-aware number
+  parser to parse numbers, and the display FTL macro has been updated to
+  use the field value object directly instead of changing it to a String
+  and then parsing it back to format as currency; SourceForge Bug #31
+- Fixed issue with two back-to-back form-list using skip-end on the first
+  and skip-start on the second; now rows are simply appended as would be
+  expected instead of multiple form-list-outer/etc elements
+- Fixed issue where view-entity.entity-condition.date-filter did not work
+  with an empty @valid-date attribute
+- Fixed a few issues with EntityDynamicView (failure to get group name,
+  some better error handling, etc)
+- Fixed issue with view-entity automatic trimming based on used fields
+  where a member-entity with no used fields but that is needed to joing to
+  another member-entity with used fields was not included
+- Fixed issue with tx-commit and tx-rollback parameter missing in method
+  call to run service
+- Fixed bug in MoquiStart where Manifest was sometimes null causing a class
+  not found exception
+
+===========================================================================
+Release 1.2.0 - 30 Dec 2012
+===========================================================================
+
+Moqui Framework release 1.2.0 is a minor new feature release and a major
+quality improvement release. This release has undergone significantly more
+testing than previous releases because of a wider variety of functionality
+that has now been built and tested using the framework, and because of a
+unit testing effort (framework unit tests built using Spock).
+
+The new features include popup menus (using the new jQueryUI menu widget),
+dynamic-options in XML Form drop-downs with dependency on other fields,
+automatic optimization of queries on view-entities to old select member
+entities necessary, support for UUID generated primary keys, expanded JCR
+support and an Example Content screen, and a number of small improvements
+that generally make the framework easier to use and more reliable.
+
+There are some non-backward-compatible changes in this release including
+elimination of id-very-long from the data type dictionary (expanding the id
+and id-long types), change to database configuration of subscreens to be
+based on UserGroup instead of the individual UserAccount (this is a
+primary-key change and may require a database metadata update and data
+migration), and context isolation for service calls.
+
+This release includes:
+
+- Updated jQuery to 1.8.3 and jQuery UI to 1.9.2
+- Updated Apache Camel to 2.10.1, Apache Derby to 10.9.1.0, Apache
+  Jackrabbit to 2.5.2, Apache Shiro to 1.2.1, ehcache to 2.6.0, Groovy to
+  2.0.5, OWASP ESAPI to 2.0.1, Quartz Scheduler to 2.1.6, and WikiText to
+  1.8.0 (20121130)
+- Support for Spock specification and unit testing framework run with the
+  gradle "test" task, and a few entity, service, user, and resource tests
+- XML Screens
+  - Added popup type subscreens menu using new jQuery UI Menu widget to
+    help compress header into single row of menus instead of layers of tabs
+  - Moved JS file reference to webroot.xml instead of in the theme; all
+    themes need them, and they are more closely related to HTML generated
+  - Added subscreens.always-use-full-path attribute to use the full path in
+    menus and such instead of minimal path; helpful for wiki and other
+    screens that use relative URLs that are not based on the screen path
+  - More support for configuring case-insensitive order-by
+  - Added dynamic-options for drop-down to get options from a server
+    request via AJAX request and can depend on other field(s) to use as
+    parameters and triggers for updating options on change, including
+    example in the EditExample screen
+  - Added text-line.@format attribute like display.@format
+  - Field values are not automatically converted to strings before going
+    to the FTL file for more control over formatting
+  - Added screen.always-actions element with actions that will run
+    whenever the screen is in the path, whether rendered or not, and
+    before both rendering screens and running transitions
+  - After login and other screen-last redirects parameters declared on the
+    screen are now included in the URL and not just in the session
+- Service Facade
+  - Inline and script services can leave out parameter values in the
+    context and they will be picked up, instead of setting explicitly in
+    result Map
+  - When auto-parameters has an entity-name specified the generated
+    parameters will have entity-name and field-name attributes, and the
+    auto-fields-service now looks for those to do better fields based on
+    the entity field details
+- Entity Facade
+  - Added datasource.@startup-add-missing option; set to true to check
+    tables for all entities in the database on startup and create missing
+    ones
+  - Added database.@use-schema-for-all option; set to true to include the
+    schema name for non-table meta data (constraints, indexes, etc)
+  - Entity find on a view-entity now automatically determines which
+    member-entities to join in based on the fields selected, in order by,
+    and in conditions; with this in place the need for DynamicViewEntity is
+    minimal because you can just select the relevant fields and not worry
+    about tables being joined in to the query that are not needed; this
+    makes it much easier to write queries that will run well on large
+    databases
+  - Support for java.util.UUID sequenced primary IDs; can be configured
+    per-entity and/or per-datasource
+  - Added eeca.@get-entire-entity attribute to make sure we have the entire
+    record and not just PK fields before doing update and delete ops
+  - Improved handling and options for binary/blob fields
+- Resource Facade
+  - ExampleContent entity and corresponding screen that supports
+    uploading and downloading JCR content
+  - Support for username and password for remote JCR repository access
+  - Added ResourceReference.findChildFile() method to replace the code
+    used only for subscreen references, expand that functionality and make
+    it reusable for wiki content, etc
+  - Added methods to ResourceReference for writing to the resource
+  - Wiki template renderer gets linkBaseUrl from ScreenRender
+  - Added DbResourceReference and the DbResource/File entities to have a
+    filesystem like data store in the database and accessed through the
+    Resource Facade like any other (file, jcr/content, etc)
+- Fleshed out ValidationError functionality including display in apps.xml
+  and considering the ec.message.validationErrors list for storing error
+  details in session between redirects, and changed entity and service
+  validation to add ValidationErrors instead of plain error Strings
+- Added MessageFacade.hasError() method to check for error messages or
+  validation errors, and more reliably handle future forms of errors
+- Screen in Tools app for SQL Query Run/View
+- Improved classpath overrides for configuration and such in the
+  runtime/classes directory for both add-runtime/addRuntime and executable
+  WAR file deployment approaches
+- EntityCondition has all JoinOperator and ComparisonOperator vales in it
+  for convenience
+
+Non-backward-compatible changes:
+
+- Removed id-very-long entity field type and increased default length of id
+  type to 40 and id-long type to 255.
+- Changed *SubscreensItem.userId* to *userGroupId* for greater flexibility
+  setting up subscreen structures and menus
+-- this is consistent with how other database-driven artifacts are
+   structured
+-- to have a record apply to all users use the ALL_USERS userGroupId that
+   all users are automatically a member of
+-- for migrating other data a user will have to be a member of a group and
+   that group can be a single-user group or you can simplify existing data
+   by consolidating users into groups that have the same subscreens
+- Local service calls (inline, java, and script) now run with an isolated
+  context so that fields from whatever called the service are not
+  available in the service (which would cause things to work when they
+  really shouldn't and wouldn't work if it was called remotely)
+-- make sure to retest all service calls as there could be hidden bugs
+   where a service worked because whatever called it had certain fields
+
+Bug Fixes:
+
+- Fixed bug where secondary sequenced ID (setSequencedIdSecondary() method)
+  was not finding IDs of existing records causing conflicting IDs to be
+  generated
+- Fixed bug with EntityFindBase.updateAll() to not use EntityListIterator
+  as it caused problems trying to update records with the ResultSet open
+- Added support for @confirmation attribute for hidden-form type links
+- Fixed issue where transition.path-parameter values were not making it
+  into the context since parameters were already added to the context
+- Fixed issue in Data View screen with related entities using the full
+  entity name (name with package)
+- Updated startup in embedded mode to put jar files in a local temporary
+  directory and build files to delete it just in case it doesn't get
+  cleaned up on exit; should solve problem with dirty exit leaving temp
+  files in the OS temporary file location which can be hard to find
+- Fixed JCR repository connection, using RMI instead of DavEx by default
+  (requires fewer jars for client while retaining full functionality)
+- Fixed repository name and content path reference for JCR content in the
+  ContentResourceReference class
+- Fixed file upload temporary file being deleted before being accessed/used
+- Fixed link with link-type=hidden-form within a form-single to not produce
+  HTML with nested form elements
+- Fixed anonymous-all and anonymous-view authenticate options for services
+  and screens to login as the _NA_ user so the called services requiring
+  authentication and permission will run as expected
+- Fixed display.@currency-unit-field attribute handling
+- Fixed XML Actions filter-map-list operation, wasn't quoting field names
+- Fixed bug where authorization failures were getting logged but not
+  throwing an exception to stop operations
+- Fixed issue where the root screen was not added to the screenPathDefList
+  causing incorrect push on the artifact facade's stack
+- Fixed issue where the last statement of XML Actions might have been
+  unintentionally considered to be the return/result Map
+- Fixed issue with multi (multi-row) service calls where parameters shared
+  between rows caused an attempt to process an additional non-existent row
+- Changed screen transition transaction handling to rollback on error
+- Fixed phantom parameter issue where declared parameters got a null value
+  in the parameters to a service even if no null was passed in
+- Changed the ContextStack.containsKey() to not always return true and
+  added ContextBinding.java which extends groovy.lang.Binding and is used
+  for all Groovy script running to do the same thing without all the
+  side-effects; this fixes a number of bugs
+- User login now works outside a web context
+- Fixed authz and tx issues with user preferences
+- Fixed issue with LocalizedEntityField because the code was still looking
+  for the basic entity name and not the full entity name
+- Fixed issue with parsing locale from the database to include separate
+  language and country codes (was ignoring the country)
+- Fixed bug on ServiceRun screen where parameters were not getting passed
+- Fixed bug where group-by clause was missing on EntityFind.one() calls
+- Fixed issues with ResourceReference directory listings where filenames
+  have spaces in them
+- Fixed bug in service parameter text-length.@max checking
+- Fixed bug where a cached one query on non-PK fields with no result would
+  not be automatically cleared
+- Fixed bug where request to a rile resource under a screen that requires
+  authc would result in a redirect to the file resource
+- Fixed bug in UrlResourceReference with cached exists not picking up
+  created files; now only uses cached exists if it is true
+- Fixed handling of transition actions (or service-call) output where a Map
+  was pushed on the ContextStack and then popped, eliminating the output
+  from the actions
+- Fixed object formatting in XML Screen/Form output, now done in a groovy
+  method instead of with ?string in FTL which produced undesirable results
+  in many scenarios
+
+===========================================================================
+Release 1.1.1 - 22 Sep 2012
+===========================================================================
+
+The 1.1.1 release of Moqui Framework is primarily a bug fix release. While
+a few issues have been fixed the most important one for those just trying
+Moqui is the explicit sorting of files by name during data loading which
+addresses an issue on Linux servers where the files in a directory listing
+through the Java File API can come back in any order.
+
+Minor new features include DB configured User Fields on entities, host name
+based tenant selection, and an easier way to specify default themes.
+
+This release includes:
+
+- User Field support for transparent user-defined fields with a definition
+  in the database (using the UserField entity) and values for the fields
+  isolated to groups of users stored in a separate table (using the
+  UserFieldValue entity)
+- Option to specify a default tenantId for a given host name
+  (request.getServerName()) in the database, using the TenantHostDefault
+  entity for deployment of tenants with a virtual host approach
+- Can now specify the default screenThemeId for a ScreenThemeType
+  Enumeration record using the Enumeration.enumCode field
+
+Bug Fixes:
+
+- fixed data file load order to explicitly sort files in data directories
+  alpha-numerically; on some systems this is the way they came back in
+  directory listings but not all, causing inconsistent behavior without
+  this explicit sorting (symptom is FK errors in data load)
+- fixed incorrect link paths for ArtifactHitBins and ArtifactSummary PDFs
+- when no transaction is in place using current system time for the
+  automatically populated lastUpdateStamp field
+- changed SpeedTest.xml screen to run in a transaction
+- fixed issue in Auto Screens where the entityName and detailEntityName
+  parameters were conflicting with field names on certain entities
+- fixed class cast exception for form-list when using the
+  auto-fields-entity element with @field-type=find-display
+- fixed and improved screen menu title defaults, especially for subscreens
+  added by subdirectory files
+- fixed issue with isPermitted() call when determining if screens with
+  require-authentication=false should be included in the menu; they were
+  showing an error and not getting added to the menu but now they do get
+  added because no authz is necessary to access them
+
+===========================================================================
+Release 1.1.0 - 22 July 2012
+===========================================================================
+
+Version 1.1.0 includes various bug fixes and library updates. It is also a
+minor new feature release with added functionality for anonymous authz,
+enhanced JSON and REST web service support, XML Form extension with
+database records (DbForm* entities) for all users or particular users, and
+an Apache Camel integration with Camel running embedded.
+
+This version also replaces the only LGPL library (Restone XML-RPC) in Moqui
+Framework with an Apache licensed library (Apache XML-RPC). This makes
+Moqui compatible with licensing requirements for projects that are part of
+the Apache Software Foundation (including Apache OFBiz).
+
+This release includes:
+
+- Updated *.gradle build files for the recently released Gradle 1.0
+- Added configuration for MS SQL Server database
+- Replaced Redstone XML-RPC library with Apache XML-RPC to eliminate the
+  LGPL library so that Moqui can be used in Apache and similarly licensed
+  projects (including Apache OFBiz)
+- Updated Apache Derby to 10.8.2.2, Apache Jackrabbit to 2.4.1, Apache
+  Log4J to 1.2.17, Apache Shiro to 1.2.0, Atomikos to 3.8.0, ehcache to
+  2.5.2, FreeMarker to 2.3.19, Groovy to 2.0.0, Quartz Scheduler to
+  2.1.5, SLF4J to 1.6.5
+- Updated jQuery to 1.7.2, jQuery UI to 1.8.21, Validate to 1.9.0, and
+  Timepicker to 1.0.0
+- Tested with latest version of Apache Tomcat (7.0.27)
+- Methods on ArtifactExecutionFacade and options on the authenticate
+  attribute on the service definition and the require-authentication on the
+  screen definition to make the current artifact anonymously authorized
+- Web Facade
+  - JSON representation of a Map sent in an HTTP Request body is treated as
+    additional request parameters (must have a header of "Content-Type:
+    application/json")
+  - If auth* parameters are passed in a JSON body, multi-part body
+    parameters, or in body parameters when there are no URL parameters
+    (query string), then automatically logs in user (similar to behavior of
+    HTTP Basic Authorization with the Authorization header)
+  - Based on the various new features for REST, JSON, and better support of
+    Web standards, added examples of the use of screen transitions for JSON
+    over REST services; see the ExampleApp.xml file
+- Screen Facade
+  - Added support for declared path-parameters in the URL path under a
+    transition (especially useful for simulating a resource at a URL)
+  - Implemented initial version of DbForm feature with support for
+    extending forms defined in XML Screen files; includes example extending
+    the UpdateExample form on the EditExample screen; for details see the
+    DbForm and related entities, and the example in the ExampleTypeData.xml
+- Service Facade
+  - Embedded Apache Camel, currently used in the ServiceFacade to transport
+    service calls using many different standards, plus Camel routing for
+    more flexible system integration
+  - CamelServiceRunner so that Moqui services can just send a Camel message
+  - Camel component, endpoint, and producer for receiving Moqui service
+    calls through camel (with URI like "moquiservice:package.serviceName")
+  - Example Moqui service that sends a Camel message, and example service
+    that service calls through the Moqui Camel Endpoint (Producer)
+  - Support for nested parameter elements in service definitions for
+    Map and Node (groovy.util.Node) parameters; the main reason for Node
+    support is for XML messages coming in such as the OAGIS ones to be
+    handled directly by a service (this is one part of Mantle)
+  - Added option to service-call tag to send result as a JSON response
+    using the WebFacade.sendJsonResponse() method
+  - Service database-driven semaphores to avoid multiple instances of the
+    same service running at the same time
+- Entity Facade
+  - View entity member-entity.entity-condition for conditions on joins
+  - View entity alias.complex-alias implemented for formulas in queries
+  - Added "cursor" option for the database.@offset-style attribute for
+    databases that do not support the offset/limit or fetch syntax
+    variations; using this option will result in an EntityListIterator
+    being used instead of letting the database handle the partial results
+  - Added EntityDatasourceFactory interface and object-factory attribute
+    to the entity-facade.datasource element in the moqui-conf XML file;
+    the default implementation is for JDBC/SQL databases, and other
+    implementations can be used for other data sources
+  - Refactored EntityValueImpl and EntityFindImpl to create abstract base
+    classes that can be extended to more easily create custom datasource
+    interfaces for the Entity Facade
+  - There is an add-on component that uses this custom datasource facility
+    to add support for OrientDB, and other NoSQL and alternative
+    datasource interfaces will be added as add-ons over time
+
+Bug Fixes:
+
+- Fixed bug in script template for XML Actions calling a script at a
+  location (was missing quotes around the location)
+- Fixed bug where XML Actions and groovy script locations were not being
+  cleaned before using as class names for groovy compiled classes
+- Fixed Entity Audit Log bug where fields not set were considered null and
+  therefore were considered changed to null and logged as such
+- Fixed NPE when calling update() on an EntityValueImpl with no changes
+- Fixed NPE when there is an error in a request and the web.parameters,
+  web.requestAttributes, and web.requestParameters have not been used
+- Fixed authz issue when calling service with auth* parameters
+  (UserAccount, Username, Password, and TenantId) so that login is done
+  before the first authz check to avoid guaranteed failure
+- Fixed WebFacade.sendJsonResponse() to return ec.messages.errors if there
+  are errors instead of ignoring them
+- Fixed issue in L10nFacadeImpl (also used for service parameter automatic
+  type conversions) where Time and Timestamp parsing required sub-second
+  value; now parses strings without sub-seconds as well
+- Fixed bug where service definition was not found if it had no noun
+  attribute even if service name matched the verb
+- Fixed invalid HTML with a form elements between the table and td elements
+  by using styled div elements and the "display: table*" CSS attributes
+
+===========================================================================
+Release 1.0.1 - 31 December 2011
+===========================================================================
+
+Version 1.0.1 is primarily a maintenance and bug fix release. The few new
+features are mostly extensions to existing features for improved
+flexibility, to round out functionality, and better support standards.
+
+This release includes:
+
+- All the great features of the 1.0.0 and previous releases
+- Updated Gradle build file for version 1.0-milestone-6 (previously ran on
+  1.0-milestone-3)
+- Added support to automatically clear caches for view-entity based in
+  updates to member-entity records, as long as all member-entity PK fields
+  are directly or indirectly aliased on the view-entity
+- Improved entity-auto service error handling
+- Changed login screen to render in the same request instead of a redirect
+  and to return a status code of 401 (related to bug #3442045)
+- Made form field sub-fields more flexible, can include any widget tag
+  under them now; this has been tested with render-mode and should work
+  with others as they just run the corresponding macro for the widget
+  element, but your mileage may vary
+- Added support for a classes directory under the runtime directory, and
+  under each component directory to go along with the lib directories so
+  that classpath resources do not have to be in a jar file
+- Added support for JSR-223 (javax.script) compatible scripting languages
+  through configuration only (in moqui-conf file) so no ScriptRunner
+  interface implementation is needed for these
+- Added support for JavaScript (.js) server-side scripts through
+  javax.script interface
+- Added support for StartTLS and SSL to sendEmailTemplate service, based
+  on the configuration in the EmailServer record
+
+Bug Fixes:
+
+- Removed emailTypeEnumId from the PK of the EmailMessage entity, it
+  should not have been there and is not needed (or wanted); this PK
+  change will require modifying or rebuilding that table in existing
+  systems
+- Fixed issue with handling entities in different packages that have the
+  same name
+- Instead of submit buttons always having name=submit, they now use the
+  name of the XML Form field; to see if one button or another was pressed
+  just check to see if the parameter was passed; also changed all submit
+  field names to submitButton to avoid conflict with standard DOM function
+  "submit" for form elements (thanks to Vasanth for reporting this)
+- Fixed bad reference to ComparisonOperator in DateCondition class
+- Fixed issue with settings nulls in an entity-auto update service or
+  anywhere the dbValueMap is not populated from the database
+- Fixed bug (#3442014) with funny FTL eval of label.@encode attribute
+- Fixed issue with ResourceFacade classpath:// URLs that were not using
+  thread's context ClassLoader, and so weren't finding classpath entries
+  in runtime or component lib and classes directories
+- Fixed issue with ResourceReference, TemplateRenderer, ScriptRunner,
+  ServiceRunner, and Java service implementation class loading to use the
+  current Thread's context ClassLoader which will get the component and
+  runtime lib and classes resources
+- Fixed issue where automatic reverse relationship did not work for full
+  entity names
+- Fixed issue with findRelated and findRelatedOne when forUpdate is null
+- Fixed bug in StupidUtilities.basicConvert so that String to Boolean
+  conversions do not use the default groovy non-empty rule for true, ie
+  so that the string "false" will actually evaluate to false
+- Fixed service parameters validation to not treat false boolean values as
+  empty values (ie we can't use groovy non-empty definition for Booleans)
+- Fixed permission issue in resetPassword service
+
+
+===========================================================================
+Release 1.0.0 - 21 November 2011
+===========================================================================
+
+Here it is, the initial production release of the 1.0 series. This release
+includes various fixes and new features to facilitate easy use based on
+more extensive testing and real-world development using the framework.
+
+More examples of different patterns exist in Moqui Framework itself, as
+well as in add-on projects including Mantle, POP Commerce, and so on.
+
+This release includes:
+
+- All the great features of the preview, beta and rc1 releases
+- For field name pattern consistency changed GeoAssoc.geoIdTo to toGeoId,
+  StatusValidChange.statusIdTo to toStatusId, and UomConversion.uomIdTo to
+  toUomId
+- Added support to skip stats tracking based on a conditional expression
+- More performance profiling and improvements
+  - entity-auto update and delete services no longer do a find first
+  - various frequently used objects are cached in UserFacade, especially
+    those used for authz and tarpit, making many things faster and cached
+    queries around 4 times faster than the already optimized speed
+  - many small performance improvements, changes to get around Groovy and
+    Java quirks
+- Change components to load in reverse of order initialized (later
+  components override earlier ones)
+- Increased text field sizes (short to 63, medium to 255, long to 4095)
+- Changed a bunch of fields from text-long to text-medium that are either
+  primary-key fields, or that don't need to be so long, or in entities
+  where there are too many text-long fields
+- User Facade
+  - Added support for login via HTTP Basic Authorization, mostly for
+    things like RESTful services and support for clients using it
+- Entity Facade
+  - Allow (optional) reference of entity by package-name + entity-name,
+  - Change framework to reference all its entities by fully qualified name
+  - Allow separator (hash) between title and related-entity-name in
+    relationship name now that related-entity-name may be packages and
+    such, and looks funny
+  - Primary sequenced ID banking for better performance when creating
+    records with sequenced single field primary key (default bank size 50)
+  - Change lastUpdatedStamp to tx timestamp to sync/export/etc data without
+    splitting transactions
+  - Supports seed-data element in entity and extend-entity elements so
+    that seed data can be defined and managed along with entity definitions
+  - Option to disable Entity ECAs during data load
+  - Isolate cache clearing failures, don't ever kill calling method (ie
+    never throw an exception/throwable)
+- Screen Facade
+  - Filter menu rendering by authorization
+  - List multi form submit button below and not in own column
+  - Allow field, auto-fields-entity, and auto-fields-service to appear in
+    any order and preserve that order when exploding the form definition
+  - Auto Screen move Edit button on list forms to left side
+  - If form transition has a single service (service-call instead of
+    actions elements) then automatically use that service for validation
+    information for fields with matching name
+  - Improved handling of context and error parameters to more cleanly and
+    easily repopulate forms after a server-side error
+  - Example (/echopath) of handling "path info" beyond screen or transition
+    in request path
+- Added support for other types of wiki files including MediaWiki, Textile,
+  TracWiki, and TWiki (in addition to Confluence)
+
+===========================================================================
+Release 1.0-rc1 - 3 August 2011
+===========================================================================
+
+The first 1.0 release candidate of the Moqui Framework (version 1.0-rc1)
+was released on 3 August 2011.
+
+This release includes various small new features based on feedback and
+actual use, including Apache Shiro for security (authc and authz), build
+using Gradle which supports Maven repositories and with directory layout
+changed to follow Maven conventions, the ability to run arbitrary SQL and
+get the results back in an EntityListIterator, and the Data View tool that
+allows users to build queries and data exports on the fly.
+
+This release candidate also includes improvements based on more testing,
+including performance testing and profiling to dramatically increase the
+speed of various operations, especially those done frequently.
+
+As a release candidate from this point only minor changes are expected
+before the 1.0 final production-ready release.
+
+This release includes:
+
+- All the great features of the preview releases, 1.0-beta1, and 1.0-beta2
+- More testing and bug fixes
+- Various performance improvements based on profiling (thanks to preview
+  licenses for YourKit and JProfiler)
+- Updated all libraries with updates available as of 15 July 2011
+- Changed build to use Gradle instead of Ant
+- Support for multiple root screens determined by host name using regexp,
+  or in other words virtual host support
+- UserPreference records refined so that keys can be defined with
+  Enumeration records, but don't have to be
+- Some changes to better support the Mantle UDM (Universal Data Model),
+  including better automatic foreign key names, looking for a "mantle"
+  directory under the runtime directory where the mantle components can go
+  (can actually have the GIT checkout of mantle right there)
+- Added a UserGroup (ALL_USERS) that all users are automatically members of
+- Security: tightened permissions, using the entity.@authorize-skip much
+  less by adding disable/enableAuthz calls to framework code, and adding an
+  authorization for users to view their own UserAccount record.
+- Directory structure and build changes to simplify and be more consistent
+  with de-facto standards from Maven/Gradle/etc
+- Small changes to make it easier to include the runtime directory inside
+  the deployed war file.
+- Resource Facade
+  - Added ScriptRunner interface to allow for easily adding scripting
+    languages to be supported by the ResourceFacade
+- User Facade
+  - Incorporated Apache Shiro, which is now used for all authentication in
+    Moqui, by default through the MoquiShiroRealm and other realms such
+    as for LDAP or ActiveDirectory can be configured with shiro.ini
+  - Permission model and checking for simple/flat permissions (to be used
+    as an alternative to artifact authz)
+  - Run permission and role (UserGroup) checks through Shiro realm
+- Entity Facade
+  - Manual SQL find with results mapped to entity with results returned in
+    an EntityListIterator (EntityFacade.sqlFind())
+  - Database-driven view entity
+  - view-entity: merge the view-link element into the member element (also
+    for DynamicViewEntity, DbViewEntity, *DbView screens)
+- Service Facade
+  - Added entity-auto support for the verb "store" which does a create if
+    record does not exist and update if it does
+  - Support of pre-configured scheduled job exists, see:
+    http://www.quartz-scheduler.org/docs/cookbook/JobInitPlugin.html
+- Artifact Execution Facade
+  - Persist data about authz failures (in ArtifactAuthzFailure entity)
+  - Artifact Tar-pitting based on configuration in db (see example
+    moqui.security.ArtifactTarpit in ExampleSecurityData.xml)
+  - Support authorization checks through Shiro realm
+- Tools Screens
+  - Auto Screen
+    - Order by links in column headers by default (by default for all
+      auto fields entity as well)
+  - Data View
+    - Choose master entity, select fields from all related entities, save
+      as DbViewEntity and related records
+    - Specify functions for selected fields
+    - Choose column(s) to order by
+    - Specify search constraints
+    - View in webapp
+    - Export to CSV
+  - Service
+    - Select and run service from form based on service definition
+
+===========================================================================
+Release 1.0-beta2 - 30 May 2011
+===========================================================================
+
+The 1.0-beta2 release includes a number of new tools, most notably the Auto
+Screen UI that creates a user interface based on entity and relationship
+definitions for master entities, and tabs for the detail and associated
+entities of each. This release also includes a number of smaller new
+features and bug fixes found while building a variety of functionality
+with Moqui Framework. One notable example of that is automatic or explicit
+alternate screen selection based on the HTTP request User-Agent header, and
+there is an example of alternate screens for the iPad.
+
+Overall release 1.0-beta2 is more robust, functional, and reliable than the
+previous release.
+
+This release includes:
+
+- All the great features of releases 1.0-preview1 to 1.0-beta1
+- Changed so that web.requestParameters Map is automatically added to the
+  context when it is initialized for the web (helps reduce dependency in
+  code on web-specific stuff, ie ec.web.requestParameter references)
+- L10nFacade: moved number and date/time parsing and formatting methods
+  from UserFacade to L10nFacade
+- TransactionFacade: changed suspend() and resume() methods to better use
+  internal stack of suspended transactions for consistency and a simpler
+  API; also added stack of Exception to track where transactions are
+  suspended for easier finding of lock wait timeout types of errors
+- Moved MoquiDefaultConf.xml from framework/api to framework/impl since it
+  contains a lot of implementation-specific configuration
+- Updated Atomikos TransactionsEssentials to 3.7.0 and ehcache to 2.4.1
+- Support <component>/lib and runtime/lib jar loading in a cached and
+  extended/extensible ClassLoader
+- Screen transition now supports restriction by HTTP request method
+- Trim stack traces to not include Groovy proxy/etc calls (Sam's idea);
+  implemented for now in BaseException, will use in other areas over time
+- Changed Example entities and seed data to follow pattern to be used in
+  Moqui and Mantle where the relationship.title is the enumTypeId or the
+  statusTypeId
+- XML Screens
+  - Dynamic transition name handling (support regex transition names)
+  - Specify macro template in screen def to override default in moqui-conf
+  - Template for xsl-fo render mode
+  - Added support for drop-down.entity-options in Screen Form
+  - Auto create drop-downs for fields with a relationship to Enumeration
+    using relationship.title as the enumTypeId, check to see if is valid
+    enumTypeId before creating drop-down
+  - Auto create drop-downs for fields with a type one relationship, with
+    limit of 200 to avoid crazy drop-downs
+  - Choose default subscreen (override by path) based on user agent or
+    other condition (using any data available in the ec)
+  - Override login path in screen (use value from deepest screen in path)
+- Resource Facade
+  - Method for FOP transform to PDF, etc
+  - Support .gstring templates (groovy.codehaus.org/Groovy+Templates)
+- Entity Facade
+  - More intelligent group by fields, ie add all fields in view-entity and
+    DynamicViewEntity to group by list if they don't have a function; with
+    support for this get rid of alias.@group-by attribute, not needed when
+    done automatically
+  - Entity Master data export (master record and all dependent records)
+  - Entity and Dependents export: if an entity is a dependent of another,
+    and of the master then export it after the other entity it is a
+    dependent of
+- Tools Screens
+  - Auto Screen
+    - Master Entity List (entities with dependents)
+    - AutoFind Screen (find, create, delete master entity records)
+    - AutoEditMaster (tab to edit master entity record)
+    - AutoEditDetail (tab for each dependent entity with CrUD)
+  - Entity
+    - Entity Data UI
+      - entity list
+      - find on entity with delete
+      - create/update entity record
+      - view entity record with related entities and links to them
+    - Entity Data Import screen
+    - Entity Data Export screen
+
+
+===========================================================================
+Release 1.0-beta1 - 01 Apr 2011
+===========================================================================
+
+The 1.0-beta1 release is the first feature-complete release for the 1.0
+series. Various tools screens that may be included in the 1.0-final release
+are not yet complete, but the framework itself is feature-complete.
+Following this release the focus for the framework shifts from
+implementation to testing and to building applications and tools based on
+it (in Moqui Framework, Moqui Mantle, and in other Moqui-based projects).
+
+This release includes:
+
+- All the great features of releases 1.0-preview1 to 1.0-preview3
+- Changed UserAccount so that userId is internal/sequenced and a new
+  username field is used for auth/login
+- Seed data changes to follow the Mantle pattern where enumTypeId is the
+  same as entity.relationship.@title for Enumerations
+- XML Screens
+  - Screen form-list form-list-column support
+  - Screen form-single field-layout support
+  - Screen form-list pagination (defaults in search-form-inputs)
+  - Template for csv render mode (mainly for form-list report-like output)
+  - Template for text render mode (for email alternative message, etc)
+  - Template for xml render mode (like CSV, but more structured and
+    support multiple forms per screen)
+  - Support URL parameters for renderMode and pageNoLimit which along with
+    the lastStandalone parameter make it easy to reuse screens and forms
+    meant for user interaction as definitions for CSV output
+- WebApp event actions for after-startup, before-shutdown
+- Service Facade
+  - Incoming email handling with Email ECA Rules (emeca) with the
+    org.moqui.impl.EmailServices.pollEmailServer service, configured with
+    the EmailServer entity
+  - Service (org.moqui.impl.EmailServices.sendEmailTemplate) to send email
+    based on settings in the EmailTemplate entity
+- Entity Facade
+  - Automatic reverse-many relationship for type one relationships coming
+    the other way (done on-demand at run-time)
+- Password reset email and forgot password form
+- Some fixes so that Moqui will run in Java on Windows
+- Testing and fixes for EntityFindImpl.count();
+  screen.transition.*-response parameters; screen.transition with no
+  actions or conditional responses to act as an alias, even with
+  parameters/etc; script type services; updatePassword service and various
+  security/password settings
+
+===========================================================================
+Release 1.0-preview3 - 19 Mar 2011
+===========================================================================
+
+Moqui 1.0-preview3 introduces various features to automatically and easily
+make the applications you build using the previously available tools easier
+to deploy and administer, and easier to test and get information about what
+is happening as artifacts are executed. These include multi-tenant support,
+artifact hit and hit bin tracking (for screens, transitions, services, and
+entities), database-driven artifact authorization with many advanced
+options, XML-RPC and JSON-RPC calls for Moqui services, and Tools screens
+to administer and get information about various parts of the framework.
+
+NOTE: just before this release the official code repository for Moqui moved
+from SourceForge SVN to Git on GitHub so that users can more easily create
+Git forks for their own use, and to allows pulls from their Git forks back
+into the main Moqui repository. The Moqui GitHub URL is:
+
+https://github.com/jonesde/moqui
+
+This release includes:
+
+- All of the great features of 1.0-preview1 and 1.0-preview2
+- Updated various libraries included (esp Groovy, ehCache, Quartz)
+- Multi-tenant support (shared app server, separate databases)
+- Finished impl and test for localized messages and entity fields
+- WebApp event actions for first-hit-in-visit, before-request,
+  after-request, after-login, before-logout
+- JSON-RPC 2.0 incoming service handler (with Dzhuvinov JSON-RPC)
+- JSON-RPC 2.0 outgoing service runner (with Dzhuvinov JSON-RPC)
+- XML-RPC incoming service handler (with Redstone XML-RPC)
+- XML-RPC outgoing service runner (with Redstone XML-RPC)
+- XML Screens
+  - Screen form client JS validation based on target transition service
+    definition (define once, run on client and server); using jquery
+    validation (http://docs.jquery.com/Plugins/Validation); so far for
+    required, number-integer, number-decimal, text-email, text-url,
+    text-digits, credit-card; try out on the Edit Example screen
+  - Screen form-list multi=false support (one form per row)
+  - Screen form-list multi=true support, service call multi=true
+  - Screen form-list support form-links inside main form
+  - Screen form auto-complete for text-line
+  - Screen subscreen menu dynamic tabs (last level only) that loads
+    content as a standalone screen from the server with an ajax call
+  - Screen form focus-field, skip-start and skip-end supported
+- Visitor tracking
+- ArtifactHit and ArtifactHitBin tracking for screen, screen-content,
+  transition, service and entity (bin only)
+- User preference handling
+- Artifact Execution Facade
+  - ArtifactExecutionFacade for artifact stack tracking
+  - Artifact Authorization based on configuration in db
+  - Call ArtifactExecutionFacade.push(aei) (to track, check authz, etc) for
+    screen, transition, service, entity
+  - Disable authz on data loading; command line and assumed to be safe
+  - Handle direct service/entity calls, ArtifactGroupMember with pattern
+  - Review and test to determine which entities can skip authz for view
+    and create (ie some view only, some create only, some view and create)
+  - For entity-implicit service calls just look for entity authz
+  - Support authorization on subscreens even if no authz on parent
+    screens, ie authz for EditExample even though not for ExampleApp or
+    any other screens in that app
+  - Record-level authorization (ArtifactAuthzRecord/Cond)
+  - Authorization with a service (ArtifactAuthzService)
+- Tools Screens
+  - Artifact Hit Bins
+  - Audit Log
+  - Visit and Hit Info/Stats (Find Visits, Visit details with hit list)
+  - Cache List and Elements
+  - Localization: Messages, Entity Fields
+- Simplified sequenced ID API for both primary and secondary sequenced IDs
+  and moved configuration to entity definition, and methods to EntityValue
+- Cleanups for xml-actions elements: from-field to from, call-service to
+  service-call, call-script to script; better now than later to make the
+  XML a bit cleaner and more clear (for example from-field can be any
+  groovy expression and the -field implies otherwise)
+- Significantly more testing and bug fixes related to synchronization,
+  performance (WAY faster, but more room for improvement), transactions,
+  style, etc
+
+===========================================================================
+Release 1.0-preview2 - 01 Mar 2011
+===========================================================================
+
+With release 1.0-preview2 the Moqui Framework is now nearly complete and
+has sufficient functionality to build a wide variety of functional and
+useful enterprise, or less formal, applications. This release includes a
+functional example application with various screens demonstrating features
+of the framework and recommended practices and patterns to use when
+developing with Moqui.
+
+While not feature-complete for the planned 1.0 feature set, the
+1.0-preview2 release is ready for early adopters. For those interested,
+this is a great time to try out Moqui for a pet project or even a more
+formal project that is just getting started and won't be deployed in
+production for at least a few months.
+
+Feedback on functionality and bugs by early adopters would be extremely
+helpful for the project at this point, both to validate (or invalidate...)
+designs and to more extensively test the implementation.
+
+This release includes:
+
+- All of the great features of 1.0-preview1
+- Significant updates to Example application screens (most now working)
+- Added various configuration options and examples for flexible deployment
+  and overriding templates for screen macros, xml-actions, etc
+- Executable WAR file is more self-contained, ie less required in runtime
+  but with a few more override options in runtime too
+- Root web screen split to support undecorated subscreens and apps
+
+- XML Screens
+  - Screen form elements, all implemented (including file upload, *-find)
+  - Standalone screens that are rendered independently of parent screens
+    and can still be subscreens of any other screen
+  - Screen pre-actions that all run before any parent screen is rendered
+    to allow for setting parameters in parent screens, setting up general
+    things, etc
+  - Screen single-form HTML uses fieldset and label instead of a table
+  - Screen form header-field widget rendering
+  - Screen form header-field.@show-order-by support
+  - Screen form localized output formatting, based on service parameter
+    format if applicable, otherwise on format specified in form field
+  - Output encoding, configurable on various screen/form elements
+  - I18n (with L10nFacade) for labels and titles in screens, forms, menus
+  - Added jquery and jquery-ui and the smoothness theme
+  - Added container-dialog widget that creates a button that when clicked
+    on opens a dialog with the contents of the container-dialog.
+  - Added datetimepicker, which is the standard jquery datepicker plus the
+    timepicker add-on, combined using some code from Apache OFBiz
+  - Extended and now using database-driven screen visual themes
+  - Can send Maps to HTTP response as JSON string (Web Facade), example of
+    this is in EditExample.xml
+- Service Facade
+  - Service expand auto-parameters, get parameters from implements
+  - Finished implementation of async/scheduled service calls
+  - Service run on commit and on rollback of current tx
+  - Service parameter type/subtype checking
+  - Service parameter ESAPI/Antisamy HTML checks (any/safe/none)
+  - Service authentication
+  - Service parameter conversion/parsing and validation checks
+  - Service ECA rules
+- Entity Facade
+  - View-entity fixes and testing, now most view-entity options work
+  - Support entity-find.search-form-inputs element for form *-find fields
+  - Automatic cache clearing for one, list (using RA cache), count caches
+  - Entity extension
+  - Entity audit-logging
+  - Entity field encryption
+  - Entity ECA rules
+  - Support offset and limit as LIMIT/OFFSET or OFFSET/FETCH depending on
+    configuration on the database element in the Moqui conf file
+  - Database meta-data support for adding indexes when tables added
+  - Automatically add columns if missing in table check
+  - Add foreign keys to existing tables when table created
+  - Added EntityDbMeta.createForeignKeysForExistingTables() to check the
+    foreign keys of all entities with existing tables and add missing ones
+    where both tables exist; useful to run once all desired tables have
+    been created (through a data load, test script, etc) to round out the
+    DB meta-data
+
+===========================================================================
+Release 1.0-preview1 - 09 Feb 2011
+===========================================================================
+
+Release 1.0-preview1 is the first preview release of the Moqui Framework.
+
+This first release includes a number of complete tools, implementation of
+most of the Java API, and support for many of the configuration elements
+and the various XML files. There are many things left to do before all 1.0
+features are implemented and you'll see various "TODO" comments scattered
+around, though not every feature yet to be implemented is represented by
+such a comment.
+
+This release includes:
+
+- Flexible deployment
+  - Executable WAR file for command-line data loading and embedded Winstone
+    servlet container (Derby DB, Atomikos JTA&CP, other required JARs)
+  - The same WAR file can be dropped in a servlet container like Tomcat or
+    Jetty, or a more general app server like JBoss or Weblogic
+  - Supports Derby, HSQL, MySQL, Oracle and Postgres OOTB, support for
+    additional databases primarily by configuration
+  - Separate runtime directory with configuration, components, logs,
+    database, JCR repo, etc; is the same no matter how the WAR is deployed
+  - Use the supplied MoquiServlet, or write your own based on that example
+  - Everything runs from an instance of the ExecutionContextFactory, so it
+    is easy to include in custom programs or deploy through OSGi, etc
+  - Specify runtime directory path and conf file location using properties
+    file or System properties (java -D arguments)
+- XML Screens
+  - XML Screen rendering for HTML
+  - Screen menus and sub-screens
+    - Hierarchical to any depth, URL is path to screen in hierarchy
+    - URL building based on configuration
+    - Sub-screens by directory structure, XML elements, db record
+  - Screen sub-content (stand-alone, included in screen) including support
+    for FTL and Confluence Wiki templates, and text and binary files
+  - Screens and sub-content can be located in files or in a JCR repository
+  - Can include or inline HTML and other text content
+  - Visit tracking
+- Execution Context & General Facades
+  - WebFacade for access to Servlet objects, parameter maps, etc
+  - UserFacade for current user data, login/logout/authentication, etc
+  - MessageFacade for general and error message management
+  - L10nFacade for localization of text
+  - Resource Facade for access to classpath, file, JCR, etc resources,
+    and for running scripts and rendering templates (with caching for all);
+    - Interface to implement for any type of template rendering desired
+    - Interface to implement for any type of resource reference and access
+  - LoggerFacade for general logging, especially for non-class code
+  - CacheFacade for general caching, backed by ehcache
+  - TransactionFacade for general JTA-type operations and tracking what is
+    currently going on with transactions, where errors originated, etc
+  - ScreenFacade for rendering screens using the ScreenRender interface
+- Service Facade
+  - Service runners for Java, XML Actions, inline actions, Scripts
+  - Entity-auto runner for CrUD ops without even defining the service
+  - Interface for adding your own service runners
+  - Can call sync, async or scheduled (using Quartz Scheduler)
+- Entity Facade
+  - EntityValue with support for create, update, delete, refresh db
+    operations, find related, various get and set options
+  - EntityFind with various conditions, etc supported and results of one,
+    list, iterator, count, updateAll, or deleteAll.
+  - Comprehensive data loader with API and command-line access
+  - Database meta-data support for automatically creating tables at
+    runtime as they are used
+  - Primary and secondary sequenced ID generation
+- Security
+  - ESAPI input canonicalization/filtering
+  - User account and flexible password constraints and management
+  - Authentication in XML Screens
+  - Can require encryption in XML Screens
+  - XSRF protection by requiring encryption of input in body parameters
+- XML Actions
+  - Converts to Groovy code then compiles for good runtime performance
+  - Embeddable in service definitions, screens, etc
+- Example application with screens, sub-content (CSS, html.ftl, cwiki.ftl),
+  entities and services, demo app and security and l10n data, etc
+- Sample configurations for development, staging, and production
+- Configurable "root" screen with sample HTML wrappers, login, menus, etc
+
+===========================================================================
+Features considered, but may not to be included in 1.x series
+===========================================================================
+
+- XML Screens
+  - Screen tree elements
+  - Screen section-iterate pagination
+  - Screen form automatic client JS validation for service in-parameters
+    for matches, number-range, text-length, text-letters, time-range,
+    credit-card.@types
+  - Dynamic Screens (database-driven: DynamicScreen* entities)
+  - Dynamic Forms (database-driven: DynForm* entities) like the OFBiz
+    Survey and related entities (DbForm already in place to extend
+    XML Screen Forms)
+- Entity Facade
+  - Support for CouchDB, and perhaps other NoSQL databases
+  - LiquiBase integration, entity.change-set element
+  - EntitySync tool
+  - Add view log like current change audit log (AuditLogView?)
+- Artifact Execution Facade
+  - Call ArtifactExecutionFacade.push() (to track, check authz, etc) for
+    other types of artifacts (if/as determined to be helpful), including:
+    Component, Webapp, Screen Section, Screen Form, Screen Form Field,
+    Template, Script, Entity Field
+  - For record-level authz automatically add constraints to queries if
+    the query follows an adequate pattern and authz requires it, or fail
+    authz if can't add constraint
+- Tools Screens
+  - Auto Screen
+    - Editable data grid, created by form-list, for detail and assoc
+      related entities
+  - Entity
+    - Entity model internal check (relationship, view-link.key-map, ?)
+    - Database meta-data check/report against entity definitions; NOTE:
+      use LiquiBase for this
+  - Script Run (or groovy shell?)
+  - Service
+    - Configure and run chain of services (dynamic wizard)
+    - Scheduler (view scheduled services with cancel and add)
+  - Artifact Info screens (with in/out references for all)
+
+- Workflow that manages activity flow with screens and service attached to
+  activities and tasks based on them taking users to defined or automatic
+  screen; see BonitaSoft.com Open Source BPM for similar concept; generally
+  workflow without requiring implementation of an entire app once the
+  workflow itself is defined
+
+- Interesting JS plugins
+  - http://arshaw.com/fullcalendar/
+  - http://www.datatables.net
+  - http://www.datatables.net/examples/data_sources/server_side.html
+  - http://code.google.com/p/jquery-datatables-editable/
+  - http://code.drewwilson.com/entry/autosuggest-jquery-plugin
+
+- User Notification
+  - WebSocket clients: track userId, notificationName, connectionKey
+    - Entity (no, keep in memory): VisitClient - visitId*, userId*, topic*, connectionKey*
+    - when sending out WebSocket messages lookup all active Visits for userId and send to each connectionKey
+    - API (with at least an example transition) for WebSocket client registry; set connectionKey on current Visit
+    - use Camel WebSocket? jWebSocket? (how to send message to client connection key)
+    - after more research candidates are (no jWebSocket because it is huge and messy):
+      * java_websocket: smallest (90k), no dependencies on other libraries (like Tomcat or Jetty WS), very simple
+        library so no authc, no pubsub; has JS library for JS client and Flash SWF file for browsers with no WebSocket
+      - Atmosphere: med size (460k), supports variety of transports, but no internal WebSocket (relies on Tomcat, Jetty,
+        etc websocket impls), has pubsub model and sessions built-in, but questionable authc facility
+  x Manual notification:
+    x API pass in notificationName, Map message, userGroupId, boolean queue (true: queue if not connected, false: only send if connected)
+    x API to get all outstanding notifications
+    x Entity: NotificationMessage - notificationMessageId*, topic, userGroupId, messageJson (from message Map)
+    x Entity: NotificationMessageUser - notificationMessageId*, userId*, sentDate, receivedDate
+  - Add Moqui Conf XML elements to configure NotificationMessageListener classes
+  - Listener for Email with XML Screen to layout (and try out using JSON documents as nested Maps from a screen)
+    - where to configure the email and screen to use? use EmailTemplate/emailTemplateId, but where to specify?
+      - for notifications from DataFeeds can add DataFeed.emailTemplateId (or not, what about toAddresses, etc?)
+      - maybe have a more general way to configure details of topics, including emailTemplateId and screenLocation...
+
+- Data Document
+  x export screen (design similar to entity export screen; select documents, from/thru dates, file or browser output
+  x DataDocumentRelationshipAlias (need shorter name) for more flexible output: dataDocumentId, relationshipName, documentAlias
+- Data Search
+  x use elasticsearch.org
+  x get data from Data Feed, Data Search index is a feed receive service
+  x receive#DataFeed interface service implementation
+  x search includes dataDocumentId as a search term, key search term to constrain to results to dataDocumentId; limit search to specific indexName
+  x _index = indexName, _type = dataDocumentId, _id = (pk field values, double-colon separated), use version?
+- Data Feed
+  x API get outstanding data changes (EntityDataFeed.getFeedLatestDocuments())
+  X need external API for EntityDataFeed.getFeedLatestDocuments()? - done as service
+  x API push matching data change
+  - API (or service?) push outstanding data changes (registration/connection, time trigger)
+  - API (or service?) receive/persist data change messages - going reverse of generation for DataDocuments... should be interesting
+  - Consumer System Registry
+    x register service for push (service to call, ID), another for pull (ID) (in DataFeed entity)
+    x per DataDocument alreadySentDateTime
+    - feed transport (for each: supports confirmation?)
+      - WebSocket (use Notification system, based on notificationName (and userId?))
+      x Moqui Service with receive#DataFeed service interface
+  - Service to send email from DataFeed (ie receive#DataFeed implementation), use XML Screen for email content
+    - don't do this directly, do through NotificationMessage, ie the next item... or maybe not, too many parameters for
+      email from too many places related to a DataDocument, may not be flexible enough and may be quite messy
+  - Service (receive#DataFeed impl) to send documents as User NotificationMessages (one message per DataDocument); this
+    is probably the best way to tie a feed to WebSocket notifications for data updates
+    - Use the dataFeedId as the NotificationMessage topic
+    - Use this in HiveMind to send notifications of project, task, and wiki changes (maybe?)
+
+- System-System Message
+  - System-System Message Sending
+    - persist outgoing message
+    - status dates (sent, received/confirmed)
+    - retry on fail (sync or async from confirmation message)
+    - keep status in separate transaction
+  - System-System Message Receiving
+    - persist incoming message, identify/link duplicate/retry messages
+    - trigger processing manually based on persisted message
+    - retry processing on fail (manual or automatic - number of retries and/or time delay before sending fail confirmation)
+    - send async success/fail confirmation
+    - keep status in separate transaction
+  - Camel endpoint for sending and receiving (custom, or use service facade endpoint?)
+  - Useful for OAGIS and many other system-to-system messages; idea similar to OAGIS services and entities in OFBiz
+  - SystemMessage: systemMessageId*, systemMessageTypeId, statusId, isOutgoing (i), sentDate, receivedDate,
+    messageText (vl), remoteMessageId (text-medium), systemMessageRemoteId
+    - Message statuses: Triggered, Produced, Sent, Received, Consumed, Confirmed, Error
+  - SystemMessageType: systemMessageTypeId*, description, produceServiceName, consumeServiceName, sendServiceName, receiveServiceName
+  - SystemMessageRemote: systemMessageRemoteId*, sendUrl, authorizedIpAddresses, username, password (encrypted, not hashed)
+  - SystemMessageError: systemMessageId*, errorSeqId*, attemptedStatusId (same status set as SystemMessage.statusId), reasonCode, errorText (vl)
+  - SystemMessageOagis: systemMessageId*, logicalId, component, task, referenceId, authId, bsrVerb, bsrNoun, bsrRevision
+  - updateSystemMessageStatus (require new transaction)
+  - addSystemMessageError (require new transaction, set status too?)

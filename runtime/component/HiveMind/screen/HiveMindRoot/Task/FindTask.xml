@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        default-menu-include="false">
+
+    <transition name="TaskList.csv">
+        <default-response url="."><parameter name="renderMode" value="csv"/>
+            <parameter name="pageNoLimit" value="true"/><parameter name="lastStandalone" value="true"/></default-response>
+    </transition>
+    <transition name="findTask"><default-response url="."/></transition>
+
+    <transition name="createTask">
+        <service-call name="mantle.work.TaskServices.create#Task" in-map="context"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="editTask"><default-response url="../TaskSummary"/></transition>
+    <transition name="editProject"><default-response url="../../Project/EditProject"/></transition>
+    <transition name="milestoneSummary"><default-response url="../../Project/MilestoneSummary"/></transition>
+
+    <transition name="getProjectMilestones">
+        <actions>
+            <service-call name="mantle.work.ProjectServices.get#ProjectMilestones" in-map="context" out-map="context"/>
+            <script>ec.web.sendJsonResponse(resultList)</script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+    <transition name="getProjectTasks">
+        <actions>
+            <service-call name="mantle.work.ProjectServices.get#ProjectTasks" in-map="context" out-map="context"/>
+            <script>ec.web.sendJsonResponse(resultList)</script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
+    <transition name="getProjectParties">
+        <actions>
+            <service-call name="mantle.work.ProjectServices.get#ProjectParties" in-map="context" out-map="context"/>
+            <script>ec.web.sendJsonResponse(resultList)</script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+    <transition name="getProjectTeams">
+        <actions>
+            <service-call name="mantle.work.ProjectServices.get#ProjectTeams" in-map="context" out-map="context"/>
+            <script>ec.web.sendJsonResponse(resultList)</script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
+    <pre-actions>
+        <set field="html_title" value="Find Task"/>
+    </pre-actions>
+    
+    <actions>
+        <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="myProjectList">
+            <date-filter/>
+            <econdition field-name="partyId" from="ec.user.userAccount.partyId"/>
+            <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
+        </entity-find>
+
+        <if condition="!queryString">
+            <!-- pure DB query -->
+            <entity-find entity-name="HiveMind.work.effort.PartyTaskSummary" list="taskList">
+                <search-form-inputs default-order-by="rootWorkEffortId,milestoneEstimatedStartDate,priority"/>
+                <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
+                <select-field field-name="rootWorkEffortId"/><select-field field-name="milestoneWorkEffortId"/>
+                <select-field field-name="parentWorkEffortId"/><select-field field-name="workEffortId"/>
+                <select-field field-name="workEffortName"/><select-field field-name="priority"/>
+                <select-field field-name="purposeEnumId"/><select-field field-name="statusId"/>
+                <select-field field-name="resolutionEnumId"/>
+                <select-field field-name="estimatedCompletionDate"/>
+                <select-field field-name="estimatedWorkTime"/>
+                <select-field field-name="remainingWorkTime"/><select-field field-name="actualWorkTime"/>
+            </entity-find>
+
+            <set field="taskSummaryMap" from="[count:0, rootWorkEffortId:'', milestoneWorkEffortId:'', priority:'',
+                parentWorkEffortId:'', workEffortId:'', workEffortName:'', purposeEnumId:'', statusId:'', resolutionEnumId:'',
+                estimatedCompletionDate:'', estimatedWorkTime:0, remainingWorkTime:0, actualWorkTime:0]"/>
+            <iterate list="taskList" entry="task">
+                <set field="taskSummaryMap.count" from="taskSummaryMap.count + 1"/>
+                <set field="taskSummaryMap.estimatedWorkTime" from="taskSummaryMap.estimatedWorkTime + (task.estimatedWorkTime ?: 0)"/>
+                <set field="taskSummaryMap.remainingWorkTime" from="taskSummaryMap.remainingWorkTime + (task.remainingWorkTime ?: 0)"/>
+                <set field="taskSummaryMap.actualWorkTime" from="taskSummaryMap.actualWorkTime + (task.actualWorkTime ?: 0)"/>
+            </iterate>
+            <set field="taskSummaryList" from="[taskSummaryMap]"/>
+
+
+            <else>
+                <!-- DataDocument (ElasticSearch) search plus DB query -->
+                <set field="searchInputs" from="new HashMap(ec.web.parameters)"/>
+                <if condition="rootWorkEffortId">
+                    <set field="queryString" value="${queryString} AND project:${rootWorkEffortId}"/>
+                    <set field="searchInputs.rootWorkEffortId" value=""/>
+                </if>
+                <if condition="parentWorkEffortId">
+                    <set field="queryString" value="${queryString} AND parent:${parentWorkEffortId}"/>
+                    <set field="searchInputs.parentWorkEffortId" value=""/>
+                </if>
+                <!-- TODO: support not, contains/etc, not ignore case? -->
+                <if condition="workEffortId">
+                    <set field="queryString" value="${queryString} AND workEffortId:${workEffortId}"/>
+                    <set field="searchInputs.workEffortId" value=""/>
+                </if>
+                <if condition="purposeEnumId">
+                    <set field="queryString" value="${queryString} AND purposeEnumId:${purposeEnumId}"/>
+                    <set field="searchInputs.purposeEnumId" value=""/>
+                </if>
+                <if condition="statusId">
+                    <set field="queryString" value="${queryString} AND statusId:${statusId}"/>
+                    <set field="searchInputs.statusId" value=""/>
+                </if>
+                <if condition="resolutionEnumId">
+                    <set field="queryString" value="${queryString} AND resolutionEnumId:${resolutionEnumId}"/>
+                    <set field="searchInputs.resolutionEnumId" value=""/>
+                </if>
+
+                <service-call name="org.moqui.impl.EntityServices.search#DataDocuments" out-map="context"
+                        in-map="context + [indexName:'hivemind', documentType:'HmTask']"/>
+
+                <set field="workEffortIdList" from="[]"/>
+                <iterate list="documentList" entry="document">
+                    <script>workEffortIdList.add(document._id)</script>
+                </iterate>
+                <entity-find entity-name="HiveMind.work.effort.PartyTaskSummary" list="taskList">
+                    <search-form-inputs default-order-by="rootWorkEffortId,milestoneEstimatedStartDate,priority"
+                            input-fields-map="searchInputs"/>
+                    <econdition field-name="workEffortId" operator="in" from="workEffortIdList"/>
+                    <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
+                    <select-field field-name="rootWorkEffortId"/><select-field field-name="milestoneWorkEffortId"/>
+                    <select-field field-name="parentWorkEffortId"/><select-field field-name="workEffortId"/>
+                    <select-field field-name="workEffortName"/><select-field field-name="priority"/>
+                    <select-field field-name="purposeEnumId"/><select-field field-name="statusId"/>
+                    <select-field field-name="resolutionEnumId"/>
+                    <select-field field-name="estimatedCompletionDate"/>
+                    <select-field field-name="estimatedWorkTime"/>
+                    <select-field field-name="remainingWorkTime"/><select-field field-name="actualWorkTime"/>
+                </entity-find>
+
+                <set field="taskSummaryMap" from="[count:0, rootWorkEffortId:'', milestoneWorkEffortId:'', priority:'',
+                    parentWorkEffortId:'', workEffortId:'', workEffortName:'', purposeEnumId:'', statusId:'', resolutionEnumId:'',
+                    estimatedCompletionDate:'', estimatedWorkTime:0, remainingWorkTime:0, actualWorkTime:0]"/>
+                <iterate list="taskList" entry="task">
+                    <set field="taskSummaryMap.count" from="taskSummaryMap.count + 1"/>
+                    <set field="taskSummaryMap.estimatedWorkTime" from="taskSummaryMap.estimatedWorkTime + (task.estimatedWorkTime ?: 0)"/>
+                    <set field="taskSummaryMap.remainingWorkTime" from="taskSummaryMap.remainingWorkTime + (task.remainingWorkTime ?: 0)"/>
+                    <set field="taskSummaryMap.actualWorkTime" from="taskSummaryMap.actualWorkTime + (task.actualWorkTime ?: 0)"/>
+                </iterate>
+                <set field="taskSummaryList" from="[taskSummaryMap]"/>
+
+                <!-- the old approach, one record at a time and separate sort:
+                <set field="taskList" from="[]"/>
+                <iterate list="documentList" entry="document">
+                    <entity-find-one entity-name="HiveMind.work.effort.PartyTaskSummary" value-field="task">
+                        <field-map field-name="workEffortId" from="document._id"/>
+                    </entity-find-one>
+                    <script>taskList.add(task)</script>
+                    <set field="taskSummaryMap.count" from="taskSummaryMap.count + 1"/>
+                    <set field="taskSummaryMap.estimatedWorkTime" from="taskSummaryMap.estimatedWorkTime + (task.estimatedWorkTime ?: 0)"/>
+                    <set field="taskSummaryMap.remainingWorkTime" from="taskSummaryMap.remainingWorkTime + (task.remainingWorkTime ?: 0)"/>
+                    <set field="taskSummaryMap.actualWorkTime" from="taskSummaryMap.actualWorkTime + (task.actualWorkTime ?: 0)"/>
+                </iterate>
+                <set field="taskSummaryList" from="[taskSummaryMap]"/>
+                <if condition="orderByField">
+                    <script>StupidUtilities.orderMapList(taskList, [orderByField])</script>
+                </if>
+                -->
+            </else>
+        </if>
+    </actions>
+    <widgets>
+        <!-- for future use with saved task filters: <container><label text="${groovy.json.JsonOutput.toJson(ec.web.requestParameters)}"/></container> -->
+        <container>
+            <container-dialog id="FindTaskDialog" button-text="Find Options" width="800">
+                <form-single name="FindTasks" transition="findTask">
+                    <field name="queryString" entry-name="ec.web.parameters.queryString"><default-field title="Text Search"><text-line size="40"/></default-field></field>
+                    <field name="rootWorkEffortId"><default-field title="Project">
+                        <drop-down allow-empty="true">
+                            <entity-options key="${workEffortId}" text="${workEffortId}: ${workEffortName}">
+                                <entity-find entity-name="WorkEffortAndParty">
+                                    <date-filter/>
+                                    <econdition field-name="partyId" from="ec.user.userAccount.partyId"/>
+                                    <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
+                                </entity-find>
+                            </entity-options>
+                        </drop-down>
+                    </default-field></field>
+                    <field name="milestoneWorkEffortId"><default-field title="Milestone">
+                        <drop-down>
+                            <dynamic-options transition="getProjectMilestones" value-field="workEffortId" label-field="milestoneLabel">
+                                <depends-on field="rootWorkEffortId"/></dynamic-options>
+                        </drop-down>
+                    </default-field></field>
+                    <field name="partyId"><default-field title="Assigned To">
+                        <drop-down current="selected">
+                            <dynamic-options transition="getProjectParties" value-field="partyId" label-field="name">
+                                <depends-on field="rootWorkEffortId"/></dynamic-options>
+                        </drop-down>
+                    </default-field></field>
+                    <field name="teamPartyId"><default-field title="Assigned To Team">
+                        <drop-down current="selected">
+                            <dynamic-options transition="getProjectTeams" value-field="partyId" label-field="name">
+                                <depends-on field="rootWorkEffortId"/></dynamic-options>
+                        </drop-down>
+                    </default-field></field>
+                    <field name="teamMemberPartyId"><default-field title="Assigned Team Member">
+                        <drop-down current="selected">
+                            <dynamic-options transition="getProjectParties" value-field="partyId" label-field="name">
+                                <depends-on field="rootWorkEffortId"/></dynamic-options>
+                        </drop-down>
+                    </default-field></field>
+                    <field name="priority"><default-field><range-find/></default-field></field>
+                    <field name="workEffortId"><default-field title="Task ID"><text-find/></default-field></field>
+                    <field name="workEffortName"><default-field title="Name"><text-find/></default-field></field>
+                    <field name="purposeEnumId"><default-field title="Purpose">
+                        <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumWithParentDropDown">
+                            <set field="enumTypeId" value="WorkEffortPurpose"/><set field="parentEnumId" value="WetTask"/>
+                            <set field="allowEmpty" value="true"/></widget-template-include>
+                    </default-field></field>
+                    <field name="statusId"><default-field title="Status">
+                        <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusDropDown">
+                            <set field="statusTypeId" value="WorkEffort"/><set field="allowEmpty" value="true"/></widget-template-include>
+                    </default-field></field>
+                    <field name="resolutionEnumId"><default-field title="Resolution">
+                        <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                            <set field="enumTypeId" value="WorkEffortResolution"/><set field="allowEmpty" value="true"/></widget-template-include>
+                    </default-field></field>
+                    <field name="estimatedCompletionDate"><default-field title="Due Date"><date-find/></default-field></field>
+                    <field name="estimatedWorkTime"><default-field title="Estimated Hours">
+                        <range-find/></default-field></field>
+                    <field name="actualWorkTime"><default-field title="Actual Hours">
+                        <range-find/></default-field></field>
+                    <!-- TODO: add user filter -->
+                    <field name="searchButton"><default-field title="Find Tasks"><submit/></default-field></field>
+                </form-single>
+            </container-dialog>
+
+            <link url="TaskList.csv" text="Get as CSV" target-window="_blank" expand-transition-url="false" link-type="anchor-button"/>
+
+            <container-dialog id="NewTaskContainer" button-text="New Task">
+                <form-single name="NewTaskForm" transition="createTask">
+                    <field name="rootWorkEffortId"><default-field title="Project">
+                        <drop-down><list-options list="myProjectList" key="${workEffortId}" text="${workEffortId}: ${workEffortName}"/></drop-down>
+                    </default-field></field>
+                    <field name="milestoneWorkEffortId"><default-field title="Milestone">
+                        <drop-down combo-box="true">
+                            <dynamic-options transition="getProjectMilestones" value-field="workEffortId" label-field="milestoneLabel">
+                                <depends-on field="rootWorkEffortId"/>
+                            </dynamic-options>
+                        </drop-down>
+                    </default-field></field>
+                    <field name="parentWorkEffortId"><default-field title="Parent Task">
+                        <drop-down combo-box="true">
+                            <dynamic-options transition="getProjectTasks" value-field="workEffortId" label-field="taskLabel">
+                                <depends-on field="rootWorkEffortId"/>
+                            </dynamic-options>
+                        </drop-down>
+                    </default-field></field>
+                    <field name="assignToPartyId"><default-field title="Assign To">
+                        <drop-down no-current-selected-key="${ec.user.userAccount.partyId}" current="selected" allow-empty="true">
+                            <dynamic-options transition="getProjectParties" value-field="partyId" label-field="name">
+                                <depends-on field="rootWorkEffortId"/>
+                            </dynamic-options>
+                        </drop-down>
+                    </default-field></field>
+                    <field name="workEffortName"><default-field title="Task Name"><text-line/></default-field></field>
+                    <field name="priority"><default-field>
+                        <widget-template-include location="component://HiveMind/template/screen/ProjectWidgetTemplates.xml#priority"/>
+                    </default-field></field>
+                    <field name="purposeEnumId"><default-field title="Purpose">
+                        <drop-down no-current-selected-key="WepTask" current="selected">
+                            <entity-options key="${enumId}" text="${description}">
+                                <entity-find entity-name="moqui.basic.Enumeration">
+                                    <econdition field-name="enumTypeId" value="WorkEffortPurpose"/>
+                                    <econdition field-name="parentEnumId" value="WetTask"/>
+                                    <order-by field-name="description"/>
+                                </entity-find>
+                            </entity-options>
+                        </drop-down>
+                    </default-field></field>
+                    <field name="statusId"><default-field title="Status">
+                        <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusDropDown">
+                            <set field="statusTypeId" value="WorkEffort"/></widget-template-include>
+                    </default-field></field>
+                    <field name="estimatedCompletionDate">
+                        <default-field title="Due Date"><date-time type="date" format="yyyy-MM-dd"/></default-field>
+                    </field>
+                    <field name="estimatedWorkTime"><default-field title="Estimated Hours">
+                        <text-line size="5"/></default-field></field>
+                    <field name="description"><default-field title="Description"><text-area rows="10" cols="60"/></default-field></field>
+                    <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                </form-single>
+            </container-dialog>
+        </container>
+        <container>
+            <form-single name="SearchOptions" transition="findTask">
+                <field name="queryString" entry-name="ec.web.parameters.queryString"><default-field title=""><text-line size="40"/></default-field></field>
+                <field name="submitButton"><default-field title="Text Search"><submit/></default-field></field>
+                <field-layout><field-row><field-ref name="queryString"/><field-ref name="submitButton"/></field-row></field-layout>
+            </form-single>
+        </container>
+
+        <form-list name="ListTasks" list="taskList" skip-form="true" skip-end="true">
+            <field name="rootWorkEffortId">
+                <header-field title="Project" show-order-by="case-insensitive"/>
+                <default-field><link url="editProject" text="${rootWorkEffortId?:'--'}">
+                    <parameter name="workEffortId" from="rootWorkEffortId"/></link></default-field>
+            </field>
+            <field name="milestoneWorkEffortId">
+                <header-field title="Milestone" show-order-by="case-insensitive"/>
+                <default-field><link text="${milestoneWorkEffortId?:''}" url="milestoneSummary"/></default-field>
+            </field>
+            <field name="priority">
+                <header-field show-order-by="true"/>
+                <default-field title="Pri"><display/></default-field>
+            </field>
+            <field name="parentWorkEffortId">
+                <header-field title="Parent" show-order-by="case-insensitive"/>
+                <default-field><link url="editTask" text="${parentWorkEffortId?:'--'}">
+                    <parameter name="workEffortId" from="parentWorkEffortId"/></link></default-field>
+            </field>
+            <field name="workEffortId">
+                <header-field title="ID" show-order-by="true"/>
+                <default-field><link text="${workEffortId}" url="editTask"/></default-field>
+            </field>
+            <field name="workEffortName">
+                <header-field title="Name" show-order-by="case-insensitive"/>
+                <default-field><link text="${workEffortName}" url="editTask"/></default-field>
+            </field>
+            <field name="purposeEnumId">
+                <header-field title="Purpose" show-order-by="true"/>
+                <default-field><display-entity entity-name="moqui.basic.Enumeration" also-hidden="false"/></default-field>
+            </field>
+            <field name="statusId">
+                <header-field title="Status" show-order-by="true"/>
+                <default-field><display-entity entity-name="moqui.basic.StatusItem" also-hidden="false"/></default-field>
+            </field>
+            <field name="resolutionEnumId">
+                <header-field title="Resolution" show-order-by="true"/>
+                <default-field><display-entity entity-name="moqui.basic.Enumeration" also-hidden="false"/></default-field>
+            </field>
+            <field name="estimatedCompletionDate">
+                <header-field title="Due Date" show-order-by="true"/>
+                <default-field><display format="yyyy-MM-dd"/></default-field>
+            </field>
+            <field name="estimatedWorkTime"><default-field title="Est"><display format="#.00"/></default-field></field>
+            <field name="remainingWorkTime"><default-field title="Rem"><display format="#.00"/></default-field></field>
+            <field name="actualWorkTime"><default-field title="Act"><display format="#.00"/></default-field></field>
+        </form-list>
+        <form-list name="ListTasksSummary" list="taskSummaryList" skip-form="true" skip-start="true">
+            <field name="rootWorkEffortId"><default-field><display text="${count} tasks"/></default-field></field>
+            <field name="milestoneWorkEffortId"><default-field><display/></default-field></field>
+            <field name="priority"><default-field><display/></default-field></field>
+            <field name="parentWorkEffortId"><default-field><display/></default-field></field>
+            <field name="workEffortId"><default-field><display/></default-field></field>
+            <field name="workEffortName"><default-field><display/></default-field></field>
+            <field name="purposeEnumId"><default-field><display/></default-field></field>
+            <field name="statusId"><default-field><display/></default-field></field>
+            <field name="resolutionEnumId"><default-field><display/></default-field></field>
+            <field name="estimatedCompletionDate"><default-field><display/></default-field></field>
+            <field name="estimatedWorkTime"><default-field><display format="#.00"/></default-field></field>
+            <field name="remainingWorkTime"><default-field><display format="#.00"/></default-field></field>
+            <field name="actualWorkTime"><default-field><display format="#.00"/></default-field></field>
+        </form-list>
+    </widgets>
+</screen>

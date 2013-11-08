@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        require-authentication="true" screen-theme-type-enum-id="STT_INTERNAL" default-menu-index="5" default-menu-title="Items">
+    <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
+
+    <transition name="editItem">
+        <default-response url="EditItem"/>
+    </transition>
+    <transition name="createItem">
+        <default-response url="EditItem"/>
+    </transition>
+    <actions>
+        <entity-find entity-name="warehouse.SdItem" list="itemList"/>
+    </actions>
+    <widgets>
+        <dynamic-dialog id="Create" button-text="New Item" transition="createItem"/>
+        <form-list name="itemList" list="itemList" >
+            <auto-fields-entity entity-name="warehouse.SdItem" field-type="display" />
+            <field name="sku">
+                <default-field>
+                    <dynamic-dialog id="Edit" transition="editItem" button-text="Edit ${sku}"/>
+                </default-field>
+            </field>
+        </form-list>
+    </widgets>
+
+</screen>

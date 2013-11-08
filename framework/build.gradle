@@ -1,0 +1,232 @@
+/*
+ * This Work is in the public domain and is provided on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+ * including, without limitation, any warranties or conditions of TITLE,
+ * NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+ * You are solely responsible for determining the appropriateness of using
+ * this Work and assume any risks associated with your use of this Work.
+ *
+ * This Work includes contributions authored by David E. Jones, not as a
+ * "work for hire", who hereby disclaims any copyright to the same.
+ */
+
+tasks.withType(Compile) {
+    options.compilerArgs << "-Xlint:unchecked"
+}
+
+apply plugin: 'groovy'
+apply plugin: 'war'
+
+sourceCompatibility = '1.6'
+archivesBaseName = 'moqui'
+
+sourceSets {
+    start
+    api
+}
+
+// maybe in the future: repositories { mavenCentral() }
+repositories {
+    flatDir name: 'localLib', dirs: projectDir.absolutePath + '/lib'
+    flatDir name: 'localLibFop', dirs: projectDir.absolutePath + '/lib/fop'
+    flatDir name: 'localLibSearch', dirs: projectDir.absolutePath + '/lib/search'
+}
+
+dependencies {
+    // groovy dependencies (just the library to compile with)
+    // appears this is no longer needed with Gradle 1.6: groovy group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.1.6' // Apache 2.0
+
+    compile name: 'antisamy', version: '1.4' // New BSD
+
+    compile module(name: 'atomikos-transactions', version: '3.8.0') { // Apache 2.0
+        dependencies module(name: 'atomikos-util', version: '3.8.0') } // Apache 2.0
+    compile name: 'atomikos-transactions-api', version: '3.8.0' // Apache 2.0
+    compile name: 'atomikos-transactions-jdbc', version: '3.8.0' // Apache 2.0
+    // may use in the future: runtime name: 'atomikos-transactions-jms', version: '3.7.0' // Apache 2.0
+    compile name: 'atomikos-transactions-jta', version: '3.8.0' // Apache 2.0
+
+    apiCompile name: 'camel-core', version: '2.11.1' // Apache 2.0
+    compile name: 'camel-core', version: '2.11.1' // Apache 2.0
+
+    compile name: 'commons-codec', version: '1.4' // Apache 2.0
+    compile name: 'commons-collections', version: '3.2.1' // Apache 2.0
+    compile name: 'commons-email', version: '1.2' // Apache 2.0
+    compile name: 'commons-fileupload', version: '1.2.2' // Apache 2.0
+    compile name: 'commons-httpclient', version: '4.1' // Apache 2.0
+    compile name: 'commons-httpcore', version: '4.1' // Apache 2.0
+    compile name: 'commons-io', version: '2.0.1' // Apache 2.0
+    compile name: 'commons-validator', version: '1.4.0' // Apache 2.0
+
+    compile name: 'ehcache', version: '2.7.2' // Apache 2.0
+    compile name: 'esapi', version: '2.0.1' // New BSD
+    compile name: 'freemarker', version: '2.3.20' // BSD
+
+    compile name: 'geronimo-j2ee-connector_1.5_spec', version: '' // Apache 2.0
+    compile name: 'geronimo-jms_1.1_spec', version: '1.0' // Apache 2.0
+    apiCompile name: 'geronimo-jta_1.1_spec', version: '1.1.1' // Apache 2.0
+    compile name: 'geronimo-jta_1.1_spec', version: '1.1.1' // Apache 2.0
+
+    apiCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.1.6' // Apache 2.0
+    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.1.6' // Apache 2.0
+
+    compile name: 'jackrabbit-api', version: '2.5.2' // Apache 2.0
+    compile name: 'jackrabbit-jcr-commons', version: '2.5.2' // Apache 2.0
+    compile name: 'jackrabbit-jcr2dav', version: '2.5.2' // Apache 2.0
+    compile name: 'jackrabbit-jcr-rmi', version: '2.5.2' // Apache 2.0
+    compile name: 'jcr', version: '2.0' // Apache 2.0???
+
+    compile name: 'jsonrpc2-base', version: '1.20' // Apache 2.0
+    compile name: 'jsonrpc2-client', version: '1.4' // Apache 2.0
+    compile name: 'jsonrpc2-server', version: '1.4.1' // Apache 2.0
+
+    compile name: 'jsr173_1.0_api', version: '' // ???
+    compile name: 'liquibase', version: '2.0.1' // Apache 2.0
+    compile name: 'mail', version: '' // ???
+    compile name: 'org.eclipse.mylyn.wikitext.core_1.8.0.I20121130-0624', version: '' // EPL
+    compile name: 'org.eclipse.mylyn.wikitext.confluence.core_1.8.0.I20121130-0624', version: '' // EPL
+    compile name: 'org.eclipse.mylyn.wikitext.mediawiki.core_1.8.0.I20121130-0624', version: '' // EPL
+    compile name: 'org.eclipse.mylyn.wikitext.textile.core_1.8.0.I20121130-0624', version: '' // EPL
+    compile name: 'org.eclipse.mylyn.wikitext.tracwiki.core_1.8.0.I20121130-0624', version: '' // EPL
+    compile name: 'org.eclipse.mylyn.wikitext.twiki.core_1.8.0.I20121130-0624', version: '' // EPL
+
+    compile name: 'quartz-all', version: '2.1.7' // Apache 2.0
+
+    compile name: 'ws-commons-util', version: '1.0.2' // Apache 2.0
+    compile name: 'xmlrpc-client', version: '3.1.3' // Apache 2.0
+    compile name: 'xmlrpc-common', version: '3.1.3' // Apache 2.0
+    compile name: 'xmlrpc-server', version: '3.1.3' // Apache 2.0
+
+    compile module(name: 'shiro-core', version: '1.2.1') { // Apache 2.0
+        dependencies module(name: 'commons-beanutils', version: '1.8.3'), module(name: 'commons-logging', version: '1.1.1') }
+    compile name: 'shiro-web', version: '1.2.1' // Apache 2.0
+
+    apiCompile module(name: 'slf4j-api', version: '1.6.5') { // MIT license
+        dependencies module(name: 'log4j', version: '1.2.17'), module(name: 'slf4j-log4j12', version: '1.6.5') }
+    compile module(name: 'slf4j-api', version: '1.6.5') { // MIT license
+        dependencies module(name: 'log4j', version: '1.2.17'), module(name: 'slf4j-log4j12', version: '1.6.5') }
+
+    apiCompile name: 'winstone', version: '0.9.10' // CDDL
+    // winstone is in providedCompile so that it won't be included in the war file WEB-INF/lib
+    providedCompile name: 'winstone', version: '0.9.10' // CDDL
+
+    compile module(name: 'fop', version: '1.0') { // Apache 2.0
+        dependencies module(name: 'avalon-framework', version: '4.2.0'), module(name: 'xmlgraphics-commons', version: '1.4') // Apache 2.0
+    }
+
+    // ElasticSearch Libraries, including Lucene
+    apiCompile name: 'elasticsearch', version: '0.90.2' // Apache 2.0
+    compile name: 'elasticsearch', version: '0.90.2' // Apache 2.0
+    compile name: 'lucene-analyzers-common', version: '4.3.1' // Apache 2.0
+    compile name: 'lucene-codecs', version: '4.3.1' // Apache 2.0
+    compile name: 'lucene-core', version: '4.3.1' // Apache 2.0
+    compile name: 'lucene-grouping', version: '4.3.1' // Apache 2.0
+    compile name: 'lucene-highlighter', version: '4.3.1' // Apache 2.0
+    compile name: 'lucene-join', version: '4.3.1' // Apache 2.0
+    compile name: 'lucene-memory', version: '4.3.1' // Apache 2.0
+    compile name: 'lucene-queries', version: '4.3.1' // Apache 2.0
+    compile name: 'lucene-queryparser', version: '4.3.1' // Apache 2.0
+    compile name: 'lucene-sandbox', version: '4.3.1' // Apache 2.0
+    compile name: 'lucene-suggest', version: '4.3.1' // Apache 2.0
+    // runtime name: 'jts', version: '1.12' // LGPL (runtime only, needed by spatial4j)
+    runtime name: 'spatial4j', version: '0.3' // Apache 2.0
+    runtime name: 'lucene-spatial', version: '4.3.1' // Apache 2.0
+
+    // ========== runtime-only dependencies ==========
+    runtime name: 'camel-elasticsearch', version: '2.11.1' // Apache 2.0
+    runtime name: 'camel-freemarker', version: '2.11.1' // Apache 2.0
+    runtime name: 'camel-groovy', version: '2.11.1' // Apache 2.0
+    runtime name: 'camel-http4', version: '2.11.1' // Apache 2.0
+    runtime name: 'camel-jms', version: '2.11.1' // Apache 2.0
+    runtime name: 'camel-lucene', version: '2.11.1' // Apache 2.0
+    runtime name: 'camel-mail', version: '2.11.1' // Apache 2.0
+    runtime name: 'camel-quartz', version: '2.11.1' // Apache 2.0
+    runtime name: 'camel-shiro', version: '2.11.1' // Apache 2.0
+    runtime name: 'camel-websocket', version: '2.11.1' // Apache 2.0
+    runtime name: 'camel-xmlrpc', version: '2.11.1' // Apache 2.0
+
+    /* For extended WebDAV connection to Jackrabbit these are needed:
+    runtime name: 'jackrabbit-spi', version: '2.5.2' // Apache 2.0
+    runtime name: 'jackrabbit-spi-commons', version: '2.5.2' // Apache 2.0
+    runtime name: 'jackrabbit-jcr2spi', version: '2.5.2' // Apache 2.0
+    runtime name: 'jackrabbit-spi2dav', version: '2.5.2' // Apache 2.0
+    runtime name: 'jackrabbit-webdav', version: '2.5.2' // Apache 2.0
+    runtime name: 'commons-httpclient', version: '3.1' // Apache 2.0
+    */
+
+    runtime name: 'derby', version: '10.10.1.1' // Apache 2.0
+    runtime name: 'jakarta-oro', version: '2.0.8' // Apache 2.0
+    runtime name: 'shiro-ehcache', version: '1.2.1' // Apache 2.0
+    runtime name: 'shiro-quartz', version: '1.2.1' // Apache 2.0
+
+    // ========== test dependencies ==========
+    testCompile name: 'spock-core', version: '1.0-groovy-2.0-20121024' // Apache 2.0
+    testCompile name: 'junit', version: '4.10' // Apache 2.0
+}
+
+task apiJavadoc(type: Javadoc) {
+    source sourceSets.api.allJava
+    classpath = sourceSets.main.compileClasspath
+    destinationDir = file(docsDir.absolutePath + '/apiJavadoc')
+}
+
+// setup task dependencies to make sure the start and api sourceSets always get run
+compileJava.dependsOn startClasses
+compileJava.dependsOn apiClasses
+// add the classes directory for the api SourceSet to the main compile classpath so that dependent classes are available
+sourceSets.main.compileClasspath += files(sourceSets.api.output.classesDir)
+
+compileTestGroovy.dependsOn apiClasses
+compileTestGroovy.dependsOn classes
+sourceSets.test.compileClasspath += files(sourceSets.api.output.classesDir)
+sourceSets.test.compileClasspath += files(sourceSets.main.output.classesDir)
+
+// by default the Java plugin runs test on build, change to not do that (only run test if explicit task)
+check.dependsOn.remove(test)
+
+test {
+    systemProperty 'moqui.runtime', '../runtime'
+    systemProperty 'moqui.conf', 'conf/MoquiDevConf.xml'
+    systemProperty 'moqui.init.static', 'true'
+
+    testLogging.showStandardStreams = true
+
+    classpath += files(sourceSets.api.output.classesDir)
+    classpath += files(sourceSets.main.output.classesDir)
+    classpath += files(projectDir.absolutePath)
+    //classpath += fileTree(dir: projectDir.absolutePath,
+    //        includes: ['data/**', 'entity/**', 'screen/**', 'service/**', 'template/**', 'xsd/**'])
+
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: ${descriptor}")
+    }
+}
+
+jar {
+    // this is necessary otherwise jar won't build when war plugin is applied
+    enabled = true
+    appendix = 'framework'
+    manifest { attributes 'Implementation-Title': 'Moqui Framework', 'Implementation-Version': version }
+    from sourceSets.api.output
+    from sourceSets.main.output
+    // get all of the "resources" that are in component-standard directories instead of src/main/resources
+    from fileTree(dir: projectDir.absolutePath,
+            includes: ['data/**', 'entity/**', 'screen/**', 'service/**', 'template/**', 'xsd/**'])
+}
+
+war {
+    dependsOn jar
+    // put the war file in the parent directory, ie the moqui dir instead of the framework dir
+    destinationDir = file(projectDir.absolutePath + '/..')
+    // add MoquiInit.properties to the WEB-INF/classes dir for the deployed war mode of operation
+    from(fileTree(dir: projectDir.absolutePath + '/..', includes: ['MoquiInit.properties'])) { into 'WEB-INF/classes' }
+    // this excludes the classes in sourceSets.main.output (better to have the jar file built above)
+    classpath = configurations.runtime - configurations.providedCompile
+    classpath file(jar.archivePath)
+
+    // put start classes and winstone in the root of the war file for the executable war/jar mode of operation
+    from sourceSets.start.output
+    from file(projectDir.absolutePath + '/lib/winstone-0.9.10.jar')
+    // setup the manifest for the executable war/jar mode
+    manifest { attributes 'Implementation-Title': 'Moqui Start', 'Implementation-Vendor': 'Moqui Framework',
+            'Implementation-Version': version, 'Main-Class': 'MoquiStart' }
+}

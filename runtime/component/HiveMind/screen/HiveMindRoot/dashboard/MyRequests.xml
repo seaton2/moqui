@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        default-menu-include="false" standalone="true">
+
+    <transition name="createRequest">
+        <service-call name="mantle.request.RequestServices.create#Request" in-map="context"/>
+        <default-response url=".."/>
+    </transition>
+    <transition name="editRequest"><default-response url="../../Request/EditRequest"/></transition>
+
+    <transition name="getPersonList">
+        <actions>
+            <service-call name="mantle.party.PartyServices.search#Person" in-map="context" out-map="context"/>
+            <script>ec.web.sendJsonResponse(outList)</script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
+    <actions>
+        <entity-find entity-name="mantle.request.RequestAndParty" list="myRequestList">
+            <date-filter/>
+            <econdition field-name="partyId" from="ec.user.userAccount.partyId"/>
+            <econdition field-name="statusId" operator="not-in" value="ReqCompleted,ReqCancelled"/>
+            <order-by field-name="priority"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <container id="dashboard-requests-section">
+            <container-dialog id="NewRequestContainer" button-text="New Request">
+                <form-single name="NewRequest" transition="createRequest"
+                        extends="component://HiveMind/screen/HiveMindRoot/Request/FindRequest.xml#NewRequestForm">
+                </form-single>
+            </container-dialog>
+
+            <label text="My Open Requests" type="h3"/>
+            <form-list name="MyRequests" list="myRequestList">
+                <field name="requestId">
+                    <default-field title="ID"><link url="editRequest" text="${requestId}"/></default-field>
+                </field>
+                <field name="requestName">
+                    <default-field title="Name"><display also-hidden="false"/></default-field>
+                </field>
+                <field name="priority"><default-field><display also-hidden="false"/></default-field></field>
+                <field name="requestTypeEnumId">
+                    <default-field title="Type"><display-entity entity-name="moqui.basic.Enumeration" also-hidden="false"/></default-field>
+                </field>
+                <field name="statusId">
+                    <default-field title="Status"><display-entity entity-name="moqui.basic.StatusItem" also-hidden="false"/></default-field>
+                </field>
+                <field name="requestResolutionEnumId">
+                    <default-field title="Resolution"><display-entity entity-name="moqui.basic.Enumeration" also-hidden="false"/></default-field>
+                </field>
+            </form-list>
+        </container>
+    </widgets>
+</screen>

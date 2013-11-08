@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        require-authentication="true" screen-theme-type-enum-id="STT_INTERNAL" standalone="true">
+    <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
+
+    <parameter name="sku"/>
+
+    <transition name="update">
+
+        <service-call name="update#SdInventory" />
+        <default-response url="../../../Warehouse/Inventory"/>
+
+
+    </transition>
+    <transition name="create">
+        <service-call name="create#SdInventory"/>
+        <default-response url="../../../Warehouse/Inventory"/>
+    </transition>
+
+    <actions>
+        <entity-find-one entity-name="warehouse.SdInventory" value-field="singleAsset" >
+            <field-map field-name="sku" from="sku"   />
+        </entity-find-one>
+
+    </actions>
+    <widgets>
+        <section name="create">
+            <condition><compare field="singleAsset" operator="empty"/></condition>
+            <widgets>
+                <form-single name="createSdInventory" transition="create" map="singleAsset">
+                    <auto-fields-entity entity-name="warehouse.SdInventory" field-type="edit"/>
+                    <field name="Create">
+                        <default-field>
+                            <submit/>
+                        </default-field>
+                    </field>
+
+                </form-single>
+            </widgets>
+        </section>
+        <section name="update">
+            <condition><compare field="singleAsset" operator="not-empty"/></condition>
+            <widgets>
+                <form-single name="editSdInventory" transition="update" map="singleAsset">
+                    <auto-fields-entity entity-name="warehouse.SdInventory" field-type="edit"/>
+                    <field name="sku">
+                        <default-field>
+                            <display/>
+                        </default-field>
+                    </field>
+                    <field name="Update">
+                        <default-field>
+                            <submit/>
+                        </default-field>
+                    </field>
+
+                </form-single>
+            </widgets>
+        </section>
+
+    </widgets>
+</screen>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.3.xsd"
+        include-child-content="true" require-authentication="false">
+
+    <transition name="ExampleEntity" method="get">
+        <!-- To test this try something like:
+        NOTE: "am9obi5kb2U6bW9xdWk=" is the Base64 encoded String "john.doe:moqui"
+        curl -X GET -H "Authorization: Basic am9obi5kb2U6bW9xdWk=" http://localhost:8080/apps/example/ExampleEntity/100010
+        -->
+        <path-parameter name="exampleId"/>
+        <actions>
+            <entity-find-one entity-name="Example" value-field="example"/>
+            <script>ec.web.sendJsonResponse(example)</script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+    <transition name="ExampleEntity" method="post">
+        <!-- To test this try something like (remove the space between the two dashes in "- -data"):
+
+        curl -X POST -H "Content-Type: application/json" \
+             - -data '{ "exampleName":"REST Test 1", "exampleTypeEnumId":"EXT_MADE_UP", "statusId":"EXST_IN_DESIGN", \
+                 "authUsername":"john.doe", "authPassword":"moqui" }' \
+             http://localhost:8080/apps/example/ExampleEntity
+        -->
+        <service-call name="org.moqui.example.ExampleServices.createExample" in-map="ec.web.parameters"
+                      web-send-json-response="true"/>
+        <default-response type="none"/>
+    </transition>
+    <transition name="ExampleEntity" method="put">
+        <!-- To test this try something like (remove the space between the two dashes in "- -data"):
+
+        curl -X PUT -H "Content-Type: application/json" \
+             - -data '{ "exampleId":"100010", "exampleName":"REST Test 1 - Rev 2", \
+                 "authUsername":"john.doe", "authPassword":"moqui" }' \
+             http://localhost:8080/apps/example/ExampleEntity
+
+        OR (a much better approach):
+
+        curl -X PUT -H "Content-Type: application/json" -H "Authorization: Basic am9obi5kb2U6bW9xdWk=" \
+             - -data '{ "exampleName":"REST Test - Rev 2" }' http://localhost:8080/apps/example/ExampleEntity/100010
+        -->
+        <path-parameter name="exampleId"/>
+        <service-call name="org.moqui.example.ExampleServices.updateExample" in-map="ec.web.parameters"
+                      web-send-json-response="true"/>
+        <default-response type="none"/>
+    </transition>
+    <transition name="ExampleEntity" method="delete">
+        <!-- To test this try something like:
+        curl -X DELETE -H "Authorization: Basic am9obi5kb2U6bW9xdWk=" http://localhost:8080/apps/example/ExampleEntity/100010
+        -->
+        <path-parameter name="exampleId"/>
+        <service-call name="delete#Example" in-map="ec.web.parameters"
+                      web-send-json-response="true"/>
+        <default-response type="none"/>
+    </transition>
+
+    <transition name="LoadAllData">
+        <!-- NOTE: this is in the example component because it should NEVER be deployed on a production server! -->
+        <actions>
+            <script><![CDATA[
+            import org.moqui.entity.EntityDataLoader
+
+            ec.artifactExecution.disableAuthz()
+
+            // TODO: reject requests until this is done?
+
+            // load all the data
+            EntityDataLoader edl = ec.getEntity().makeDataLoader()
+
+            startTime = System.currentTimeMillis()
+            records = edl.load()
+            totalSeconds = (System.currentTimeMillis() - startTime) / 1000
+
+            ec.artifactExecution.enableAuthz()
+            ]]></script>
+            <log level="info" message="Loaded [${records}] records in ${totalSeconds} seconds."/>
+        </actions>
+        <default-response url="."/>
+    </transition>
+
+    <transition name="localCamelExample">
+        <!-- To test this try something like (remove the space between the two dashes in "- -data"):
+
+        curl -X POST -H "Content-Type: application/json" \
+             - -data '{ "testInput":"foo bar", "authUsername":"john.doe", "authPassword":"moqui" }' \
+             http://localhost:8080/apps/example/localCamelExample
+        -->
+        <service-call name="org.moqui.example.ExampleServices.localCamelExample"/>
+        <default-response url="."/>
+    </transition>
+
+    <subscreens default-item="Example">
+        <!-- these are actually links to content to add to the menu since content is not automatically added to the menu -->
+        <subscreens-item name="ExamplePolicies" menu-index="4" menu-title="Policies"/>
+        <subscreens-item name="ExampleTerms" menu-index="5" menu-title="Terms"/>
+        <subscreens-item name="ExampleWiki" menu-index="6" menu-title="Wiki"/>
+    </subscreens>
+
+    <widgets>
+        <subscreens-panel id="example-app" type="popup" title="Example App"/>
+        <!-- for a header and panel in an app can use something like this, though the basic approach above is cleaner:
+        <container-panel id="example-app">
+            <panel-header>
+                <label text="Moqui Example App" type="h2"/>
+            </panel-header>
+            <panel-center>
+                <subscreens-panel id="example-app-subscreen" type="tab"/>
+            </panel-center>
+        </container-panel>
+        -->
+    </widgets>
+</screen>

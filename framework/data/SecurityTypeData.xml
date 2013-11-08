@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This Work is in the public domain and is provided on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+including, without limitation, any warranties or conditions of TITLE,
+NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE.
+You are solely responsible for determining the appropriateness of using
+this Work and assume any risks associated with your use of this Work.
+
+This Work includes contributions authored by David E. Jones, not as a
+"work for hire", who hereby disclaims any copyright to the same.
+-->
+<entity-facade-xml type="seed">
+    <!-- An EmailTemplate for password reset email -->
+    <moqui.basic.email.EmailTemplate emailTemplateId="PASSWORD_RESET" description="Default Password Reset" emailServerId="SYSTEM"
+                   bodyScreenLocation="classpath://screen/PasswordReset.xml" webappName="webroot"
+                   fromAddress="" ccAddresses="" bccAddresses=""
+                   subject="Password Reset" sendPartial="Y"/>
+
+    <!-- An group for full-access Administrators -->
+    <moqui.security.UserGroup userGroupId="ADMIN" description="Administrators (full access)"/>
+
+    <!-- A default/automatic group for all users -->
+    <moqui.security.UserGroup userGroupId="ALL_USERS" description="All Users (all users members by default)"/>
+
+    <!-- Artifact Authz for UserAccount, user can view own info -->
+    <!-- NOTE: Leaving this here as an example of a record-limited authz, but no longer needed or used:
+    <moqui.security.ArtifactGroup artifactGroupId="UserAccount" description="UserAccount entity."/>
+    <moqui.security.ArtifactGroupMember artifactGroupId="UserAccount" artifactName="moqui.security.UserAccount" nameIsPattern="N"
+                         artifactTypeEnumId="AT_ENTITY" inheritAuthz="Y"/>
+    <moqui.security.ArtifactAuthz artifactAuthzId="ALL_USERS_SELF" userGroupId="ALL_USERS" artifactGroupId="UserAccount"
+                   authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_VIEW"/>
+    <moqui.security.ArtifactAuthzRecord artifactAuthzId="ALL_USERS_SELF" viewEntityName="moqui.security.UserAccount"/>
+    -->
+</entity-facade-xml>
